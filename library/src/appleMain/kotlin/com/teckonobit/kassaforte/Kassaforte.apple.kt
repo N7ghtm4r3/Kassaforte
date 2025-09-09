@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalForeignApi::class)
+@file:OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 
 package com.teckonobit.kassaforte
 
@@ -6,9 +6,9 @@ import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.equinoxcore.annotations.Returner
 import kotlinx.cinterop.*
 import platform.CoreFoundation.*
-import platform.Foundation.CFBridgingRelease
-import platform.Foundation.CFBridgingRetain
+import platform.Foundation.*
 import platform.Security.*
+import platform.darwin.NSObject
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual class Kassaforte actual constructor(
@@ -217,11 +217,36 @@ actual class Kassaforte actual constructor(
     private fun CFMutableDictionaryRef.secValueData(
         data: Any
     ) {
-        // TODO: CHECK WHETHER CONVERT THE ANY TYPE
         CFDictionaryAddValue(
             theDict = this,
             key = kSecValueData,
-            value = CFBridgingRetain(data)
+            value = CFBridgingRetain(data.convert())
+        )
+    }
+
+    @Returner
+    private fun Any.convert() : NSObject {
+        return when(this) {
+            is Number, Boolean, String -> this.toNSString()
+            is ByteArray -> this.toNSData()
+            else -> throw IllegalArgumentException("Type not supported")
+        }
+    }
+
+    @Returner
+    private fun Any.toNSString(): NSString {
+        val string = this.toString()
+        return NSString.create(
+            string = string
+        )
+    }
+
+    @Returner
+    private fun ByteArray.toNSData(): NSData = memScoped {
+        val pinnedBytes = this@toNSData.pin()
+        NSData.create(
+            bytes = pinnedBytes.addressOf(0),
+            length = size.toULong()
         )
     }
 
