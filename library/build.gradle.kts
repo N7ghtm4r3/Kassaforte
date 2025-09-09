@@ -43,6 +43,18 @@ kotlin {
         }
     }
 
+    mingwX64("windows") {
+        binaries {
+            executable()
+        }
+    }
+
+    linuxX64("linux") {
+        binaries {
+            executable()
+        }
+    }
+
     sourceSets {
 
         val androidMain by getting {
@@ -53,6 +65,7 @@ kotlin {
 
         val commonMain by getting {
             dependencies {
+                implementation(libs.equinox.core)
             }
         }
 

@@ -1,0 +1,156 @@
+@file:OptIn(ExperimentalForeignApi::class)
+
+package com.teckonobit.kassaforte
+
+import com.tecknobit.equinoxcore.annotations.Assembler
+import com.tecknobit.equinoxcore.annotations.Returner
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.ptr
+import platform.CoreFoundation.*
+import platform.Foundation.CFBridgingRetain
+import platform.Security.*
+
+@Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
+actual class Kassaforte actual constructor(
+    private val appName: String
+) {
+
+    actual fun safeguard(
+        key: String,
+        data: Any,
+    ) {
+        val attributes = addingDictionary(
+            key = key,
+            data = data
+        )
+        SecItemAdd(
+            attributes = attributes,
+            result = null
+        )
+    }
+
+    @Assembler
+    private fun addingDictionary(
+        key: String,
+        data: Any
+    ) : CFMutableDictionaryRef{
+        return kassaforteDictionary(
+            capacity = 3,
+            addEntries = {
+                secClassGenericPassword()
+                secAttrAccount(
+                    key = key
+                )
+                secValueData(
+                    data = data
+                )
+            }
+        )
+    }
+
+    actual fun refresh(
+        key: String,
+        data: Any
+    ) {
+        val query = refreshingQueryDictionary(
+            key = key
+        )
+        val refreshingAttributes = refreshingDictionary(
+            key = key,
+            data = data
+        )
+        SecItemUpdate(
+            query = query,
+            attributesToUpdate = refreshingAttributes
+        )
+    }
+
+    @Assembler
+    private fun refreshingQueryDictionary(
+        key: String,
+    ) : CFMutableDictionaryRef {
+        return kassaforteDictionary(
+            capacity = 2,
+            addEntries = {
+                secClassGenericPassword()
+                secAttrAccount(
+                    key = key
+                )
+            }
+        )
+    }
+
+    @Assembler
+    private fun refreshingDictionary(
+        key: String,
+        data: Any
+    ) : CFMutableDictionaryRef {
+        return kassaforteDictionary(
+            capacity = 2,
+            addEntries = {
+                secAttrAccount(
+                    key = key
+                )
+                secValueData(
+                    data = data
+                )
+            }
+        )
+    }
+
+    actual fun withdraw(
+        key: String
+    ): Any {
+        TODO("Not yet implemented")
+    }
+
+    actual fun remove(
+        key: String
+    ) {
+    }
+
+    @Returner
+    private fun kassaforteDictionary(
+        capacity: Long,
+        addEntries: CFMutableDictionaryRef.() -> Unit
+    ) : CFMutableDictionaryRef {
+        val dictionary = CFDictionaryCreateMutable(
+            allocator = null,
+            capacity = capacity,
+            keyCallBacks = kCFTypeDictionaryKeyCallBacks.ptr,
+            valueCallBacks = kCFTypeDictionaryValueCallBacks.ptr
+        )!!
+        dictionary.addEntries()
+        return dictionary
+    }
+
+    private fun CFMutableDictionaryRef.secClassGenericPassword() {
+        CFDictionaryAddValue(
+            theDict = this,
+            key = kSecClass,
+            value = kSecClassGenericPassword
+        )
+    }
+
+    private fun CFMutableDictionaryRef.secAttrAccount(
+        key: String
+    ) {
+        CFDictionaryAddValue(
+            theDict = this,
+            key = kSecAttrAccount,
+            value = CFBridgingRetain(appName + key)
+        )
+    }
+
+    private fun CFMutableDictionaryRef.secValueData(
+        data: Any
+    ) {
+        // TODO: CHECK WHETHER CONVERT THE ANY TYPE
+        CFDictionaryAddValue(
+            theDict = this,
+            key = kSecValueData,
+            value = CFBridgingRetain(data)
+        )
+    }
+
+}
