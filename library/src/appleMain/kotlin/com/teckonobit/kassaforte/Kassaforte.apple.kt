@@ -4,9 +4,9 @@ package com.teckonobit.kassaforte
 
 import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.equinoxcore.annotations.Returner
-import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.ptr
+import kotlinx.cinterop.*
 import platform.CoreFoundation.*
+import platform.Foundation.CFBridgingRelease
 import platform.Foundation.CFBridgingRetain
 import platform.Security.*
 
@@ -35,12 +35,13 @@ actual class Kassaforte actual constructor(
         data: Any
     ) : CFMutableDictionaryRef{
         return kassaforteDictionary(
-            capacity = 3,
+            capacity = 4,
             addEntries = {
-                secClassGenericPassword()
+                secAttrService()
                 secAttrAccount(
                     key = key
                 )
+                secClassGenericPassword()
                 secValueData(
                     data = data
                 )
@@ -70,12 +71,13 @@ actual class Kassaforte actual constructor(
         key: String,
     ) : CFMutableDictionaryRef {
         return kassaforteDictionary(
-            capacity = 2,
+            capacity = 3,
             addEntries = {
-                secClassGenericPassword()
+                secAttrService()
                 secAttrAccount(
                     key = key
                 )
+                secClassGenericPassword()
             }
         )
     }
@@ -86,8 +88,9 @@ actual class Kassaforte actual constructor(
         data: Any
     ) : CFMutableDictionaryRef {
         return kassaforteDictionary(
-            capacity = 2,
+            capacity = 3,
             addEntries = {
+                secAttrService()
                 secAttrAccount(
                     key = key
                 )
@@ -100,13 +103,74 @@ actual class Kassaforte actual constructor(
 
     actual fun withdraw(
         key: String
-    ): Any {
-        TODO("Not yet implemented")
+    ): Any? {
+        val query = searchingDictionary(
+            key = key
+        )
+        return memScoped {
+            val resultContainer = alloc<CFTypeRefVar>()
+            val resultStatus = SecItemCopyMatching(
+                query = query,
+                result = resultContainer.ptr
+            )
+            if(resultStatus == errSecSuccess)
+                CFBridgingRelease(resultContainer.value)
+            else
+                null
+        }
+    }
+
+    @Returner
+    private fun searchingDictionary(
+        key: String
+    ) : CFMutableDictionaryRef {
+        return kassaforteDictionary(
+            capacity = 5,
+            addEntries = {
+                secAttrService()
+                secAttrAccount(
+                    key = key
+                )
+                secClassGenericPassword()
+                CFDictionaryAddValue(
+                    theDict = this,
+                    key = kSecMatchLimit,
+                    value = kSecMatchLimitOne
+                )
+                CFDictionaryAddValue(
+                    theDict = this,
+                    key = kSecReturnData,
+                    value = CFBridgingRetain(true)
+                )
+            }
+        )
     }
 
     actual fun remove(
         key: String
     ) {
+        val query = deletingDictionary(
+            key = key
+        )
+        SecItemDelete(
+            query = query
+        )
+    }
+
+    @Returner
+    private fun deletingDictionary(
+        key: String
+    ) : CFMutableDictionaryRef {
+        return kassaforteDictionary(
+            capacity = 3,
+            addEntries = {
+                secAttrService()
+                secAttrAccount(
+                    key = key
+                )
+                secClassGenericPassword()
+            }
+        )
     }
 
     @Returner
@@ -124,11 +188,11 @@ actual class Kassaforte actual constructor(
         return dictionary
     }
 
-    private fun CFMutableDictionaryRef.secClassGenericPassword() {
+    private fun CFMutableDictionaryRef.secAttrService() {
         CFDictionaryAddValue(
             theDict = this,
-            key = kSecClass,
-            value = kSecClassGenericPassword
+            key = kSecAttrService,
+            value = CFBridgingRetain(appName)
         )
     }
 
@@ -138,7 +202,15 @@ actual class Kassaforte actual constructor(
         CFDictionaryAddValue(
             theDict = this,
             key = kSecAttrAccount,
-            value = CFBridgingRetain(appName + key)
+            value = CFBridgingRetain(key)
+        )
+    }
+
+    private fun CFMutableDictionaryRef.secClassGenericPassword() {
+        CFDictionaryAddValue(
+            theDict = this,
+            key = kSecClass,
+            value = kSecClassGenericPassword
         )
     }
 

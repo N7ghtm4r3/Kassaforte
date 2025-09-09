@@ -17,7 +17,7 @@ expect class Kassaforte(
 
     fun withdraw(
         key: String
-    ): Any
+    ): Any?
 
     fun remove(
         key: String

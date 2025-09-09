@@ -11,7 +11,7 @@ actual class Kassaforte {
 
     actual fun withdraw(
         key: String
-    ): Any {
+    ): Any? {
         TODO("Not yet implemented")
     }
 
