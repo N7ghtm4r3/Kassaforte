@@ -5,9 +5,7 @@ import com.tecknobit.equinoxcore.annotations.Returner
 internal fun checkIfIsSupportedType(
     data: Any
 ) {
-    require(
-        value = data is Number || data is String || data is Boolean || data is ByteArray
-    ) { "Type not supported" }
+    require(data is String || data is Number || data is Boolean) { "Type not supported" }
 }
 
 @Returner

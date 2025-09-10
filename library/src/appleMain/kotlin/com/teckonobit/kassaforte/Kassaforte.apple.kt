@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalForeignApi::class)
+@file:OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 
 package com.teckonobit.kassaforte
 
@@ -6,7 +6,10 @@ import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.equinoxcore.annotations.Returner
 import kotlinx.cinterop.*
 import platform.CoreFoundation.*
-import platform.Foundation.*
+import platform.Foundation.CFBridgingRelease
+import platform.Foundation.CFBridgingRetain
+import platform.Foundation.NSString
+import platform.Foundation.create
 import platform.Security.*
 import platform.darwin.NSObject
 
@@ -113,20 +116,11 @@ actual class Kassaforte actual constructor(
                 query = query,
                 result = resultContainer.ptr
             )
-            if(resultStatus != errSecSuccess)
-                return null
-            when(val storedData = CFBridgingRelease(resultContainer.value)) {
-                is NSData -> {
-                    val bytes = storedData.bytes?.reinterpret<ByteVar>()
-                    val length = storedData.length.toInt()
-                    if (bytes != null) {
-                        val byteArray = ByteArray(length) { i -> bytes[i] }
-                        byteArray.decodeToString()
-                    } else
-                        null
-                }
-                else -> storedData.toString()
-            }
+            val storedData = CFBridgingRelease(resultContainer.value)
+            if(resultStatus == errSecSuccess)
+                storedData.toString()
+            else
+                null
         }
     }
 
@@ -238,7 +232,6 @@ actual class Kassaforte actual constructor(
     private fun Any.convert() : NSObject {
         return when(this) {
             is Number, Boolean, String -> this.toNSString()
-            is ByteArray -> this.toNSData()
             else -> throw IllegalArgumentException("Type not supported")
         }
     }
@@ -248,15 +241,6 @@ actual class Kassaforte actual constructor(
         val string = this.toString()
         return NSString.create(
             string = string
-        )
-    }
-
-    @Returner
-    private fun ByteArray.toNSData(): NSData = memScoped {
-        val pinnedBytes = this@toNSData.pin()
-        NSData.create(
-            bytes = pinnedBytes.addressOf(0),
-            length = size.toULong()
         )
     }
 
