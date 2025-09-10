@@ -1,3 +1,4 @@
+import com.vanniktech.maven.publish.KotlinMultiplatform
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -11,7 +12,6 @@ group = "com.tecknobit.kassaforte"
 version = "1.0.0beta-01"
 
 kotlin {
-    jvm()
     androidTarget {
         publishLibraryVariants("release")
         compilerOptions {
@@ -43,15 +43,9 @@ kotlin {
         }
     }
 
-    mingwX64("windows") {
-        binaries {
-            executable()
-        }
-    }
-
-    linuxX64("linux") {
-        binaries {
-            executable()
+    jvm {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_18)
         }
     }
 
@@ -59,7 +53,7 @@ kotlin {
 
         val androidMain by getting {
             dependencies {
-
+                implementation(libs.startup)
             }
         }
 
@@ -94,24 +88,25 @@ kotlin {
     }
 }
 
-/*
 mavenPublishing {
     configure(
         platform = KotlinMultiplatform(
-            javadocJar = JavadocJar.Dokka("dokkaHtml"),
+            // TODO: TO SET 
+            //javadocJar = JavadocJar.Dokka("dokkaHtml"),
             sourcesJar = true
         )
     )
     coordinates(
         groupId = "io.github.n7ghtm4r3",
-        artifactId = "equinox-navigation",
-        version = "1.0.3"
+        artifactId = "kassaforte",
+        version = "1.0.0beta-01"
     )
     pom {
-        name.set("Equinox Navigation")
-        description.set("Utilities to handle the navigation in Compose Multiplatform applications")
+        name.set("Kassaforte")
+        // TODO: TO SET
+        // description.set("Utilities to handle the navigation in Compose Multiplatform applications")
         inceptionYear.set("2025")
-        url.set("https://github.com/N7ghtm4r3/Equinox")
+        url.set("https://github.com/N7ghtm4r3/Kassaforte")
 
         licenses {
             license {
@@ -128,13 +123,12 @@ mavenPublishing {
             }
         }
         scm {
-            url.set("https://github.com/N7ghtm4r3/Equinox")
+            url.set("https://github.com/N7ghtm4r3/Kassaforte")
         }
     }
     publishToMavenCentral()
     signAllPublications()
 }
- */
 
 android {
     namespace = "com.tecknobit.kassaforte"

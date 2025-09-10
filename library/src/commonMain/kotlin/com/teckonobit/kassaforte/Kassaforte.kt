@@ -2,7 +2,7 @@ package com.teckonobit.kassaforte
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 expect class Kassaforte(
-    appName: String
+    name: String
 ) {
 
     fun safeguard(
@@ -15,9 +15,9 @@ expect class Kassaforte(
         data: Any
     )
 
-    fun withdraw(
+    fun <T> withdraw(
         key: String
-    ): Any?
+    ): T?
 
     fun remove(
         key: String

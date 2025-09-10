@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
+@file:OptIn(ExperimentalForeignApi::class)
 
 package com.teckonobit.kassaforte
 
@@ -12,7 +12,7 @@ import platform.darwin.NSObject
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual class Kassaforte actual constructor(
-    private val appName: String
+    private val name: String
 ) {
 
     actual fun safeguard(
@@ -101,9 +101,10 @@ actual class Kassaforte actual constructor(
         )
     }
 
-    actual fun withdraw(
+    @Suppress("UNCHECKED_CAST")
+    actual fun <T> withdraw(
         key: String
-    ): Any? {
+    ): T? {
         val query = searchingDictionary(
             key = key
         )
@@ -114,7 +115,7 @@ actual class Kassaforte actual constructor(
                 result = resultContainer.ptr
             )
             if(resultStatus == errSecSuccess)
-                CFBridgingRelease(resultContainer.value)
+                CFBridgingRelease(resultContainer.value) as T?
             else
                 null
         }
@@ -192,7 +193,7 @@ actual class Kassaforte actual constructor(
         CFDictionaryAddValue(
             theDict = this,
             key = kSecAttrService,
-            value = CFBridgingRetain(appName)
+            value = CFBridgingRetain(name)
         )
     }
 

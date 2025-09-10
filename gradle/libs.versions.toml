@@ -4,9 +4,11 @@ kotlin = "2.2.10"
 android-minSdk = "24"
 android-compileSdk = "36"
 vanniktechMavenPublish = "0.34.0"
+startup = "1.2.0"
 equinox = "1.1.6"
 
 [libraries]
+startup = { module = "androidx.startup:startup-runtime", version.ref = "startup" }
 equinox-core = { module = "io.github.n7ghtm4r3:equinox-core", version.ref = "equinox" }
 
 [plugins]

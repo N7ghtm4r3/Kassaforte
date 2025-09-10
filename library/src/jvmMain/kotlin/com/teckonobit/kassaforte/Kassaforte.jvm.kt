@@ -1,7 +1,9 @@
 package com.teckonobit.kassaforte
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
-actual class Kassaforte {
+actual class Kassaforte actual constructor(
+    name: String
+) {
 
     actual fun safeguard(
         key: String,
@@ -9,10 +11,21 @@ actual class Kassaforte {
     ) {
     }
 
-    actual fun withdraw(
+    actual fun <T> withdraw(
         key: String
-    ): Any? {
+    ): T? {
         TODO("Not yet implemented")
+    }
+
+    actual fun refresh(
+        key: String,
+        data: Any
+    ) {
+    }
+
+    actual fun remove(
+        key: String
+    ) {
     }
 
 }
