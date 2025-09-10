@@ -1,21 +1,14 @@
 package com.teckonobit.kassaforte
 
-import android.content.Context
-import android.content.SharedPreferences
 import com.tecknobit.equinoxcore.annotations.Returner
-import com.tecknobit.equinoxcore.utilities.AppContext
-
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual class Kassaforte actual constructor(
-    name: String,
+    name: String
 ) {
 
-    private val appContext = AppContext.get()
-
-    private val prefs: SharedPreferences = appContext.getSharedPreferences(
-        name,
-        Context.MODE_PRIVATE
+    private val manager = KassaforteManager(
+        kassaforteName = name
     )
 
     actual fun safeguard(
@@ -25,21 +18,20 @@ actual class Kassaforte actual constructor(
         val encryptedKey = encryptKey(
             key = key
         )
-        secureStore(
+        safelyStore(
             encryptedKey = encryptedKey,
             data = data
         )
     }
 
     actual fun withdraw(
-        key: String,
+        key: String
     ): String? {
         val encryptedKey = encryptKey(
             key = key
         )
-        val storedData = prefs.getString(
-            encryptedKey,
-            null
+        val storedData = manager.retrieve(
+            key = encryptedKey
         )
         return if(storedData == null)
             null
@@ -51,7 +43,7 @@ actual class Kassaforte actual constructor(
     @Returner
     private fun decryptData(
         data: String
-    ) : String {
+    ): String {
         // TODO: TO USE THE Provider TO DECRYPT THEN
         val decryptedData = "" + data
         return decryptedData
@@ -59,7 +51,7 @@ actual class Kassaforte actual constructor(
 
     actual fun refresh(
         key: String,
-        data: Any,
+        data: Any
     ) {
         val encryptedKey = encryptKey(
             key = key
@@ -67,7 +59,7 @@ actual class Kassaforte actual constructor(
         whenKeyIsStored(
             encryptedKey = encryptedKey,
             then = {
-                secureStore(
+                safelyStore(
                     encryptedKey = encryptedKey,
                     data = data
                 )
@@ -75,23 +67,23 @@ actual class Kassaforte actual constructor(
         )
     }
 
-    private fun secureStore(
+    private fun safelyStore(
         encryptedKey: String,
-        data: Any
+        data: Any,
     ) {
         val encryptedData = encryptData(
             data = data
         )
-        prefs.edit().putString(
-            encryptedKey,
-            encryptedData
-        ).apply()
+        manager.store(
+            key = encryptedKey,
+            data = encryptedData
+        )
     }
 
     @Returner
     private fun encryptData(
         data: Any
-    ) : String {
+    ): String {
         checkIfIsSupportedType(
             data = data
         )
@@ -100,21 +92,25 @@ actual class Kassaforte actual constructor(
     }
 
     actual fun remove(
-        key: String,
+        key: String
     ) {
         val encryptedKey = encryptKey(
             key = key
         )
         whenKeyIsStored(
             encryptedKey = encryptedKey,
-            then = { prefs.edit().remove(encryptedKey).apply() }
+            then = {
+                manager.remove(
+                    key = encryptedKey
+                )
+            }
         )
     }
 
     @Returner
     private fun encryptKey(
         key: String
-    ) : String {
+    ): String {
         // TODO: TO USE THE Provider TO ENCRYPT THEN
         return key
     }
@@ -123,9 +119,9 @@ actual class Kassaforte actual constructor(
         encryptedKey: String,
         crossinline then: () -> Unit
     ) {
-        if(!prefs.contains(encryptedKey))
+        if(!manager.hasKeyStored(encryptedKey))
             throw IllegalStateException("This key is currently not stored")
         then()
     }
-
+    
 }

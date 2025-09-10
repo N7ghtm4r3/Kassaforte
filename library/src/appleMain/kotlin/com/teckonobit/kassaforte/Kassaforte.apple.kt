@@ -232,7 +232,7 @@ actual class Kassaforte actual constructor(
     private fun Any.convert() : NSObject {
         return when(this) {
             is Number, Boolean, String -> this.toNSString()
-            else -> throw IllegalArgumentException("Type not supported")
+            else -> throw IllegalArgumentException(UNSUPPORTED_TYPE)
         }
     }
 

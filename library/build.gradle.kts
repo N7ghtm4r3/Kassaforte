@@ -51,12 +51,6 @@ kotlin {
 
     sourceSets {
 
-        val androidMain by getting {
-            dependencies {
-                implementation(libs.startup)
-            }
-        }
-
         val commonMain by getting {
             dependencies {
                 implementation(libs.equinox.core)
@@ -80,8 +74,21 @@ kotlin {
             }
         }
 
-        val wasmJsMain by getting {
+        val hybridMain by creating {
+            dependsOn(commonMain)
+        }
+
+        val androidMain by getting {
+            dependsOn(hybridMain)
             dependencies {
+                implementation(libs.startup)
+            }
+        }
+
+        val wasmJsMain by getting {
+            dependsOn(hybridMain)
+            dependencies {
+                implementation(libs.kotlin.browser)
             }
         }
 

@@ -6,10 +6,12 @@ android-compileSdk = "36"
 vanniktechMavenPublish = "0.34.0"
 startup = "1.2.0"
 equinox = "1.1.6"
+kotlin-browser = "0.3.1"
 
 [libraries]
 startup = { module = "androidx.startup:startup-runtime", version.ref = "startup" }
 equinox-core = { module = "io.github.n7ghtm4r3:equinox-core", version.ref = "equinox" }
+kotlin-browser = { module = "org.jetbrains.kotlinx:kotlinx-browser", version.ref = "kotlin-browser" }
 
 [plugins]
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
