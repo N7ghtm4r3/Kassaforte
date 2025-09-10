@@ -11,9 +11,9 @@ actual class Kassaforte actual constructor(
     ) {
     }
 
-    actual fun <T> withdraw(
+    actual fun withdraw(
         key: String
-    ): T? {
+    ): String? {
         TODO("Not yet implemented")
     }
 

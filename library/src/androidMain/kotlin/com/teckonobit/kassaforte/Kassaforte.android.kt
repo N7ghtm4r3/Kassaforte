@@ -31,10 +31,9 @@ actual class Kassaforte actual constructor(
         )
     }
 
-    @Suppress("UNCHECKED_CAST")
-    actual fun <T> withdraw(
+    actual fun withdraw(
         key: String,
-    ): T? {
+    ): String? {
         val encryptedKey = encryptKey(
             key = key
         )
@@ -46,15 +45,16 @@ actual class Kassaforte actual constructor(
             null
         else decryptData(
             data = storedData
-        ) as T?
+        )
     }
 
     @Returner
     private fun decryptData(
         data: String
-    ) : Any {
+    ) : String {
         // TODO: TO USE THE Provider TO DECRYPT THEN
-        return data
+        val decryptedData = "" + data
+        return decryptedData
     }
 
     actual fun refresh(
@@ -92,6 +92,9 @@ actual class Kassaforte actual constructor(
     private fun encryptData(
         data: Any
     ) : String {
+        checkIfIsSupportedType(
+            data = data
+        )
         // TODO: TO USE THE Provider TO ENCRYPT THEN AND CHECK THE DATA
         return data.toString()
     }

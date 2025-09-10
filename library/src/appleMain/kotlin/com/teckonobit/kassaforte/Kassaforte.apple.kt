@@ -101,10 +101,9 @@ actual class Kassaforte actual constructor(
         )
     }
 
-    @Suppress("UNCHECKED_CAST")
-    actual fun <T> withdraw(
+    actual fun withdraw(
         key: String
-    ): T? {
+    ): String? {
         val query = searchingDictionary(
             key = key
         )
@@ -114,10 +113,20 @@ actual class Kassaforte actual constructor(
                 query = query,
                 result = resultContainer.ptr
             )
-            if(resultStatus == errSecSuccess)
-                CFBridgingRelease(resultContainer.value) as T?
-            else
-                null
+            if(resultStatus != errSecSuccess)
+                return null
+            when(val storedData = CFBridgingRelease(resultContainer.value)) {
+                is NSData -> {
+                    val bytes = storedData.bytes?.reinterpret<ByteVar>()
+                    val length = storedData.length.toInt()
+                    if (bytes != null) {
+                        val byteArray = ByteArray(length) { i -> bytes[i] }
+                        byteArray.decodeToString()
+                    } else
+                        null
+                }
+                else -> storedData.toString()
+            }
         }
     }
 
