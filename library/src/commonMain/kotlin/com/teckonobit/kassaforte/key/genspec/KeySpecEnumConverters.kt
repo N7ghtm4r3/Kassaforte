@@ -1,4 +1,4 @@
-package com.teckonobit.kassaforte.keyspec
+package com.teckonobit.kassaforte.key.genspec
 
 import com.tecknobit.equinoxcore.annotations.Returner
 

@@ -1,4 +1,4 @@
-package com.teckonobit.kassaforte.keyspec
+package com.teckonobit.kassaforte.key
 
 data class KeyPurposes(
     val canEncrypt: Boolean = false,

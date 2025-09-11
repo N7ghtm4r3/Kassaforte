@@ -1,14 +1,16 @@
 package com.teckonobit.kassaforte.services
 
-import com.teckonobit.kassaforte.keyspec.SymmetricKeyGenSpec
+import com.teckonobit.kassaforte.key.KeyPurposes
+import com.teckonobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual class KassaforteSymmetricService actual constructor(
     alias: String
 ) : KassaforteKeysService<SymmetricKeyGenSpec>() {
 
-    actual override fun generate(
-        keyGenSpec: SymmetricKeyGenSpec
+    actual override fun generateKey(
+        keyGenSpec: SymmetricKeyGenSpec,
+        purposes: KeyPurposes
     ) {
         TODO("Not yet implemented")
     }
@@ -25,7 +27,7 @@ actual class KassaforteSymmetricService actual constructor(
         TODO("Not yet implemented")
     }
 
-    actual override fun delete() {
+    actual override fun deleteKey() {
         TODO("Not yet implemented")
     }
 

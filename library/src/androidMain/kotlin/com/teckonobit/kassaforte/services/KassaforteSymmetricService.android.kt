@@ -4,8 +4,10 @@ import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties.*
 import com.tecknobit.equinoxcore.annotations.Assembler
-import com.teckonobit.kassaforte.keyspec.SymmetricKeyGenSpec
-import com.teckonobit.kassaforte.keyspec.convert
+import com.teckonobit.kassaforte.key.KeyPurposes
+import com.teckonobit.kassaforte.key.genspec.SymmetricKeyGenSpec
+import com.teckonobit.kassaforte.key.genspec.convert
+import java.security.KeyStore
 import javax.crypto.KeyGenerator
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
@@ -19,26 +21,26 @@ actual class KassaforteSymmetricService actual constructor(
 
     }
 
-    actual override fun generate(
-        keyGenSpec: SymmetricKeyGenSpec
+    actual override fun generateKey(
+        keyGenSpec: SymmetricKeyGenSpec,
+        purposes: KeyPurposes
     ) {
         val keyGenerator = KeyGenerator.getInstance(
             keyGenSpec.algorithm.value,
             ANDROID_KEYSTORE
         )
-        keyGenSpec.keySize?.let { keySize ->
-            keyGenerator.init(keySize)
-        }
-        val purposes = resolvePurposes(
-            keyGenSpec = keyGenSpec
-        )
         val genSpec = KeyGenParameterSpec.Builder(
             alias,
-            purposes
+            resolvePurposes(
+                keyPurposes = purposes
+            )
         ).run {
             setBlockModes(*keyGenSpec.blockModes.convert())
             setDigests(*keyGenSpec.digests.convert())
             setEncryptionPaddings(*keyGenSpec.encryptionPaddings.convert())
+            keyGenSpec.keySize?.let { keySize ->
+                setKeySize(keySize)
+            }
             build()
         }
         keyGenerator.init(genSpec)
@@ -47,10 +49,9 @@ actual class KassaforteSymmetricService actual constructor(
 
     @Assembler
     private fun resolvePurposes(
-        keyGenSpec: SymmetricKeyGenSpec
+        keyPurposes: KeyPurposes
     ): Int {
         var purposes = 0
-        val keyPurposes = keyGenSpec.purposes
         if(keyPurposes.canEncrypt)
             purposes = purposes or PURPOSE_ENCRYPT
         if(keyPurposes.canDecrypt)
@@ -80,8 +81,15 @@ actual class KassaforteSymmetricService actual constructor(
         TODO("Not yet implemented")
     }
 
-    actual override fun delete() {
+    actual override fun deleteKey() {
+        val keyStore = getKeystore()
+        keyStore.deleteEntry(alias)
+    }
 
+    private fun getKeystore(): KeyStore {
+        val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE)
+        keyStore.load(null)
+        return keyStore
     }
 
 }

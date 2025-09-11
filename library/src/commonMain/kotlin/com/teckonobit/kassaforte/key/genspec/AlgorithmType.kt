@@ -1,4 +1,4 @@
-package com.teckonobit.kassaforte.keyspec
+package com.teckonobit.kassaforte.key.genspec
 
 enum class AlgorithmType(
     val value: String

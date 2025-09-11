@@ -1,12 +1,10 @@
-package com.teckonobit.kassaforte.keyspec
+package com.teckonobit.kassaforte.key.genspec
 
 sealed interface KassaforteKeyGenSpec {
 
     val algorithm: AlgorithmType
 
     val keySize: Int?
-
-    val purposes: KeyPurposes
 
     val digests: Array<DigestType>
 
