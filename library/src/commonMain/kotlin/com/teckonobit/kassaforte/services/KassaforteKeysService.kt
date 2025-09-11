@@ -1,10 +1,12 @@
 package com.teckonobit.kassaforte.services
 
-import com.teckonobit.kassaforte.keys.KassaforteKey
+import com.teckonobit.kassaforte.keyspec.KassaforteKeyGenSpec
 
-abstract class KassaforteKeysService<K : KassaforteKey> {
+abstract class KassaforteKeysService<KS: KassaforteKeyGenSpec> {
 
-    abstract fun generate(): K
+    abstract fun generate(
+        keyGenSpec: KS
+    )
 
     abstract fun encrypt(
         data: Any
@@ -13,5 +15,7 @@ abstract class KassaforteKeysService<K : KassaforteKey> {
     abstract fun decrypt(
         data: String
     ): Any
+
+    abstract fun delete()
 
 }
