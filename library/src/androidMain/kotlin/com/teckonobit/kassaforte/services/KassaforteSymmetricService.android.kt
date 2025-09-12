@@ -82,7 +82,6 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         checkIfIsSupportedType(
             data = data
         )
-        val isGCMBlockMode = blockModeType == GCM
         var cipherIv: ByteArray = byteArrayOf()
         var encryptedData = useCipher(
             alias = alias,
@@ -91,13 +90,10 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         ) { cipher, key ->
             cipher.init(Cipher.ENCRYPT_MODE, key)
             cipherIv = cipher.iv
-            var dataToEncrypt = data.toString().encodeToByteArray()
-            if(!isGCMBlockMode)
-                dataToEncrypt = cipherIv + dataToEncrypt
+            val dataToEncrypt = data.toString().encodeToByteArray()
             cipher.doFinal(dataToEncrypt)
         }
-        if(isGCMBlockMode)
-            encryptedData = cipherIv + encryptedData
+        encryptedData = cipherIv + encryptedData
         return Base64.encode(encryptedData)
     }
 
