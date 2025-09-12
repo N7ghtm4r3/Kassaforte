@@ -5,6 +5,8 @@ enum class EncryptionPaddingType(
 ) {
     
     NONE("NoPadding"),
+
+    PKCS5("PKCS5Padding"),
     
     PKCS7("PKCS7Padding"),
     

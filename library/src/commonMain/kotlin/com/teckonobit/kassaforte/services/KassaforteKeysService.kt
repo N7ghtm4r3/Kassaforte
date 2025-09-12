@@ -6,18 +6,13 @@ import com.teckonobit.kassaforte.key.genspec.KassaforteKeyGenSpec
 abstract class KassaforteKeysService<KS: KassaforteKeyGenSpec> {
 
     abstract fun generateKey(
+        alias: String,
         keyGenSpec: KS,
         purposes: KeyPurposes
     )
 
-    abstract fun encrypt(
-        data: Any
-    ): String
-
-    abstract fun decrypt(
-        data: String
-    ): Any
-
-    abstract fun deleteKey()
+    abstract fun deleteKey(
+        alias: String
+    )
 
 }

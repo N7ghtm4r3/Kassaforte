@@ -1,27 +1,36 @@
 package com.teckonobit.kassaforte.services
 
 import com.teckonobit.kassaforte.key.KeyPurposes
+import com.teckonobit.kassaforte.key.genspec.BlockModeType
+import com.teckonobit.kassaforte.key.genspec.EncryptionPaddingType
 import com.teckonobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
-expect class KassaforteSymmetricService(
-    alias: String
-): KassaforteKeysService<SymmetricKeyGenSpec> {
+expect object KassaforteSymmetricService: KassaforteKeysService<SymmetricKeyGenSpec> {
 
     override fun generateKey(
+        alias: String,
         keyGenSpec: SymmetricKeyGenSpec,
         purposes: KeyPurposes
     )
 
-    override fun encrypt(
+    fun encrypt(
+        alias: String,
+        blockModeType: BlockModeType? = null,
+        paddingType: EncryptionPaddingType? = null,
         data: Any
     ): String
     
-    override fun decrypt(
+    fun decrypt(
+        alias: String,
+        blockModeType: BlockModeType?,
+        paddingType: EncryptionPaddingType?,
         data: String
-    ): Any
+    ): String
 
-    override fun deleteKey()
+    override fun deleteKey(
+        alias: String
+    )
 
 }
 
