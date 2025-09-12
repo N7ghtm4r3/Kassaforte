@@ -4,18 +4,18 @@ import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties.*
 import com.tecknobit.equinoxcore.annotations.Assembler
-import com.tecknobit.equinoxcore.annotations.Returner
 import com.teckonobit.kassaforte.checkIfIsSupportedType
 import com.teckonobit.kassaforte.key.KeyPurposes
 import com.teckonobit.kassaforte.key.genspec.BlockModeType
+import com.teckonobit.kassaforte.key.genspec.BlockModeType.GCM
 import com.teckonobit.kassaforte.key.genspec.EncryptionPaddingType
 import com.teckonobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.teckonobit.kassaforte.key.genspec.convert
 import java.security.Key
 import java.security.KeyStore
-import java.security.SecureRandom
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
+import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.IvParameterSpec
 import kotlin.io.encoding.Base64
 
@@ -82,25 +82,23 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         checkIfIsSupportedType(
             data = data
         )
-        val encryptedData = useCipher(
+        val isGCMBlockMode = blockModeType == GCM
+        var cipherIv: ByteArray = byteArrayOf()
+        var encryptedData = useCipher(
             alias = alias,
             blockModeType = blockModeType,
             paddingType = paddingType,
         ) { cipher, key ->
             cipher.init(Cipher.ENCRYPT_MODE, key)
-            val dataToEncrypt = cipher.iv + data.toString().encodeToByteArray()
+            cipherIv = cipher.iv
+            var dataToEncrypt = data.toString().encodeToByteArray()
+            if(!isGCMBlockMode)
+                dataToEncrypt = cipherIv + dataToEncrypt
             cipher.doFinal(dataToEncrypt)
         }
+        if(isGCMBlockMode)
+            encryptedData = cipherIv + encryptedData
         return Base64.encode(encryptedData)
-    }
-
-    @Returner
-    private fun initCustomIv(
-        ivSeed: ByteArray
-    ): IvParameterSpec {
-        val secureRandom = SecureRandom()
-        secureRandom.nextBytes(ivSeed)
-        return IvParameterSpec(ivSeed)
     }
 
     actual fun decrypt(
@@ -114,11 +112,19 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             blockModeType = blockModeType,
             paddingType = paddingType,
         ) { cipher, key ->
-            // TODO: TO ADAPT THE GCM USAGE
             val dataToDecrypt = Base64.decode(data)
-            val iv = IvParameterSpec(dataToDecrypt.copyOfRange(0, 16))
-            val cypherText = dataToDecrypt.copyOfRange(16, dataToDecrypt.size)
-            cipher.init(Cipher.DECRYPT_MODE, key, iv)
+            val cypherText = when(blockModeType) {
+                GCM -> {
+                    val ivSeed = dataToDecrypt.copyOfRange(0, 12)
+                    cipher.init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(128, ivSeed))
+                    dataToDecrypt.copyOfRange(12, dataToDecrypt.size)
+                }
+                else -> {
+                    val iv = IvParameterSpec(dataToDecrypt.copyOfRange(0, 16))
+                    cipher.init(Cipher.DECRYPT_MODE, key, iv)
+                    dataToDecrypt.copyOfRange(16, dataToDecrypt.size)
+                }
+            }
             cipher.doFinal(cypherText)
         }
         return decryptedData.decodeToString()
