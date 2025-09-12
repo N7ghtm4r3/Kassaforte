@@ -16,6 +16,12 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         TODO("Not yet implemented")
     }
 
+    actual override fun aliasExists(
+        alias: String
+    ): Boolean {
+        TODO("Not yet implemented")
+    }
+
     actual fun encrypt(
         alias: String,
         blockModeType: BlockModeType?,

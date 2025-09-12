@@ -24,11 +24,17 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
 
     private const val ANDROID_KEYSTORE = "AndroidKeyStore"
 
+    private val keyStore = KeyStore.getInstance("AndroidKeyStore").apply {
+        load(null)
+    }
+
     actual override fun generateKey(
         alias: String,
         keyGenSpec: SymmetricKeyGenSpec,
         purposes: KeyPurposes
     ) {
+        if(aliasExists(alias))
+            throw IllegalAccessException(ALIAS_ALREADY_TAKEN_ERROR)
         val keyGenerator = KeyGenerator.getInstance(
             keyGenSpec.algorithm.value,
             ANDROID_KEYSTORE
@@ -49,6 +55,12 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         }
         keyGenerator.init(genSpec)
         keyGenerator.generateKey()
+    }
+
+    actual override fun aliasExists(
+        alias: String
+    ): Boolean {
+        return keyStore.isKeyEntry(alias)
     }
 
     @Assembler
@@ -132,7 +144,6 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         paddingType: EncryptionPaddingType?,
         cypherUsage: (Cipher, Key) -> ByteArray
     ): ByteArray {
-        val keyStore = getKeystore()
         val key = keyStore.getKey(alias, null)
         val transformation = resolveTransformation(
             algorithm = key.algorithm,
@@ -162,14 +173,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     actual override fun deleteKey(
         alias: String
     ) {
-        val keyStore = getKeystore()
         keyStore.deleteEntry(alias)
-    }
-
-    private fun getKeystore(): KeyStore {
-        val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE)
-        keyStore.load(null)
-        return keyStore
     }
 
 }

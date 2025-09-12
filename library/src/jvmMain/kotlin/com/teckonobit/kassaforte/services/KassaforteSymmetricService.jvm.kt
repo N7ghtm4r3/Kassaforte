@@ -13,6 +13,11 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         keyGenSpec: SymmetricKeyGenSpec,
         purposes: KeyPurposes,
     ) {
+    }
+
+    actual override fun aliasExists(
+        alias: String
+    ): Boolean {
         TODO("Not yet implemented")
     }
 

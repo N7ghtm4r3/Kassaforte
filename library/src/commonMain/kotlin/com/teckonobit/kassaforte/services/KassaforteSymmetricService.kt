@@ -14,6 +14,10 @@ expect object KassaforteSymmetricService: KassaforteKeysService<SymmetricKeyGenS
         purposes: KeyPurposes
     )
 
+    override fun aliasExists(
+        alias: String
+    ): Boolean
+
     fun encrypt(
         alias: String,
         blockModeType: BlockModeType? = null,
