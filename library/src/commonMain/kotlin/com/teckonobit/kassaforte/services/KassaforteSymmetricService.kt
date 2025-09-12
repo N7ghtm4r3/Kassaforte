@@ -23,8 +23,8 @@ expect object KassaforteSymmetricService: KassaforteKeysService<SymmetricKeyGenS
     
     fun decrypt(
         alias: String,
-        blockModeType: BlockModeType?,
-        paddingType: EncryptionPaddingType?,
+        blockModeType: BlockModeType? = null,
+        paddingType: EncryptionPaddingType? = null,
         data: String
     ): String
 
