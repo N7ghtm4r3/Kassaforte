@@ -11,6 +11,8 @@ abstract class KassaforteKeysService<KS: KassaforteKeyGenSpec> {
 
         const val IMPOSSIBLE_TO_RETRIEVE_KEY_ERROR = "Impossible to retrieve the specified key"
 
+        const val KEY_CANNOT_PERFORM_OPERATION_ERROR = "The key cannot perform this operation: %s"
+
     }
 
     abstract fun generateKey(

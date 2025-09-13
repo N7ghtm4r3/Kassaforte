@@ -1,6 +1,6 @@
 package com.tecknobit.kassaforte.services
 
-enum class KeyOperation {
+internal enum class KeyOperation {
     
     ENCRYPT,
     
@@ -12,6 +12,8 @@ enum class KeyOperation {
     
     AGREE,
     
-    WRAP
+    WRAP,
+
+    OBTAIN_KEY
     
 }

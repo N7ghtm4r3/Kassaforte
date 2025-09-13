@@ -6,6 +6,8 @@ import com.tecknobit.kassaforte.key.genspec.BlockModeType
 import com.tecknobit.kassaforte.key.genspec.BlockModeType.GCM
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
+import com.tecknobit.kassaforte.services.KeyOperation.DECRYPT
+import com.tecknobit.kassaforte.services.KeyOperation.ENCRYPT
 import java.security.Key
 import javax.crypto.Cipher
 import javax.crypto.spec.GCMParameterSpec
@@ -48,6 +50,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             alias = alias,
             blockModeType = blockModeType,
             paddingType = paddingType,
+            keyOperation = ENCRYPT
         ) { cipher, key ->
             cipher.init(Cipher.ENCRYPT_MODE, key)
             cipherIv = cipher.iv
@@ -68,6 +71,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             alias = alias,
             blockModeType = blockModeType,
             paddingType = paddingType,
+            keyOperation = DECRYPT
         ) { cipher, key ->
             val dataToDecrypt = Base64.decode(data)
             val cypherText = when(blockModeType) {
@@ -91,10 +95,12 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         alias: String,
         blockModeType: BlockModeType?,
         paddingType: EncryptionPaddingType?,
+        keyOperation: KeyOperation,
         cypherUsage: (Cipher, Key) -> ByteArray
     ): ByteArray {
         val key = serviceImpl.getKey(
             alias = alias,
+            keyOperation = keyOperation
         )
         val transformation = resolveTransformation(
             algorithm = key.algorithm,

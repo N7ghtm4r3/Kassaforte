@@ -2,6 +2,7 @@ package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.equinoxcore.annotations.Returner
+import com.tecknobit.equinoxcore.annotations.Validator
 import com.tecknobit.kassaforte.Kassaforte
 import com.tecknobit.kassaforte.key.KeyPurposes
 import com.tecknobit.kassaforte.key.genspec.BlockModeType
@@ -10,6 +11,8 @@ import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType.PKCS7
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.ALIAS_ALREADY_TAKEN_ERROR
 import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.IMPOSSIBLE_TO_RETRIEVE_KEY_ERROR
+import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.KEY_CANNOT_PERFORM_OPERATION_ERROR
+import com.tecknobit.kassaforte.services.KeyOperation.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.security.Key
@@ -21,8 +24,6 @@ import kotlin.io.encoding.Base64
 internal actual class KassaforteSymmetricServiceImpl actual constructor() {
 
     private companion object {
-
-        const val KEY_DATA_DIVIDER = "@"
 
         const val PKCS5 = "PKCS5Padding"
 
@@ -45,7 +46,7 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() {
             alias = alias,
             keyInfo = KeyInfo(
                 algorithm = algorithm,
-                key = Base64.encode(key.encoded),
+                key = key,
                 keyPurposes = purposes
             )
         )
@@ -99,11 +100,11 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() {
         )
         if(encodedKeyData == null)
             throw IllegalAccessException(IMPOSSIBLE_TO_RETRIEVE_KEY_ERROR)
-        val decodedKeyData = Base64.decode(
-            source = encodedKeyData
-        ).decodeToString()
+        val decodedKeyData = Base64.decode(encodedKeyData)
+            .decodeToString()
         val keyInfo: KeyInfo = Json.decodeFromString(decodedKeyData)
-        println(keyInfo)
+        if(!keyInfo.canPerform(keyOperation))
+            throw IllegalAccessException(KEY_CANNOT_PERFORM_OPERATION_ERROR.format(keyOperation))
         return keyInfo.resolveKey()
     }
 
@@ -149,6 +150,16 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() {
         val keyPurposes: KeyPurposes
     ) {
 
+        constructor(
+            algorithm: String,
+            key: Key,
+            keyPurposes: KeyPurposes
+        ) : this (
+            algorithm = algorithm,
+            key = Base64.encode(key.encoded),
+            keyPurposes = keyPurposes
+        )
+
         val canEncrypt = keyPurposes.canEncrypt
 
         val canDecrypt = keyPurposes.canDecrypt
@@ -165,12 +176,20 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() {
             Base64.decode(key.encodeToByteArray()),
             algorithm
         )
-        
-        @com.tecknobit
+
+        @Validator
         fun canPerform(
             keyOperation: KeyOperation
         ) : Boolean {
-            return 
+            return when(keyOperation) {
+                ENCRYPT -> canEncrypt
+                DECRYPT -> canDecrypt
+                SIGN -> canSign
+                VERIFY -> canVerify
+                AGREE -> canAgree
+                WRAP -> canWrapKey
+                OBTAIN_KEY -> true
+            }
         }
 
     }
