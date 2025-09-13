@@ -57,12 +57,6 @@ kotlin {
             }
         }
 
-        val jvmMain by getting {
-            dependencies {
-                implementation(libs.keyring)
-            }
-        }
-
         val iosX64Main by getting
         val iosArm64Main by getting
         val iosSimulatorArm64Main by getting
@@ -80,11 +74,24 @@ kotlin {
             }
         }
 
+        val cipherBasedMain by creating {
+            dependsOn(commonMain)
+        }
+
+        val jvmMain by getting {
+            dependsOn(cipherBasedMain)
+            dependencies {
+                implementation(libs.keyring)
+                implementation(libs.bouncy.castle)
+            }
+        }
+
         val hybridMain by creating {
             dependsOn(commonMain)
         }
 
         val androidMain by getting {
+            dependsOn(cipherBasedMain)
             dependsOn(hybridMain)
             dependencies {
                 implementation(libs.startup)

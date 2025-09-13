@@ -5,9 +5,11 @@ import com.teckonobit.kassaforte.key.genspec.KassaforteKeyGenSpec
 
 abstract class KassaforteKeysService<KS: KassaforteKeyGenSpec> {
 
-    protected companion object {
+    companion object {
 
         const val ALIAS_ALREADY_TAKEN_ERROR = "This alias is already taken"
+
+        const val IMPOSSIBLE_TO_RETRIEVE_KEY_ERROR = "Impossible to retrieve the specified key"
 
     }
 

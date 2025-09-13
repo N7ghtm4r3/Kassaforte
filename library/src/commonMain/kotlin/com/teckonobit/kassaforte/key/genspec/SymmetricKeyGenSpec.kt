@@ -8,6 +8,29 @@ data class SymmetricKeyGenSpec(
     override val encryptionPaddings: Array<EncryptionPaddingType> = emptyArray()
 ): KassaforteKeyGenSpec {
 
+    constructor(
+        algorithm: AlgorithmType,
+        keySize: Int? = null,
+        blockMode: BlockModeType? = null,
+        digest: DigestType? = null,
+        encryptionPadding: EncryptionPaddingType? = null
+    ): this (
+        algorithm = algorithm,
+        keySize = keySize,
+        blockModes = if(blockMode != null)
+            arrayOf(blockMode)
+        else
+            emptyArray(),
+        digests = if(digest != null)
+            arrayOf(digest)
+        else
+            emptyArray(),
+        encryptionPaddings = if(encryptionPadding != null)
+            arrayOf(encryptionPadding)
+        else
+            emptyArray()
+    )
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is SymmetricKeyGenSpec) return false

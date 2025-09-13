@@ -1,6 +1,7 @@
 package com.teckonobit.kassaforte
 
 import com.github.javakeyring.Keyring
+import com.github.javakeyring.PasswordAccessException
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual class Kassaforte actual constructor(
@@ -24,10 +25,14 @@ actual class Kassaforte actual constructor(
     actual fun withdraw(
         key: String
     ): String? {
-        return keyring.getPassword(
-            name,
-            key
-        )
+        return try {
+            keyring.getPassword(
+                name,
+                key
+            )
+        } catch (e: PasswordAccessException) {
+            null
+        }
     }
 
     actual fun refresh(

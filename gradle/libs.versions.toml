@@ -8,12 +8,14 @@ startup = "1.2.0"
 equinox = "1.1.6"
 kotlin-browser = "0.3.1"
 keyring = "1.0.4"
+bouncy-castle = "1.81"
 
 [libraries]
 startup = { module = "androidx.startup:startup-runtime", version.ref = "startup" }
 equinox-core = { module = "io.github.n7ghtm4r3:equinox-core", version.ref = "equinox" }
 kotlin-browser = { module = "org.jetbrains.kotlinx:kotlinx-browser", version.ref = "kotlin-browser" }
 keyring = { module = "com.github.javakeyring:java-keyring", version.ref = "keyring" }
+bouncy-castle = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncy-castle" }
 
 [plugins]
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
