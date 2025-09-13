@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.vanniktech.mavenPublish)
+    kotlin("plugin.serialization") version "2.2.0"
 }
 
 group = "com.tecknobit.kassaforte"
@@ -54,6 +55,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(libs.equinox.core)
+                implementation(libs.json)
             }
         }
 
@@ -82,7 +84,6 @@ kotlin {
             dependsOn(cipherBasedMain)
             dependencies {
                 implementation(libs.keyring)
-                implementation(libs.bouncy.castle)
             }
         }
 
