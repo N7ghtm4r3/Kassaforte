@@ -11,7 +11,7 @@ external interface IDBDatabase : JsAny {
     fun createObjectStore(
         name: String,
         options: JsAny,
-    )
+    ): IDBObjectStore
 
     fun transaction(
         storeNames: String,

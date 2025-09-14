@@ -19,6 +19,10 @@ object IndexedDBManager {
 
     private const val OBJECT_STORAGE_NAME = "keys"
 
+    private const val ALIAS_KEY = "alias"
+
+    private const val ALIAS_IDX = "${ALIAS_KEY}_idx"
+
     private const val READ_WRITE_MODE = "readwrite"
 
     private val indexedDB = indexedDb()
@@ -32,8 +36,16 @@ object IndexedDBManager {
     }
 
     private fun IDBDatabase.createMainObjectStore() {
-        if (!objectStoreNames.contains(DATABASE_NAME))
-            createObjectStore(OBJECT_STORAGE_NAME, objectStoreOptions())
+        if (!objectStoreNames.contains(DATABASE_NAME)) {
+            val objectStore = createObjectStore(
+                name = OBJECT_STORAGE_NAME,
+                options = objectStoreOptions()
+            )
+            objectStore.createIndex(
+                name = ALIAS_IDX,
+                keyPath = ALIAS_KEY
+            )
+        }
     }
 
     fun addKey(
@@ -43,8 +55,13 @@ object IndexedDBManager {
         val request = indexedDB.openDB()
         request.onsuccess = { event ->
             val db = event.target!!.unsafeCast<IDBOpenDBRequest>().result
-            val transaction = db.transaction(OBJECT_STORAGE_NAME, READ_WRITE_MODE)
-            val objectStore = transaction.objectStore(OBJECT_STORAGE_NAME)
+            val transaction = db.transaction(
+                storeNames = OBJECT_STORAGE_NAME,
+                mode = READ_WRITE_MODE
+            )
+            val objectStore = transaction.objectStore(
+                name = OBJECT_STORAGE_NAME
+            )
             objectStore.put(
                 item = buildItem(
                     alias = alias,
