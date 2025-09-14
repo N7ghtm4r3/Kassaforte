@@ -1,6 +1,8 @@
+@file:OptIn(ExperimentalWasmJsInterop::class)
+
 package com.tecknobit.kassaforte.wrappers.cryptokey
 
-internal external interface CryptoKey : JsAny {
+external interface CryptoKey : JsAny {
 
     val type: String
 

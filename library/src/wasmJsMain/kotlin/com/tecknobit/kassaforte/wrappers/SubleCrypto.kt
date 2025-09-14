@@ -2,10 +2,14 @@
 
 package com.tecknobit.kassaforte.wrappers
 
+import com.tecknobit.kassaforte.wrappers.cryptokey.CryptoKey
 import com.tecknobit.kassaforte.wrappers.cryptokey.KeyGenSpec
+import org.khronos.webgl.ArrayBuffer
 import kotlin.js.Promise
 
-internal external object SubtleCrypto {
+const val RAW_EXPORT_FORMAT: String = "raw"
+
+external interface SubtleCrypto {
 
     fun generateKey(
         algorithm: KeyGenSpec,
@@ -13,7 +17,18 @@ internal external object SubtleCrypto {
         keyUsages: JsArray<JsString>,
     ): Promise<JsAny>
 
+    fun exportKey(
+        format: String,
+        key: CryptoKey,
+    ): Promise<ArrayBuffer>
+
+    fun encrypt(
+        algorithm: KeyGenSpec,
+        key: CryptoKey,
+        data: ArrayBuffer,
+    ): Promise<JsAny>
+
 }
 
 @JsFun("() => window.crypto.subtle")
-internal external fun subtleCrypto(): SubtleCrypto
+external fun subtleCrypto(): SubtleCrypto

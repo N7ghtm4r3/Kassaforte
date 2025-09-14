@@ -4,10 +4,12 @@ package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.equinoxcore.annotations.Returner
+import com.tecknobit.kassaforte.helpers.IndexedDBManager
 import com.tecknobit.kassaforte.key.KeyPurposes
 import com.tecknobit.kassaforte.key.genspec.BlockModeType
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
+import com.tecknobit.kassaforte.wrappers.RAW_EXPORT_FORMAT
 import com.tecknobit.kassaforte.wrappers.cryptokey.CryptoKey
 import com.tecknobit.kassaforte.wrappers.cryptokey.KeyGenSpec
 import com.tecknobit.kassaforte.wrappers.subtleCrypto
@@ -15,9 +17,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
+import org.khronos.webgl.ArrayBuffer
+
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGenSpec>() {
+
+    private val subtleCrypto = subtleCrypto()
 
     private val serviceScope = CoroutineScope(Dispatchers.Main)
 
@@ -26,7 +32,8 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         keyGenSpec: SymmetricKeyGenSpec,
         purposes: KeyPurposes,
     ) {
-        val subtleCrypto = subtleCrypto()
+        if (aliasExists(alias))
+            throw IllegalStateException(ALIAS_ALREADY_TAKEN_ERROR)
         val genSpec = resolveKeyGenSpec(
             algorithm = keyGenSpec.algorithm.value,
             blockType = keyGenSpec.blockMode.value,
@@ -74,13 +81,22 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         alias: String,
         key: CryptoKey,
     ) {
-
+        serviceScope.launch {
+            val exportedKey: ArrayBuffer = subtleCrypto.exportKey(
+                format = RAW_EXPORT_FORMAT,
+                key = key
+            ).await()
+            IndexedDBManager.addKey(
+                alias = alias,
+                key = exportedKey
+            )
+        }
     }
 
     actual override fun aliasExists(
         alias: String
     ): Boolean {
-        TODO("Not yet implemented")
+        return false
     }
 
     actual fun encrypt(
@@ -89,6 +105,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         paddingType: EncryptionPaddingType?,
         data: Any,
     ): String {
+        val subtleCrypto = subtleCrypto()
         TODO("Not yet implemented")
     }
 
