@@ -2,8 +2,6 @@
 
 package com.tecknobit.kassaforte
 
-import com.tecknobit.equinoxcore.annotations.Assembler
-import com.tecknobit.equinoxcore.annotations.Returner
 import kotlinx.cinterop.*
 import platform.CoreFoundation.*
 import platform.Foundation.CFBridgingRelease
@@ -32,7 +30,7 @@ actual class Kassaforte actual constructor(
         )
     }
 
-    @Assembler
+    // TODO TO ANNOTATE WITH @Assembler
     private fun addingDictionary(
         key: String,
         data: Any
@@ -69,7 +67,7 @@ actual class Kassaforte actual constructor(
         )
     }
 
-    @Assembler
+    // TODO TO ANNOTATE WITH @Assembler
     private fun refreshingQueryDictionary(
         key: String,
     ) : CFMutableDictionaryRef {
@@ -85,7 +83,7 @@ actual class Kassaforte actual constructor(
         )
     }
 
-    @Assembler
+    // TODO TO ANNOTATE WITH @Assembler
     private fun refreshingDictionary(
         key: String,
         data: Any
@@ -124,7 +122,7 @@ actual class Kassaforte actual constructor(
         }
     }
 
-    @Returner
+    // TODO TO ANNOTATE WITH @Returner
     private fun searchingDictionary(
         key: String
     ) : CFMutableDictionaryRef {
@@ -161,7 +159,7 @@ actual class Kassaforte actual constructor(
         )
     }
 
-    @Returner
+    // TODO TO ANNOTATE WITH @Returner
     private fun deletingDictionary(
         key: String
     ) : CFMutableDictionaryRef {
@@ -177,7 +175,7 @@ actual class Kassaforte actual constructor(
         )
     }
 
-    @Returner
+    // TODO TO ANNOTATE WITH @Returner
     private fun kassaforteDictionary(
         capacity: Long,
         addEntries: CFMutableDictionaryRef.() -> Unit
@@ -228,7 +226,7 @@ actual class Kassaforte actual constructor(
         )
     }
 
-    @Returner
+    // TODO TO ANNOTATE WITH @Returner
     private fun Any.convert() : NSObject {
         return when(this) {
             is Number, Boolean, String -> this.toNSString()
@@ -236,7 +234,7 @@ actual class Kassaforte actual constructor(
         }
     }
 
-    @Returner
+    // TODO TO ANNOTATE WITH @Returner
     private fun Any.toNSString(): NSString {
         val string = this.toString()
         return NSString.create(

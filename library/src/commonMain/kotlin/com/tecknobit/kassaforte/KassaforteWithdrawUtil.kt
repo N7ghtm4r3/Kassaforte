@@ -1,8 +1,6 @@
 package com.tecknobit.kassaforte
 
-import com.tecknobit.equinoxcore.annotations.Returner
-
-@Returner
+// TODO TO ANNOTATE WITH @Returner
 fun Kassaforte.withdrawInt(
     key: String
 ) : Int? {
@@ -11,7 +9,7 @@ fun Kassaforte.withdrawInt(
     )?.toIntOrNull()
 }
 
-@Returner
+// TODO TO ANNOTATE WITH @Returner
 fun Kassaforte.withdrawUInt(
     key: String
 ) : UInt? {
@@ -20,7 +18,7 @@ fun Kassaforte.withdrawUInt(
     )?.toUIntOrNull()
 }
 
-@Returner
+// TODO TO ANNOTATE WITH @Returner
 fun Kassaforte.withdrawLong(
     key: String
 ) : Long? {
@@ -29,7 +27,7 @@ fun Kassaforte.withdrawLong(
     )?.toLongOrNull()
 }
 
-@Returner
+// TODO TO ANNOTATE WITH @Returner
 fun Kassaforte.withdrawULong(
     key: String
 ) : ULong? {
@@ -38,7 +36,7 @@ fun Kassaforte.withdrawULong(
     )?.toULongOrNull()
 }
 
-@Returner
+// TODO TO ANNOTATE WITH @Returner
 fun Kassaforte.withdrawShort(
     key: String
 ) : Short? {
@@ -47,7 +45,7 @@ fun Kassaforte.withdrawShort(
     )?.toShortOrNull()
 }
 
-@Returner
+// TODO TO ANNOTATE WITH @Returner
 fun Kassaforte.withdrawUShort(
     key: String
 ) : UShort? {
@@ -56,7 +54,7 @@ fun Kassaforte.withdrawUShort(
     )?.toUShortOrNull()
 }
 
-@Returner
+// TODO TO ANNOTATE WITH @Returner
 fun Kassaforte.withdrawByte(
     key: String
 ) : Byte? {
@@ -65,7 +63,7 @@ fun Kassaforte.withdrawByte(
     )?.toByteOrNull()
 }
 
-@Returner
+// TODO TO ANNOTATE WITH @Returner
 fun Kassaforte.withdrawUByte(
     key: String
 ) : UByte? {
@@ -74,7 +72,7 @@ fun Kassaforte.withdrawUByte(
     )?.toUByteOrNull()
 }
 
-@Returner
+// TODO TO ANNOTATE WITH @Returner
 fun Kassaforte.withdrawFloat(
     key: String
 ) : Float? {
@@ -83,7 +81,7 @@ fun Kassaforte.withdrawFloat(
     )?.toFloatOrNull()
 }
 
-@Returner
+// TODO TO ANNOTATE WITH @Returner
 fun Kassaforte.withdrawDouble(
     key: String
 ) : Double? {
@@ -92,7 +90,7 @@ fun Kassaforte.withdrawDouble(
     )?.toDoubleOrNull()
 }
 
-@Returner
+// TODO TO ANNOTATE WITH @Returner
 fun Kassaforte.withdrawBoolean(
     key: String
 ) : Boolean? {

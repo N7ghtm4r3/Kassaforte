@@ -38,8 +38,6 @@ kotlin {
         binaries.executable()
         browser {
             webpackTask {
-                dependencies {
-                }
             }
         }
     }
@@ -54,8 +52,10 @@ kotlin {
 
         val commonMain by getting {
             dependencies {
-                implementation(libs.equinox.core)
+                // TODO: TO USE THIS INSTEAD
+                // implementation(libs.equinox.core)
                 implementation(libs.json)
+                implementation(libs.kotlinx.coroutines)
             }
         }
 
@@ -78,17 +78,26 @@ kotlin {
 
         val cipherBasedMain by creating {
             dependsOn(commonMain)
+            // TODO: TO REMOVE AND USE IN THE CORE ONE
+            dependencies {
+                implementation(libs.equinox.core)
+            }
         }
 
         val jvmMain by getting {
             dependsOn(cipherBasedMain)
             dependencies {
                 implementation(libs.keyring)
+                implementation(libs.kotlinx.coroutines.swing)
             }
         }
 
         val hybridMain by creating {
             dependsOn(commonMain)
+            // TODO: TO REMOVE AND USE IN THE CORE ONE
+            dependencies {
+                implementation(libs.equinox.core)
+            }
         }
 
         val androidMain by getting {

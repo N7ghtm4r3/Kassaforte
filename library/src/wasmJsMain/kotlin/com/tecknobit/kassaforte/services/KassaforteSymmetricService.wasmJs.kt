@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalWasmJsInterop::class)
+
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
@@ -6,9 +8,18 @@ import com.tecknobit.kassaforte.key.KeyPurposes
 import com.tecknobit.kassaforte.key.genspec.BlockModeType
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
+import com.tecknobit.kassaforte.wrappers.cryptokey.CryptoKey
+import com.tecknobit.kassaforte.wrappers.cryptokey.KeyGenSpec
+import com.tecknobit.kassaforte.wrappers.subtleCrypto
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.await
+import kotlinx.coroutines.launch
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGenSpec>() {
+
+    private val serviceScope = CoroutineScope(Dispatchers.Main)
 
     actual override fun generateKey(
         alias: String,
@@ -24,11 +35,17 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         val keyUsages = resolveUsages(
             purposes = purposes
         )
-        val key = subtleCrypto.generateKey(
-            algorithm = genSpec,
-            extractable = true,
-            keyUsages = keyUsages
-        )
+        serviceScope.launch {
+            val key: CryptoKey = subtleCrypto.generateKey(
+                algorithm = genSpec,
+                extractable = true,
+                keyUsages = keyUsages
+            ).await()
+            storeKey(
+                alias = alias,
+                key = key
+            )
+        }
     }
 
     @Assembler
@@ -51,6 +68,13 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         if (keyUsages.isEmpty())
             throw IllegalStateException("Key usages not valid")
         return keyUsages.map { it.toJsString() }.toJsArray()
+    }
+
+    private fun storeKey(
+        alias: String,
+        key: CryptoKey,
+    ) {
+
     }
 
     actual override fun aliasExists(
@@ -84,9 +108,6 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     }
 
 }
-
-@JsFun("() => window.crypto.subtle")
-private external fun subtleCrypto(): SubtleCrypto
 
 @JsFun(
     """
