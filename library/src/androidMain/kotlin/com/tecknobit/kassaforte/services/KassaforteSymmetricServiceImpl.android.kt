@@ -45,7 +45,7 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() {
                 keyPurposes = purposes
             )
         ).run {
-            setBlockModes(*keyGenSpec.blockModes.convert())
+            setBlockModes(keyGenSpec.blockMode.value)
             setDigests(*keyGenSpec.digests.convert())
             setEncryptionPaddings(*keyGenSpec.encryptionPaddings.convert())
             keyGenSpec.keySize?.let { keySize ->
