@@ -4,6 +4,7 @@ package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.equinoxcore.annotations.Returner
+import com.tecknobit.kassaforte.checkIfIsSupportedType
 import com.tecknobit.kassaforte.helpers.IndexedDBManager
 import com.tecknobit.kassaforte.helpers.toByteArray
 import com.tecknobit.kassaforte.helpers.toUint8Array
@@ -13,13 +14,11 @@ import com.tecknobit.kassaforte.key.genspec.BlockModeType.CBC
 import com.tecknobit.kassaforte.key.genspec.BlockModeType.CTR
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
-import com.tecknobit.kassaforte.wrappers.crypto.RAW_EXPORT_FORMAT
-import com.tecknobit.kassaforte.wrappers.crypto.aesCbcParams
+import com.tecknobit.kassaforte.wrappers.crypto.*
 import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.key.KeyGenSpec
 import com.tecknobit.kassaforte.wrappers.crypto.key.RawCryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.params.AesParams
-import com.tecknobit.kassaforte.wrappers.crypto.subtleCrypto
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.await
@@ -129,6 +128,9 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         paddingType: EncryptionPaddingType?,
         data: Any,
     ): String {
+        checkIfIsSupportedType(
+            data = data
+        )
         IndexedDBManager.getKeyData(
             alias = alias,
             onSuccess = { _, rawKey ->
@@ -136,19 +138,15 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
                     useKey(
                         rawKey = rawKey,
                         usage = { key ->
-                            val a: ArrayBuffer = subtleCrypto.encrypt(
+                            val encryptedData: ArrayBuffer = subtleCrypto.encrypt(
                                 algorithm = key.resolveAesParams(),
                                 key = key,
-                                data = data.sanitize()
+                                data = data.prepareToEncrypt()
                             ).await()
-                            println(Base64.encode(a.toByteArray()))
-                            ""
+                            Base64.encode(encryptedData.toByteArray())
                         }
                     )
                 }
-            },
-            onError = {
-
             }
         )
         return ""
@@ -196,12 +194,12 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         val algorithm = algorithm.name
         return when {
             algorithm.endsWith(CBC.value) -> aesCbcParams(algorithm)
-            algorithm.endsWith(CTR.value) -> aesCbcParams(algorithm)
-            else -> aesCbcParams(algorithm)
+            algorithm.endsWith(CTR.value) -> aesCtrParams(algorithm)
+            else -> aesGcmParams(algorithm)
         }
     }
 
-    private fun Any.sanitize(): Uint8Array {
+    private fun Any.prepareToEncrypt(): Uint8Array {
         return toString().encodeToByteArray().toUint8Array()
     }
 

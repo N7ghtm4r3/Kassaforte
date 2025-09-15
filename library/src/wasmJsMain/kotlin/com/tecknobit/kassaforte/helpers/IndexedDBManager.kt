@@ -90,7 +90,7 @@ object IndexedDBManager {
     fun getKeyData(
         alias: String,
         onSuccess: (Event, RawCryptoKey) -> Unit,
-        onError: (Event) -> Unit,
+        onError: (Event) -> Unit = { throw IllegalStateException(it.type) },
         onKeyNotFound: (Event) -> Unit = onError,
     ) {
         useIndexedDB(

@@ -6,6 +6,8 @@ import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.key.KeyGenSpec
 import com.tecknobit.kassaforte.wrappers.crypto.params.AesCbcParams
+import com.tecknobit.kassaforte.wrappers.crypto.params.AesCtrParams
+import com.tecknobit.kassaforte.wrappers.crypto.params.AesGcmParams
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
 import kotlin.js.Promise
@@ -68,11 +70,12 @@ external fun aesCbcParams(
     (name) => (
        {
           name: name,
-          iv: (() => {
+          counter: (() => {
              const array = new Uint8Array(16);
              crypto.getRandomValues(array);
              return array.buffer;
-          })()
+          })(),
+          length: 64
        }
     )   
     """
@@ -80,7 +83,7 @@ external fun aesCbcParams(
 @Assembler
 external fun aesCtrParams(
     name: String,
-): JsAny
+): AesCtrParams
 
 @JsFun(
     """
@@ -97,6 +100,6 @@ external fun aesCtrParams(
     """
 )
 @Assembler
-external fun aesGmcParams(
+external fun aesGcmParams(
     name: String,
-): JsAny
+): AesGcmParams
