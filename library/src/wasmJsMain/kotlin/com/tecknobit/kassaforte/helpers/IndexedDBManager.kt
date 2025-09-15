@@ -4,7 +4,6 @@ package com.tecknobit.kassaforte.helpers
 
 import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.equinoxcore.annotations.Returner
-import com.tecknobit.kassaforte.wrappers.RAW_EXPORT_FORMAT
 import com.tecknobit.kassaforte.wrappers.cryptokey.CryptoKey
 import com.tecknobit.kassaforte.wrappers.cryptokey.KeyGenSpec
 import com.tecknobit.kassaforte.wrappers.cryptokey.RawCryptoKey
@@ -13,10 +12,6 @@ import com.tecknobit.kassaforte.wrappers.indexeddb.TransactionMode.READONLY
 import com.tecknobit.kassaforte.wrappers.indexeddb.TransactionMode.READ_WRITE_MODE
 import com.tecknobit.kassaforte.wrappers.indexeddb.requests.IDBOpenDBRequest
 import com.tecknobit.kassaforte.wrappers.indexeddb.requests.IDBRequest
-import com.tecknobit.kassaforte.wrappers.subtleCrypto
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.await
-import kotlinx.coroutines.launch
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
 import org.khronos.webgl.get
@@ -56,7 +51,7 @@ object IndexedDBManager {
                         keyData = keyData.toEncodedKey(),
                         algorithm = key.algorithm,
                         extractable = key.extractable,
-                        keyUsages = key.usages
+                        usages = key.usages
                     )
                 )
             }
@@ -70,11 +65,10 @@ object IndexedDBManager {
         return Base64.encode(keyBytes)
     }
 
-    fun checkIfKeyExists(
+    fun checkIfAliasExists(
         alias: String,
         onKeyExists: (Event) -> Unit,
-        onError: (Event) -> Unit,
-        onKeyNotFound: (Event) -> Unit = onError,
+        onKeyNotFound: (Event) -> Unit,
     ) {
         useIndexedDB(
             onReady = {
@@ -91,14 +85,14 @@ object IndexedDBManager {
                     else
                         onKeyExists(event)
                 }
-                request.onerror = { event -> onError(event) }
+                request.onerror = { event -> onKeyNotFound(event) }
             }
         )
     }
 
     fun useKey(
         alias: String,
-        onSuccess: (Event, CryptoKey) -> Unit,
+        onSuccess: (Event, RawCryptoKey) -> Unit,
         onError: (Event) -> Unit,
         onKeyNotFound: (Event) -> Unit = onError,
     ) {
@@ -116,30 +110,12 @@ object IndexedDBManager {
                         onKeyNotFound(event)
                     else {
                         val rawKey = result.unsafeCast<RawCryptoKey>()
-                        val keyData = rawKey.keyData.toDecodedKeyData()
-                        val subtleCrypto = subtleCrypto()
-                        MainScope().launch {
-                            val key: CryptoKey = subtleCrypto.importKey(
-                                format = RAW_EXPORT_FORMAT,
-                                keyData = keyData,
-                                algorithm = rawKey.algorithm,
-                                extractable = rawKey.extractable,
-                                keyUsages = rawKey.usages
-                            ).await()
-                            onSuccess(event, key)
-                        }
+                        onSuccess(event, rawKey)
                     }
                 }
                 request.onerror = { event -> onError(event) }
             }
         )
-    }
-
-    @Returner
-    private fun String.toDecodedKeyData(): ArrayBuffer {
-        val encodedKeyData = Base64.decode(this)
-        val uint8Array = Uint8Array(encodedKeyData.size)
-        return uint8Array.buffer
     }
 
     private fun useIndexedDB(
@@ -212,13 +188,13 @@ private external fun objectStoreOptions(): JsAny
 
 @JsFun(
     """
-    (alias, keyData, algorithm, extractable, keyUsages) => (
+    (alias, keyData, algorithm, extractable, usages) => (
         {
             alias: alias,
             keyData: keyData,
             algorithm: algorithm,
             extractable: extractable,
-            keyUsages: keyUsages
+            usages: usages
         }
     )
     """
@@ -229,5 +205,5 @@ private external fun buildItem(
     keyData: String,
     algorithm: KeyGenSpec,
     extractable: Boolean,
-    keyUsages: JsArray<JsString>,
+    usages: JsArray<JsString>,
 ): JsAny

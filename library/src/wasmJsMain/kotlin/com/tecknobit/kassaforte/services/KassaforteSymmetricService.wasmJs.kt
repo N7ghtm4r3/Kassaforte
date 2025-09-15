@@ -18,6 +18,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import org.khronos.webgl.ArrayBuffer
+import org.khronos.webgl.Uint8Array
+import kotlin.io.encoding.Base64
 
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
@@ -32,10 +34,10 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         keyGenSpec: SymmetricKeyGenSpec,
         purposes: KeyPurposes,
     ) {
-        checkIfAliasExists(
+        performIfAliasAvailable(
             alias = alias,
-            onExists = { throw IllegalStateException(ALIAS_ALREADY_TAKEN_ERROR) },
-            onNotExists = {
+            onNotAvailable = { throw IllegalStateException(ALIAS_ALREADY_TAKEN_ERROR) },
+            onAvailable = {
                 val genSpec = resolveKeyGenSpec(
                     algorithm = keyGenSpec.algorithm.value,
                     blockType = keyGenSpec.blockMode.value,
@@ -63,15 +65,15 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         alias: String,
     ): Boolean = true
 
-    private fun checkIfAliasExists(
+    private fun performIfAliasAvailable(
         alias: String,
-        onExists: () -> Unit,
-        onNotExists: () -> Unit,
+        onNotAvailable: () -> Unit,
+        onAvailable: () -> Unit,
     ) {
-        IndexedDBManager.checkIfKeyExists(
+        IndexedDBManager.checkIfAliasExists(
             alias = alias,
-            onKeyExists = { onExists() },
-            onError = { onNotExists() }
+            onKeyExists = { onNotAvailable() },
+            onKeyNotFound = { onAvailable() }
         )
     }
 
@@ -120,8 +122,27 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         paddingType: EncryptionPaddingType?,
         data: Any,
     ): String {
-        val subtleCrypto = subtleCrypto()
-        TODO("Not yet implemented")
+        IndexedDBManager.useKey(
+            alias = alias,
+            onSuccess = { _, rawKey ->
+                println(rawKey.alias)
+                val keyData = rawKey.keyData.toDecodedKeyData()
+                serviceScope.launch {
+                    val key: CryptoKey = subtleCrypto.importKey(
+                        format = RAW_EXPORT_FORMAT,
+                        keyData = keyData,
+                        algorithm = rawKey.algorithm,
+                        extractable = rawKey.extractable,
+                        keyUsages = rawKey.usages.unsafeCast()
+                    ).await()
+                }
+
+            },
+            onError = {
+
+            }
+        )
+        return ""
     }
 
     actual fun decrypt(
@@ -131,6 +152,19 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         data: String,
     ): String {
         TODO("Not yet implemented")
+    }
+
+    @Returner
+    private fun String.toDecodedKeyData(): ArrayBuffer {
+        val encodedKeyData = Base64.decode(this)
+        val uint8Array = Uint8Array(encodedKeyData.size)
+        val mappedSourceArray = encodedKeyData
+            .map { (it.toInt() and 0xFF).toJsNumber() }
+            .toJsArray()
+        uint8Array.set(
+            array = mappedSourceArray
+        )
+        return uint8Array.buffer
     }
 
     actual override fun deleteKey(
