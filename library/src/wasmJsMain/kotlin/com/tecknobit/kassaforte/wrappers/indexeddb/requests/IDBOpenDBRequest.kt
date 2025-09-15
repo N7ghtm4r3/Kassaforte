@@ -6,6 +6,4 @@ external interface IDBOpenDBRequest : IDBRequest {
 
     var onupgradeneeded: ((Event) -> Unit)?
 
-    var onsuccess: ((Event) -> Unit)?
-
 }

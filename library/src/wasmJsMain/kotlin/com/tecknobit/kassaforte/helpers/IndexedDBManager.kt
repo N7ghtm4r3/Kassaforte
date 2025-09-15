@@ -25,50 +25,33 @@ object IndexedDBManager {
 
     private const val READ_WRITE_MODE = "readwrite"
 
-    private val indexedDB = indexedDb()
+    private lateinit var indexedDB: IDBDatabase
 
     init {
-        val request = indexedDB.openDB()
-        request.onupgradeneeded = { event ->
-            val db = event.target!!.unsafeCast<IDBOpenDBRequest>().result
-            db.createMainObjectStore()
-        }
-    }
-
-    private fun IDBDatabase.createMainObjectStore() {
-        if (!objectStoreNames.contains(DATABASE_NAME)) {
-            val objectStore = createObjectStore(
-                name = OBJECT_STORAGE_NAME,
-                options = objectStoreOptions()
-            )
-            objectStore.createIndex(
-                name = ALIAS_IDX,
-                keyPath = ALIAS_KEY
-            )
-        }
+        initIndexedDB()
     }
 
     fun addKey(
         alias: String,
         key: ArrayBuffer,
     ) {
-        val request = indexedDB.openDB()
-        request.onsuccess = { event ->
-            val db = event.target!!.unsafeCast<IDBOpenDBRequest>().result
-            val transaction = db.transaction(
-                storeNames = OBJECT_STORAGE_NAME,
-                mode = READ_WRITE_MODE
-            )
-            val objectStore = transaction.objectStore(
-                name = OBJECT_STORAGE_NAME
-            )
-            objectStore.put(
-                item = buildItem(
-                    alias = alias,
-                    key = key.toEncodedKey()
+        initIndexedDB(
+            onReady = {
+                val transaction = indexedDB.transaction(
+                    storeNames = OBJECT_STORAGE_NAME,
+                    mode = READ_WRITE_MODE
                 )
-            )
-        }
+                val objectStore = transaction.objectStore(
+                    name = OBJECT_STORAGE_NAME
+                )
+                objectStore.put(
+                    item = buildItem(
+                        alias = alias,
+                        key = key.toEncodedKey()
+                    )
+                )
+            }
+        )
     }
 
     @Returner
@@ -78,10 +61,44 @@ object IndexedDBManager {
         return Base64.encode(keyBytes)
     }
 
+    private fun initIndexedDB(
+        onReady: (() -> Unit)? = null,
+    ) {
+        if (::indexedDB.isInitialized) {
+            onReady?.invoke()
+            return
+        }
+        val request = indexedDb().openDB()
+        request.onsuccess = { event ->
+            indexedDB = event.target!!.unsafeCast<IDBOpenDBRequest>().result
+            onReady?.invoke()
+        }
+        request.onupgradeneeded = { event ->
+            indexedDB = event.target!!.unsafeCast<IDBOpenDBRequest>().result
+            indexedDB.createMainObjectStore()
+        }
+        request.onerror = {
+            throw IllegalStateException("Could not store with Kassaforte in this context")
+        }
+    }
+
     private fun IndexedDB.openDB(): IDBOpenDBRequest {
         return open(
             name = DATABASE_NAME
         )
+    }
+
+    private fun IDBDatabase.createMainObjectStore() {
+        if (!objectStoreNames.contains(OBJECT_STORAGE_NAME)) {
+            val objectStore = createObjectStore(
+                name = OBJECT_STORAGE_NAME,
+                options = objectStoreOptions()
+            )
+            objectStore.createIndex(
+                name = ALIAS_IDX,
+                keyPath = ALIAS_KEY
+            )
+        }
     }
 
 }

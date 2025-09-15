@@ -11,6 +11,10 @@ external interface IDBObjectStore : JsAny {
         keyPath: String,
     )
 
+    fun get(
+        key: String,
+    ): IDBRequest
+
     fun put(
         item: JsAny,
     ): IDBRequest
