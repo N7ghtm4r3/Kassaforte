@@ -4,9 +4,9 @@ package com.tecknobit.kassaforte.helpers
 
 import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.equinoxcore.annotations.Returner
-import com.tecknobit.kassaforte.wrappers.cryptokey.CryptoKey
-import com.tecknobit.kassaforte.wrappers.cryptokey.KeyGenSpec
-import com.tecknobit.kassaforte.wrappers.cryptokey.RawCryptoKey
+import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
+import com.tecknobit.kassaforte.wrappers.crypto.key.KeyGenSpec
+import com.tecknobit.kassaforte.wrappers.crypto.key.RawCryptoKey
 import com.tecknobit.kassaforte.wrappers.indexeddb.*
 import com.tecknobit.kassaforte.wrappers.indexeddb.TransactionMode.READONLY
 import com.tecknobit.kassaforte.wrappers.indexeddb.TransactionMode.READ_WRITE_MODE
@@ -90,7 +90,7 @@ object IndexedDBManager {
         )
     }
 
-    fun useKey(
+    fun getKeyData(
         alias: String,
         onSuccess: (Event, RawCryptoKey) -> Unit,
         onError: (Event) -> Unit,

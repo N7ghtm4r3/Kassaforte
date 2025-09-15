@@ -1,4 +1,4 @@
-package com.tecknobit.kassaforte.wrappers.cryptokey
+package com.tecknobit.kassaforte.wrappers.crypto.key
 
 external interface KeyGenSpec {
 
