@@ -13,8 +13,6 @@ import com.tecknobit.kassaforte.wrappers.indexeddb.TransactionMode.READ_WRITE_MO
 import com.tecknobit.kassaforte.wrappers.indexeddb.requests.IDBOpenDBRequest
 import com.tecknobit.kassaforte.wrappers.indexeddb.requests.IDBRequest
 import org.khronos.webgl.ArrayBuffer
-import org.khronos.webgl.Uint8Array
-import org.khronos.webgl.get
 import org.w3c.dom.events.Event
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.io.encoding.Base64
@@ -60,8 +58,7 @@ object IndexedDBManager {
 
     @Returner
     private fun ArrayBuffer.toEncodedKey(): String {
-        val uInt8 = Uint8Array(this)
-        val keyBytes = ByteArray(uInt8.length) { index -> uInt8[index] }
+        val keyBytes = this.toByteArray()
         return Base64.encode(keyBytes)
     }
 

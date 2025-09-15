@@ -3,7 +3,6 @@
 package com.tecknobit.kassaforte.wrappers.crypto
 
 import com.tecknobit.equinoxcore.annotations.Assembler
-import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.key.KeyGenSpec
 import com.tecknobit.kassaforte.wrappers.crypto.params.AesCbcParams
@@ -38,18 +37,8 @@ external interface SubtleCrypto {
         algorithm: JsAny,
         key: CryptoKey,
         data: Uint8Array,
-    ): Promise<JsAny>
+    ): Promise<ArrayBuffer>
 
-}
-
-@Returner
-fun ByteArray.toUint8Array(): Uint8Array {
-    val uint8Array = Uint8Array(this.size)
-    val array = this.map { it.toInt().toJsNumber() }.toJsArray()
-    uint8Array.set(
-        array = array
-    )
-    return uint8Array
 }
 
 @JsFun("() => window.crypto.subtle")
