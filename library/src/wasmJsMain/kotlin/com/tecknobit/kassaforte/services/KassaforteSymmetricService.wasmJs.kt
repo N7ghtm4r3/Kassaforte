@@ -32,27 +32,47 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         keyGenSpec: SymmetricKeyGenSpec,
         purposes: KeyPurposes,
     ) {
-        if (aliasExists(alias))
-            throw IllegalStateException(ALIAS_ALREADY_TAKEN_ERROR)
-        val genSpec = resolveKeyGenSpec(
-            algorithm = keyGenSpec.algorithm.value,
-            blockType = keyGenSpec.blockMode.value,
-            size = keyGenSpec.keySize ?: 128
+        checkIfAliasExists(
+            alias = alias,
+            onExists = { throw IllegalStateException(ALIAS_ALREADY_TAKEN_ERROR) },
+            onNotExists = {
+                val genSpec = resolveKeyGenSpec(
+                    algorithm = keyGenSpec.algorithm.value,
+                    blockType = keyGenSpec.blockMode.value,
+                    size = keyGenSpec.keySize ?: 128
+                )
+                val keyUsages = resolveUsages(
+                    purposes = purposes
+                )
+                serviceScope.launch {
+                    val key: CryptoKey = subtleCrypto.generateKey(
+                        algorithm = genSpec,
+                        extractable = true,
+                        keyUsages = keyUsages
+                    ).await()
+                    storeKey(
+                        alias = alias,
+                        key = key
+                    )
+                }
+            }
         )
-        val keyUsages = resolveUsages(
-            purposes = purposes
+    }
+
+    actual override fun aliasExists(
+        alias: String,
+    ): Boolean = true
+
+    private fun checkIfAliasExists(
+        alias: String,
+        onExists: () -> Unit,
+        onNotExists: () -> Unit,
+    ) {
+        IndexedDBManager.checkIfKeyExists(
+            alias = alias,
+            onKeyExists = { onExists() },
+            onError = { onNotExists() }
         )
-        serviceScope.launch {
-            val key: CryptoKey = subtleCrypto.generateKey(
-                algorithm = genSpec,
-                extractable = true,
-                keyUsages = keyUsages
-            ).await()
-            storeKey(
-                alias = alias,
-                key = key
-            )
-        }
     }
 
     @Assembler
@@ -88,15 +108,10 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             ).await()
             IndexedDBManager.addKey(
                 alias = alias,
-                key = exportedKey
+                key = key,
+                keyData = exportedKey
             )
         }
-    }
-
-    actual override fun aliasExists(
-        alias: String
-    ): Boolean {
-        return false
     }
 
     actual fun encrypt(

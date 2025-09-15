@@ -22,6 +22,14 @@ external interface SubtleCrypto {
         key: CryptoKey,
     ): Promise<ArrayBuffer>
 
+    fun importKey(
+        format: String,
+        keyData: ArrayBuffer,
+        algorithm: KeyGenSpec,
+        extractable: Boolean,
+        keyUsages: JsArray<JsString>,
+    ): Promise<JsAny>
+
     fun encrypt(
         algorithm: KeyGenSpec,
         key: CryptoKey,

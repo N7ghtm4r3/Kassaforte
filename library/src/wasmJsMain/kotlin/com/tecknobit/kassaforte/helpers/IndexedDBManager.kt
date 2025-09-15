@@ -1,16 +1,27 @@
-@file:OptIn(ExperimentalWasmJsInterop::class)
+@file:OptIn(ExperimentalWasmJsInterop::class, ExperimentalAtomicApi::class)
 
 package com.tecknobit.kassaforte.helpers
 
 import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.equinoxcore.annotations.Returner
-import com.tecknobit.kassaforte.wrappers.indexeddb.IDBDatabase
-import com.tecknobit.kassaforte.wrappers.indexeddb.IndexedDB
-import com.tecknobit.kassaforte.wrappers.indexeddb.indexedDb
+import com.tecknobit.kassaforte.wrappers.RAW_EXPORT_FORMAT
+import com.tecknobit.kassaforte.wrappers.cryptokey.CryptoKey
+import com.tecknobit.kassaforte.wrappers.cryptokey.KeyGenSpec
+import com.tecknobit.kassaforte.wrappers.cryptokey.RawCryptoKey
+import com.tecknobit.kassaforte.wrappers.indexeddb.*
+import com.tecknobit.kassaforte.wrappers.indexeddb.TransactionMode.READONLY
+import com.tecknobit.kassaforte.wrappers.indexeddb.TransactionMode.READ_WRITE_MODE
 import com.tecknobit.kassaforte.wrappers.indexeddb.requests.IDBOpenDBRequest
+import com.tecknobit.kassaforte.wrappers.indexeddb.requests.IDBRequest
+import com.tecknobit.kassaforte.wrappers.subtleCrypto
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.await
+import kotlinx.coroutines.launch
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
 import org.khronos.webgl.get
+import org.w3c.dom.events.Event
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.io.encoding.Base64
 
 object IndexedDBManager {
@@ -23,31 +34,29 @@ object IndexedDBManager {
 
     private const val ALIAS_IDX = "${ALIAS_KEY}_idx"
 
-    private const val READ_WRITE_MODE = "readwrite"
-
     private lateinit var indexedDB: IDBDatabase
 
     init {
-        initIndexedDB()
+        useIndexedDB()
     }
 
     fun addKey(
         alias: String,
-        key: ArrayBuffer,
+        key: CryptoKey,
+        keyData: ArrayBuffer,
     ) {
-        initIndexedDB(
+        useIndexedDB(
             onReady = {
-                val transaction = indexedDB.transaction(
-                    storeNames = OBJECT_STORAGE_NAME,
-                    mode = READ_WRITE_MODE
-                )
-                val objectStore = transaction.objectStore(
-                    name = OBJECT_STORAGE_NAME
+                val objectStore = obtainObjectStore(
+                    transactionMode = READ_WRITE_MODE
                 )
                 objectStore.put(
                     item = buildItem(
                         alias = alias,
-                        key = key.toEncodedKey()
+                        keyData = keyData.toEncodedKey(),
+                        algorithm = key.algorithm,
+                        extractable = key.extractable,
+                        keyUsages = key.usages
                     )
                 )
             }
@@ -61,7 +70,79 @@ object IndexedDBManager {
         return Base64.encode(keyBytes)
     }
 
-    private fun initIndexedDB(
+    fun checkIfKeyExists(
+        alias: String,
+        onKeyExists: (Event) -> Unit,
+        onError: (Event) -> Unit,
+        onKeyNotFound: (Event) -> Unit = onError,
+    ) {
+        useIndexedDB(
+            onReady = {
+                val objectStore = obtainObjectStore(
+                    transactionMode = READONLY
+                )
+                val request = objectStore.get(
+                    key = alias
+                )
+                request.onsuccess = { event ->
+                    val result: JsAny? = request.result
+                    if (result == null)
+                        onKeyNotFound(event)
+                    else
+                        onKeyExists(event)
+                }
+                request.onerror = { event -> onError(event) }
+            }
+        )
+    }
+
+    fun useKey(
+        alias: String,
+        onSuccess: (Event, CryptoKey) -> Unit,
+        onError: (Event) -> Unit,
+        onKeyNotFound: (Event) -> Unit = onError,
+    ) {
+        useIndexedDB(
+            onReady = {
+                val objectStore = obtainObjectStore(
+                    transactionMode = READONLY
+                )
+                val request = objectStore.get(
+                    key = alias
+                )
+                request.onsuccess = { event ->
+                    val result: JsAny? = request.result
+                    if (result == null)
+                        onKeyNotFound(event)
+                    else {
+                        val rawKey = result.unsafeCast<RawCryptoKey>()
+                        val keyData = rawKey.keyData.toDecodedKeyData()
+                        val subtleCrypto = subtleCrypto()
+                        MainScope().launch {
+                            val key: CryptoKey = subtleCrypto.importKey(
+                                format = RAW_EXPORT_FORMAT,
+                                keyData = keyData,
+                                algorithm = rawKey.algorithm,
+                                extractable = rawKey.extractable,
+                                keyUsages = rawKey.usages
+                            ).await()
+                            onSuccess(event, key)
+                        }
+                    }
+                }
+                request.onerror = { event -> onError(event) }
+            }
+        )
+    }
+
+    @Returner
+    private fun String.toDecodedKeyData(): ArrayBuffer {
+        val encodedKeyData = Base64.decode(this)
+        val uint8Array = Uint8Array(encodedKeyData.size)
+        return uint8Array.buffer
+    }
+
+    private fun useIndexedDB(
         onReady: (() -> Unit)? = null,
     ) {
         if (::indexedDB.isInitialized) {
@@ -70,11 +151,11 @@ object IndexedDBManager {
         }
         val request = indexedDb().openDB()
         request.onsuccess = { event ->
-            indexedDB = event.target!!.unsafeCast<IDBOpenDBRequest>().result
+            indexedDB = event.getResult()!!
             onReady?.invoke()
         }
         request.onupgradeneeded = { event ->
-            indexedDB = event.target!!.unsafeCast<IDBOpenDBRequest>().result
+            indexedDB = event.getResult()!!
             indexedDB.createMainObjectStore()
         }
         request.onerror = {
@@ -101,6 +182,24 @@ object IndexedDBManager {
         }
     }
 
+    @Returner
+    private fun obtainObjectStore(
+        transactionMode: TransactionMode,
+    ): IDBObjectStore {
+        val transaction = indexedDB.transaction(
+            storeNames = OBJECT_STORAGE_NAME,
+            mode = transactionMode.value
+        )
+        return transaction.objectStore(
+            name = OBJECT_STORAGE_NAME
+        )
+    }
+
+    @Returner
+    private fun <T> Event.getResult(): T? {
+        return target?.unsafeCast<IDBRequest>()?.result?.unsafeCast()
+    }
+
 }
 
 @JsFun(
@@ -113,10 +212,13 @@ private external fun objectStoreOptions(): JsAny
 
 @JsFun(
     """
-    (alias, key) => (
+    (alias, keyData, algorithm, extractable, keyUsages) => (
         {
             alias: alias,
-            key: key
+            keyData: keyData,
+            algorithm: algorithm,
+            extractable: extractable,
+            keyUsages: keyUsages
         }
     )
     """
@@ -124,5 +226,8 @@ private external fun objectStoreOptions(): JsAny
 @Assembler
 private external fun buildItem(
     alias: String,
-    key: String,
+    keyData: String,
+    algorithm: KeyGenSpec,
+    extractable: Boolean,
+    keyUsages: JsArray<JsString>,
 ): JsAny

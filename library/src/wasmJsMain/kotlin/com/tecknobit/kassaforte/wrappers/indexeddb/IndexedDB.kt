@@ -4,7 +4,7 @@ package com.tecknobit.kassaforte.wrappers.indexeddb
 
 import com.tecknobit.kassaforte.wrappers.indexeddb.requests.IDBOpenDBRequest
 
-external interface IndexedDB {
+external interface IndexedDB : JsAny {
 
     fun open(
         name: String,
