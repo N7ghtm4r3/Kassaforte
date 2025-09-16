@@ -19,4 +19,8 @@ external interface IDBObjectStore : JsAny {
         item: JsAny,
     ): IDBRequest
 
+    fun delete(
+        key: String,
+    ): IDBRequest
+
 }

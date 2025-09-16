@@ -254,7 +254,9 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     actual override fun deleteKey(
         alias: String,
     ) {
-        TODO("Not yet implemented")
+        IndexedDBManager.removeKey(
+            alias = alias
+        )
     }
 
 }

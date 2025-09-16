@@ -90,7 +90,7 @@ object IndexedDBManager {
     fun getAndUseKeyData(
         alias: String,
         onSuccess: (Event, RawCryptoKey) -> Unit,
-        onError: (Event) -> Unit = { throw IllegalStateException(it.type) },
+        onError: (Event) -> Unit = { throw RuntimeException(it.type) },
         onKeyNotFound: (Event) -> Unit = onError,
     ) {
         useIndexedDB(
@@ -111,6 +111,21 @@ object IndexedDBManager {
                     }
                 }
                 request.onerror = { event -> onError(event) }
+            }
+        )
+    }
+
+    fun removeKey(
+        alias: String,
+    ) {
+        useIndexedDB(
+            onReady = {
+                val objectStore = obtainObjectStore(
+                    transactionMode = READ_WRITE_MODE
+                )
+                objectStore.delete(
+                    key = alias
+                )
             }
         )
     }
@@ -156,6 +171,11 @@ object IndexedDBManager {
     }
 
     @Returner
+    private fun <T> Event.getResult(): T? {
+        return target?.unsafeCast<IDBRequest>()?.result?.unsafeCast()
+    }
+
+    @Returner
     private fun obtainObjectStore(
         transactionMode: TransactionMode,
     ): IDBObjectStore {
@@ -166,11 +186,6 @@ object IndexedDBManager {
         return transaction.objectStore(
             name = OBJECT_STORAGE_NAME
         )
-    }
-
-    @Returner
-    private fun <T> Event.getResult(): T? {
-        return target?.unsafeCast<IDBRequest>()?.result?.unsafeCast()
     }
 
 }
