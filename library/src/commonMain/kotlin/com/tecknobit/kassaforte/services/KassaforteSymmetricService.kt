@@ -30,7 +30,6 @@ expect object KassaforteSymmetricService: KassaforteKeysService<SymmetricKeyGenS
         data: Any,
     ): String
 
-    // TODO: CREATE THE WRAPPER UTIL LIKE KassaforteWithdrawUtil
     suspend fun decrypt(
         alias: String,
         blockModeType: BlockModeType,

@@ -1,4 +1,6 @@
-package com.tecknobit.kassaforte
+package com.tecknobit.kassaforte.util
+
+import com.tecknobit.kassaforte.Kassaforte
 
 // TODO TO ANNOTATE WITH @Returner
 suspend fun Kassaforte.withdrawInt(

@@ -2,6 +2,7 @@
 
 package com.tecknobit.kassaforte
 
+import com.tecknobit.kassaforte.util.UNSUPPORTED_TYPE
 import kotlinx.cinterop.*
 import platform.CoreFoundation.*
 import platform.Foundation.CFBridgingRelease

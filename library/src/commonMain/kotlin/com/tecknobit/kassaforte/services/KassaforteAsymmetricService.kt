@@ -13,4 +13,7 @@ expect class KassaforteAsymmetricService(
         data: String
     ): Boolean
 
+
+    // TODO: CREATE THE WRAPPER UTIL LIKE KassaforteSymmetricService.decrypt
+
 }

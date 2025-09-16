@@ -1,4 +1,4 @@
-package com.tecknobit.kassaforte
+package com.tecknobit.kassaforte.util
 
 const val UNSUPPORTED_TYPE = "Type not supported"
 

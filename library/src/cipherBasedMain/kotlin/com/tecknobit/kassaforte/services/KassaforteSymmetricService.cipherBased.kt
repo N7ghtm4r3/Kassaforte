@@ -1,7 +1,6 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
-import com.tecknobit.kassaforte.checkIfIsSupportedType
 import com.tecknobit.kassaforte.key.KeyPurposes
 import com.tecknobit.kassaforte.key.genspec.BlockModeType
 import com.tecknobit.kassaforte.key.genspec.BlockModeType.GCM
@@ -9,6 +8,7 @@ import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.tecknobit.kassaforte.services.KeyOperation.DECRYPT
 import com.tecknobit.kassaforte.services.KeyOperation.ENCRYPT
+import com.tecknobit.kassaforte.util.checkIfIsSupportedType
 import java.security.Key
 import javax.crypto.Cipher
 import javax.crypto.spec.GCMParameterSpec
