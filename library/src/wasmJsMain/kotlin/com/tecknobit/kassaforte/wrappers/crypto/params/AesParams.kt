@@ -2,7 +2,7 @@
 
 package com.tecknobit.kassaforte.wrappers.crypto.params
 
-external interface AesParams : JsAny {
+sealed external interface AesParams : JsAny {
 
     val name: String
 

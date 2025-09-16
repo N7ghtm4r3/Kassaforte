@@ -54,13 +54,16 @@ external fun subtleCrypto(): SubtleCrypto
 
 @JsFun(
     """
-    (name) => (
+    (name, iv) => (
        {
           name: name,
           iv: (() => {
-             const array = new Uint8Array(16);
-             crypto.getRandomValues(array);
-             return array.buffer;
+             if(iv.byteLength === 0) {
+                const array = new Uint8Array(16);
+                crypto.getRandomValues(array);
+                return array.buffer;
+             } else 
+                return iv;
           })()
        }
     )   
@@ -69,17 +72,21 @@ external fun subtleCrypto(): SubtleCrypto
 @Assembler
 external fun aesCbcParams(
     name: String,
+    iv: ArrayBuffer,
 ): AesCbcParams
 
 @JsFun(
     """
-    (name) => (
+    (name, counter) => (
        {
           name: name,
           counter: (() => {
-             const array = new Uint8Array(16);
-             crypto.getRandomValues(array);
-             return array.buffer;
+             if(iv.byteLength === 0) {
+                const array = new Uint8Array(16);
+                crypto.getRandomValues(array);
+                return array.buffer;
+             } else 
+                return counter;
           })(),
           length: 64
        }
@@ -89,17 +96,21 @@ external fun aesCbcParams(
 @Assembler
 external fun aesCtrParams(
     name: String,
+    counter: ArrayBuffer,
 ): AesCtrParams
 
 @JsFun(
     """
-    (name) => (
+    (name, iv) => (
        {
           name: name,
           iv: (() => {
-             const array = new Uint8Array(16);
-             crypto.getRandomValues(array);
-             return array.buffer;
+             if(iv.byteLength === 0) {
+                const array = new Uint8Array(12);
+                crypto.getRandomValues(array);
+                return array.buffer;
+             } else 
+                return iv;
           })()
        }
     )   
@@ -108,4 +119,5 @@ external fun aesCtrParams(
 @Assembler
 external fun aesGcmParams(
     name: String,
+    iv: ArrayBuffer,
 ): AesGcmParams

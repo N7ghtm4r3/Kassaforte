@@ -20,3 +20,8 @@ fun ByteArray.toUint8Array(): Uint8Array {
     )
     return uint8Array
 }
+
+@Returner
+fun ByteArray.toArrayBuffer(): ArrayBuffer {
+    return this.toUint8Array().buffer
+}
