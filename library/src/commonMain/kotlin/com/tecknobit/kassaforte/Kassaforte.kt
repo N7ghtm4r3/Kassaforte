@@ -12,11 +12,11 @@ expect class Kassaforte(
 
     fun refresh(
         key: String,
-        data: Any
+        data: Any,
     )
 
-    fun withdraw(
-        key: String
+    suspend fun withdraw(
+        key: String,
     ): String?
 
     fun remove(

@@ -1,8 +1,8 @@
 package com.tecknobit.kassaforte
 
 // TODO TO ANNOTATE WITH @Returner
-fun Kassaforte.withdrawInt(
-    key: String
+suspend fun Kassaforte.withdrawInt(
+    key: String,
 ) : Int? {
     return withdraw(
         key = key
@@ -10,8 +10,8 @@ fun Kassaforte.withdrawInt(
 }
 
 // TODO TO ANNOTATE WITH @Returner
-fun Kassaforte.withdrawUInt(
-    key: String
+suspend fun Kassaforte.withdrawUInt(
+    key: String,
 ) : UInt? {
     return withdraw(
         key = key
@@ -19,8 +19,8 @@ fun Kassaforte.withdrawUInt(
 }
 
 // TODO TO ANNOTATE WITH @Returner
-fun Kassaforte.withdrawLong(
-    key: String
+suspend fun Kassaforte.withdrawLong(
+    key: String,
 ) : Long? {
     return withdraw(
         key = key
@@ -28,8 +28,8 @@ fun Kassaforte.withdrawLong(
 }
 
 // TODO TO ANNOTATE WITH @Returner
-fun Kassaforte.withdrawULong(
-    key: String
+suspend fun Kassaforte.withdrawULong(
+    key: String,
 ) : ULong? {
     return withdraw(
         key = key
@@ -37,8 +37,8 @@ fun Kassaforte.withdrawULong(
 }
 
 // TODO TO ANNOTATE WITH @Returner
-fun Kassaforte.withdrawShort(
-    key: String
+suspend fun Kassaforte.withdrawShort(
+    key: String,
 ) : Short? {
     return withdraw(
         key = key
@@ -46,8 +46,8 @@ fun Kassaforte.withdrawShort(
 }
 
 // TODO TO ANNOTATE WITH @Returner
-fun Kassaforte.withdrawUShort(
-    key: String
+suspend fun Kassaforte.withdrawUShort(
+    key: String,
 ) : UShort? {
     return withdraw(
         key = key
@@ -55,8 +55,8 @@ fun Kassaforte.withdrawUShort(
 }
 
 // TODO TO ANNOTATE WITH @Returner
-fun Kassaforte.withdrawByte(
-    key: String
+suspend fun Kassaforte.withdrawByte(
+    key: String,
 ) : Byte? {
     return withdraw(
         key = key
@@ -64,8 +64,8 @@ fun Kassaforte.withdrawByte(
 }
 
 // TODO TO ANNOTATE WITH @Returner
-fun Kassaforte.withdrawUByte(
-    key: String
+suspend fun Kassaforte.withdrawUByte(
+    key: String,
 ) : UByte? {
     return withdraw(
         key = key
@@ -73,8 +73,8 @@ fun Kassaforte.withdrawUByte(
 }
 
 // TODO TO ANNOTATE WITH @Returner
-fun Kassaforte.withdrawFloat(
-    key: String
+suspend fun Kassaforte.withdrawFloat(
+    key: String,
 ) : Float? {
     return withdraw(
         key = key
@@ -82,8 +82,8 @@ fun Kassaforte.withdrawFloat(
 }
 
 // TODO TO ANNOTATE WITH @Returner
-fun Kassaforte.withdrawDouble(
-    key: String
+suspend fun Kassaforte.withdrawDouble(
+    key: String,
 ) : Double? {
     return withdraw(
         key = key
@@ -91,8 +91,8 @@ fun Kassaforte.withdrawDouble(
 }
 
 // TODO TO ANNOTATE WITH @Returner
-fun Kassaforte.withdrawBoolean(
-    key: String
+suspend fun Kassaforte.withdrawBoolean(
+    key: String,
 ) : Boolean? {
     return withdraw(
         key = key

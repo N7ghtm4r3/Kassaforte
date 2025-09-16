@@ -58,7 +58,7 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() {
         val kassaforte = Kassaforte(
             name = alias
         )
-        return kassaforte.withdraw(
+        return kassaforte.unsuspendedWithdraw(
             key = alias
         ) != null
     }
@@ -95,7 +95,7 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() {
         val kassaforte = Kassaforte(
             name = alias
         )
-        val encodedKeyData = kassaforte.withdraw(
+        val encodedKeyData = kassaforte.unsuspendedWithdraw(
             key = alias
         )
         if(encodedKeyData == null)

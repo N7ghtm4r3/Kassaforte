@@ -40,7 +40,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     ) {
         performIfAliasAvailable(
             alias = alias,
-            onNotAvailable = { throw IllegalStateException(ALIAS_ALREADY_TAKEN_ERROR) },
+            onNotAvailable = { return@performIfAliasAvailable },
             onAvailable = {
                 val genSpec = resolveKeyGenSpec(
                     algorithm = keyGenSpec.algorithm.value,

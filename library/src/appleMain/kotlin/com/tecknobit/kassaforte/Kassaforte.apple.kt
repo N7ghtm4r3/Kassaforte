@@ -102,8 +102,8 @@ actual class Kassaforte actual constructor(
         )
     }
 
-    actual fun withdraw(
-        key: String
+    actual suspend fun withdraw(
+        key: String,
     ): String? {
         val query = searchingDictionary(
             key = key

@@ -22,8 +22,32 @@ actual class Kassaforte actual constructor(
         )
     }
 
-    actual fun withdraw(
-        key: String
+    actual suspend fun withdraw(
+        key: String,
+    ): String? {
+        return unsuspendedWithdraw(
+            key = key
+        )
+    }
+
+    actual fun refresh(
+        key: String,
+        data: Any
+    ) {
+        val storedPassword = unsuspendedWithdraw(
+            key = key
+        )
+        if(storedPassword != null) {
+            safeguard(
+                key = key,
+                data = data
+            )
+        }
+    }
+
+    // TODO: TO INDICATE WHY AT THE MOMENT THIS METHOD IS REQUIRED
+    internal fun unsuspendedWithdraw(
+        key: String,
     ): String? {
         return try {
             keyring.getPassword(
@@ -32,21 +56,6 @@ actual class Kassaforte actual constructor(
             )
         } catch (e: PasswordAccessException) {
             null
-        }
-    }
-
-    actual fun refresh(
-        key: String,
-        data: Any
-    ) {
-        val storedPassword = withdraw(
-            key = key
-        )
-        if(storedPassword != null) {
-            safeguard(
-                key = key,
-                data = data
-            )
         }
     }
 
