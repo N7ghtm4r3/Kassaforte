@@ -39,11 +39,11 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         )
     }
 
-    actual fun encrypt(
+    actual suspend fun encrypt(
         alias: String,
         blockModeType: BlockModeType?,
         paddingType: EncryptionPaddingType?,
-        data: Any
+        data: Any,
     ): String {
         var cipherIv: ByteArray = byteArrayOf()
         var encryptedData = useCipher(
@@ -61,11 +61,11 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         return Base64.encode(encryptedData)
     }
 
-    actual fun decrypt(
+    actual suspend fun decrypt(
         alias: String,
         blockModeType: BlockModeType?,
         paddingType: EncryptionPaddingType?,
-        data: String
+        data: String,
     ): String {
         val decryptedData = useCipher(
             alias = alias,

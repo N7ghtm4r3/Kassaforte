@@ -19,12 +19,10 @@ import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.key.KeyGenSpec
 import com.tecknobit.kassaforte.wrappers.crypto.key.RawCryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.params.AesParams
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.await
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
+import kotlin.coroutines.resume
 import kotlin.io.encoding.Base64
 
 
@@ -122,7 +120,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         }
     }
 
-    actual fun encrypt(
+    actual suspend fun encrypt(
         alias: String,
         blockModeType: BlockModeType?,
         paddingType: EncryptionPaddingType?,
@@ -131,34 +129,63 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         checkIfIsSupportedType(
             data = data
         )
-        IndexedDBManager.getKeyData(
-            alias = alias,
-            onSuccess = { _, rawKey ->
-                serviceScope.launch {
-                    useKey(
-                        rawKey = rawKey,
-                        usage = { key ->
-                            val encryptedData: ArrayBuffer = subtleCrypto.encrypt(
-                                algorithm = key.resolveAesParams(),
-                                key = key,
-                                data = data.prepareToEncrypt()
-                            ).await()
-                            Base64.encode(encryptedData.toByteArray())
-                        }
-                    )
-                }
+        val rawKey = obtainRawKey(
+            alias = alias
+        )
+        val encryptedData = useKey(
+            rawKey = rawKey,
+            usage = { key ->
+                val encryptedData: ArrayBuffer = subtleCrypto.encrypt(
+                    algorithm = key.resolveAesParams(),
+                    key = key,
+                    data = data.prepareToCiphering()
+                ).await()
+                Base64.encode(encryptedData.toByteArray())
             }
         )
-        return ""
+        return encryptedData
     }
 
-    actual fun decrypt(
+    actual suspend fun decrypt(
         alias: String,
         blockModeType: BlockModeType?,
         paddingType: EncryptionPaddingType?,
         data: String,
     ): String {
-        TODO("Not yet implemented")
+        val rawKey = obtainRawKey(
+            alias = alias
+        )
+        val decryptedData = useKey(
+            rawKey = rawKey,
+            usage = { key ->
+                val decryptedData: ArrayBuffer = subtleCrypto.decrypt(
+                    algorithm = key.resolveAesParams(),
+                    key = key,
+                    data = data.prepareToCiphering()
+                ).await()
+                println(Base64.decode(decryptedData.toByteArray()).decodeToString())
+                Base64.decode(decryptedData.toByteArray()).decodeToString()
+            }
+        )
+        return decryptedData
+    }
+
+    @Returner
+    private suspend fun obtainRawKey(
+        alias: String,
+    ): RawCryptoKey {
+        return suspendCancellableCoroutine { continuation ->
+            IndexedDBManager.getAndUseKeyData(
+                alias = alias,
+                onSuccess = { _, rawKey -> continuation.resume(rawKey) },
+                onError = { eventError -> throw RuntimeException(eventError.type) }
+            )
+        }
+    }
+
+    @Returner
+    private fun Any.prepareToCiphering(): Uint8Array {
+        return toString().encodeToByteArray().toUint8Array()
     }
 
     private suspend fun useKey(
@@ -199,12 +226,8 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         }
     }
 
-    private fun Any.prepareToEncrypt(): Uint8Array {
-        return toString().encodeToByteArray().toUint8Array()
-    }
-
     actual override fun deleteKey(
-        alias: String
+        alias: String,
     ) {
         TODO("Not yet implemented")
     }

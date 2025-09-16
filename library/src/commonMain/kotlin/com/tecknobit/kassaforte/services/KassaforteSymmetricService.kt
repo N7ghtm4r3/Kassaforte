@@ -18,19 +18,19 @@ expect object KassaforteSymmetricService: KassaforteKeysService<SymmetricKeyGenS
         alias: String
     ): Boolean
 
-    fun encrypt(
+    suspend fun encrypt(
         alias: String,
         blockModeType: BlockModeType? = null,
         paddingType: EncryptionPaddingType? = null,
-        data: Any
+        data: Any,
     ): String
 
     // TODO: CREATE THE WRAPPER UTIL LIKE KassaforteWithdrawUtil
-    fun decrypt(
+    suspend fun decrypt(
         alias: String,
         blockModeType: BlockModeType? = null,
         paddingType: EncryptionPaddingType? = null,
-        data: String
+        data: String,
     ): String
 
     override fun deleteKey(

@@ -41,6 +41,12 @@ external interface SubtleCrypto {
         data: Uint8Array,
     ): Promise<ArrayBuffer>
 
+    fun decrypt(
+        algorithm: JsAny,
+        key: CryptoKey,
+        data: Uint8Array,
+    ): Promise<ArrayBuffer>
+
 }
 
 @JsFun("() => window.crypto.subtle")
