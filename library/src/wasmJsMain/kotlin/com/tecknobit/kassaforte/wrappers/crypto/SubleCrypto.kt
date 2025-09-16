@@ -81,7 +81,7 @@ external fun aesCbcParams(
        {
           name: name,
           counter: (() => {
-             if(iv.byteLength === 0) {
+             if(counter.byteLength === 0) {
                 const array = new Uint8Array(16);
                 crypto.getRandomValues(array);
                 return array.buffer;

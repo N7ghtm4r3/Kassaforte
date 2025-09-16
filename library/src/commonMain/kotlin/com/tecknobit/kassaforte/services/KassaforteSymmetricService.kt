@@ -3,6 +3,7 @@ package com.tecknobit.kassaforte.services
 import com.tecknobit.kassaforte.key.KeyPurposes
 import com.tecknobit.kassaforte.key.genspec.BlockModeType
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
+import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType.NONE
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 
 const val CBC_CTR_BLOCK_SIZE = 16
@@ -24,16 +25,16 @@ expect object KassaforteSymmetricService: KassaforteKeysService<SymmetricKeyGenS
 
     suspend fun encrypt(
         alias: String,
-        blockModeType: BlockModeType? = null,
-        paddingType: EncryptionPaddingType? = null,
+        blockModeType: BlockModeType,
+        paddingType: EncryptionPaddingType = NONE,
         data: Any,
     ): String
 
     // TODO: CREATE THE WRAPPER UTIL LIKE KassaforteWithdrawUtil
     suspend fun decrypt(
         alias: String,
-        blockModeType: BlockModeType? = null,
-        paddingType: EncryptionPaddingType? = null,
+        blockModeType: BlockModeType,
+        paddingType: EncryptionPaddingType = NONE,
         data: String,
     ): String
 

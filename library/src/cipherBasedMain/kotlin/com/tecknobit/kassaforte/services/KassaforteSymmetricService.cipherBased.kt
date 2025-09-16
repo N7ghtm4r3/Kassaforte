@@ -1,6 +1,7 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
+import com.tecknobit.kassaforte.checkIfIsSupportedType
 import com.tecknobit.kassaforte.key.KeyPurposes
 import com.tecknobit.kassaforte.key.genspec.BlockModeType
 import com.tecknobit.kassaforte.key.genspec.BlockModeType.GCM
@@ -41,10 +42,13 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
 
     actual suspend fun encrypt(
         alias: String,
-        blockModeType: BlockModeType?,
-        paddingType: EncryptionPaddingType?,
+        blockModeType: BlockModeType,
+        paddingType: EncryptionPaddingType,
         data: Any,
     ): String {
+        checkIfIsSupportedType(
+            data = data
+        )
         var cipherIv: ByteArray = byteArrayOf()
         var encryptedData = useCipher(
             alias = alias,
@@ -63,8 +67,8 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
 
     actual suspend fun decrypt(
         alias: String,
-        blockModeType: BlockModeType?,
-        paddingType: EncryptionPaddingType?,
+        blockModeType: BlockModeType,
+        paddingType: EncryptionPaddingType,
         data: String,
     ): String {
         val decryptedData = useCipher(
@@ -111,7 +115,6 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         return cypherUsage(cipher, key)
     }
 
-    // TODO: TO CHECK WHETHER MERGE
     @Assembler
     private fun resolveTransformation(
         algorithm: String,

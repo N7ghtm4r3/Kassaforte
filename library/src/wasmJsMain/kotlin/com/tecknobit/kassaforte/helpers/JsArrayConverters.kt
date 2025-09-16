@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalWasmJsInterop::class)
+
 package com.tecknobit.kassaforte.helpers
 
 import com.tecknobit.equinoxcore.annotations.Returner

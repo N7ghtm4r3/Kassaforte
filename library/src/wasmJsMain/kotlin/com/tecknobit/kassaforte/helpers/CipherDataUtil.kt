@@ -9,16 +9,8 @@ import com.tecknobit.kassaforte.services.GCM_BLOCK_SIZE
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
 
-@Returner
-fun Any.prepareToCiphering(): Uint8Array {
-    return if (this is ByteArray)
-        this.toUint8Array()
-    else
-        toString().encodeToByteArray().toUint8Array()
-}
-
-fun Any.prepareToCiphering(
-    blockModeType: BlockModeType?,
+fun Any.prepareToEncrypt(
+    blockModeType: BlockModeType,
 ): Uint8Array {
     val plainText = this.toString().encodeToByteArray()
     return if (blockModeType == CBC) {
@@ -30,7 +22,7 @@ fun Any.prepareToCiphering(
 }
 
 private fun ByteArray.pad(
-    blockModeType: BlockModeType?,
+    blockModeType: BlockModeType,
 ): Uint8Array {
     val blockSize = computeBlockSize(
         blockModeType = blockModeType
@@ -40,8 +32,16 @@ private fun ByteArray.pad(
     return paddedArray.toUint8Array()
 }
 
+@Returner
+fun Any.prepareToDecrypt(): Uint8Array {
+    return if (this is ByteArray)
+        this.toUint8Array()
+    else
+        toString().encodeToByteArray().toUint8Array()
+}
+
 fun ArrayBuffer.asPlainText(
-    blockModeType: BlockModeType?,
+    blockModeType: BlockModeType,
 ): String {
     val unpaddedData = this.toByteArray()
     val plainTextBytes = if (blockModeType == CBC) {
@@ -54,7 +54,7 @@ fun ArrayBuffer.asPlainText(
 }
 
 fun ByteArray.unPad(
-    blockModeType: BlockModeType?,
+    blockModeType: BlockModeType,
 ): ByteArray {
     val blockSize = computeBlockSize(
         blockModeType = blockModeType
@@ -67,10 +67,8 @@ fun ByteArray.unPad(
 
 @Returner
 private fun computeBlockSize(
-    blockModeType: BlockModeType?,
+    blockModeType: BlockModeType,
 ): Int {
-    if (blockModeType == null)
-        throw IllegalStateException("Invalid block mode type")
     return when (blockModeType) {
         GCM -> GCM_BLOCK_SIZE
         else -> CBC_CTR_BLOCK_SIZE

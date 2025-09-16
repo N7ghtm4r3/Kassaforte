@@ -122,8 +122,8 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
 
     actual suspend fun encrypt(
         alias: String,
-        blockModeType: BlockModeType?,
-        paddingType: EncryptionPaddingType?,
+        blockModeType: BlockModeType,
+        paddingType: EncryptionPaddingType,
         data: Any,
     ): String {
         checkIfIsSupportedType(
@@ -139,11 +139,13 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
                 val encryptedData: ArrayBuffer = subtleCrypto.encrypt(
                     algorithm = aesParams.first,
                     key = key,
-                    data = data.prepareToCiphering(
-                        blockModeType = blockModeType!!
+                    data = data.prepareToEncrypt(
+                        blockModeType = blockModeType
                     )
                 ).await()
-                Base64.encode(aesParams.second.toByteArray() + encryptedData.toByteArray())
+                val iv = aesParams.second.toByteArray()
+                val encryptedDataBytes = encryptedData.toByteArray()
+                Base64.encode(iv + encryptedDataBytes)
             }
         )
         return encryptedData
@@ -151,8 +153,8 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
 
     actual suspend fun decrypt(
         alias: String,
-        blockModeType: BlockModeType?,
-        paddingType: EncryptionPaddingType?,
+        blockModeType: BlockModeType,
+        paddingType: EncryptionPaddingType,
         data: String,
     ): String {
         val rawKey = obtainRawKey(
@@ -174,7 +176,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
                 val decryptedData: ArrayBuffer = subtleCrypto.decrypt(
                     algorithm = aesParams.first,
                     key = key,
-                    data = cipherText.prepareToCiphering()
+                    data = cipherText.prepareToDecrypt()
                 ).await()
                 val plainText = decryptedData.asPlainText(
                     blockModeType = blockModeType

@@ -24,8 +24,8 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
 
     actual suspend fun encrypt(
         alias: String,
-        blockModeType: BlockModeType?,
-        paddingType: EncryptionPaddingType?,
+        blockModeType: BlockModeType,
+        paddingType: EncryptionPaddingType,
         data: Any,
     ): String {
         TODO("Not yet implemented")
@@ -33,8 +33,8 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
 
     actual suspend fun decrypt(
         alias: String,
-        blockModeType: BlockModeType?,
-        paddingType: EncryptionPaddingType?,
+        blockModeType: BlockModeType,
+        paddingType: EncryptionPaddingType,
         data: String,
     ): String {
         TODO("Not yet implemented")
