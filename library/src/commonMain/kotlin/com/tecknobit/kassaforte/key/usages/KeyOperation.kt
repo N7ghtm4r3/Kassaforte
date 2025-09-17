@@ -1,6 +1,6 @@
 package com.tecknobit.kassaforte.key.usages
 
-internal enum class KeyOperation {
+enum class KeyOperation {
     
     ENCRYPT,
     

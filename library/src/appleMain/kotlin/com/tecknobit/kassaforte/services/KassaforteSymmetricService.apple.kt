@@ -8,12 +8,18 @@ import com.tecknobit.kassaforte.key.genspec.BlockModeType.CTR
 import com.tecknobit.kassaforte.key.genspec.BlockModeType.GCM
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
+import com.tecknobit.kassaforte.key.usages.KeyDetailsSheet
+import com.tecknobit.kassaforte.key.usages.KeyOperation
+import com.tecknobit.kassaforte.key.usages.KeyOperation.DECRYPT
+import com.tecknobit.kassaforte.key.usages.KeyOperation.ENCRYPT
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.util.checkIfIsSupportedType
 import korlibs.crypto.*
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.usePinned
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import platform.Security.SecRandomCopyBytes
 import platform.Security.kSecRandomDefault
 import kotlin.io.encoding.Base64
@@ -39,10 +45,12 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         }
         if (status != 0)
             throw RuntimeException("Error during the creation of the key")
-        val kassaforte = Kassaforte(alias)
-        kassaforte.safeguard(
-            key = alias,
-            data = Base64.encode(keyBytes)
+        storeKeyData(
+            alias = alias,
+            keyInfo = KeyInfo(
+                keyPurposes = purposes,
+                key = keyBytes
+            )
         )
     }
 
@@ -53,6 +61,29 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         return kassaforte.unsuspendedWithdraw(
             key = alias
         ) != null
+    }
+
+    private fun storeKeyData(
+        alias: String,
+        keyInfo: KeyInfo,
+    ) {
+        val encodedKeyData = encodeKeyData(
+            keyInfo = keyInfo
+        )
+        val kassaforte = Kassaforte(alias)
+        kassaforte.safeguard(
+            key = alias,
+            data = encodedKeyData
+        )
+    }
+
+    // TODO: TO ANNOTATE WITH @Returner
+    private inline fun encodeKeyData(
+        keyInfo: KeyInfo,
+    ): String {
+        val encodedKeyInfo = Json.encodeToString(keyInfo)
+            .encodeToByteArray()
+        return Base64.encode(encodedKeyInfo)
     }
 
     actual suspend fun encrypt(
@@ -69,6 +100,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         }
         val encryptedData = useCipher(
             alias = alias,
+            keyOperation = ENCRYPT,
             blockModeType = blockModeType,
             iv = iv,
             usage = { cipher ->
@@ -91,6 +123,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         val cipherText = dataToDecrypt.copyOfRange(blockSize, dataToDecrypt.size)
         return useCipher(
             alias = alias,
+            keyOperation = DECRYPT,
             blockModeType = blockModeType,
             iv = iv,
             usage = { cipher -> cipher.decrypt(cipherText) }
@@ -99,6 +132,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
 
     private suspend inline fun useCipher(
         alias: String,
+        keyOperation: KeyOperation,
         blockModeType: BlockModeType,
         iv: ByteArray,
         usage: (CipherWithModeAndPadding) -> ByteArray,
@@ -107,14 +141,18 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         if (blockModeType == GCM)
             throw RuntimeException("GCM on iOs is currently missing, use CBC or CTR instead")
         val kassaforte = Kassaforte(alias)
-        val encodedKey = kassaforte.withdraw(
+        val encodedKeyData = kassaforte.withdraw(
             key = alias
         )
-        if (encodedKey == null)
+        if (encodedKeyData == null)
             throw RuntimeException(IMPOSSIBLE_TO_RETRIEVE_KEY_ERROR)
-        val decodedKey = Base64.decode(encodedKey)
+        val decodedKeyData = Base64.decode(encodedKeyData)
+            .decodeToString()
+        val keyInfo: KeyInfo = Json.decodeFromString(decodedKeyData)
+        if (!keyInfo.canPerform(keyOperation))
+            throw RuntimeException(KEY_CANNOT_PERFORM_OPERATION_ERROR.replace("%s", keyOperation.name))
         // TODO: WHEN GCM AVAILABLE INTEGRATE IT
-        val cipher = AES(decodedKey).get(
+        val cipher = AES(keyInfo.key).get(
             mode = when (blockModeType) {
                 CTR -> CipherMode.CTR
                 else -> CipherMode.CBC
@@ -137,55 +175,28 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         )
     }
 
-//    @Serializable
-//    private data class KeyInfo(
-//        val algorithm: String,
-//        val key: String,
-//        val keyPurposes: KeyPurposes
-//    ) {
-//
-//        constructor(
-//            algorithm: String,
-//            key: Key,
-//            keyPurposes: KeyPurposes
-//        ) : this (
-//            algorithm = algorithm,
-//            key = Base64.encode(key.encoded),
-//            keyPurposes = keyPurposes
-//        )
-//
-//        val canEncrypt = keyPurposes.canEncrypt
-//
-//        val canDecrypt = keyPurposes.canDecrypt
-//
-//        val canSign = keyPurposes.canSign
-//
-//        val canVerify = keyPurposes.canVerify
-//
-//        val canAgree = keyPurposes.canAgree
-//
-//        val canWrapKey = keyPurposes.canWrapKey
-//
-//        fun resolveKey(): Key = SecretKeySpec(
-//            Base64.decode(key.encodeToByteArray()),
-//            algorithm
-//        )
-//
-//        @Validator
-//        fun canPerform(
-//            keyOperation: KeyOperation
-//        ) : Boolean {
-//            return when(keyOperation) {
-//                ENCRYPT -> canEncrypt
-//                DECRYPT -> canDecrypt
-//                SIGN -> canSign
-//                VERIFY -> canVerify
-//                AGREE -> canAgree
-//                WRAP -> canWrapKey
-//                OBTAIN_KEY -> true
-//            }
-//        }
-//
-//    }
+    @Serializable
+    private data class KeyInfo(
+        override val keyPurposes: KeyPurposes,
+        override val key: ByteArray,
+    ) : KeyDetailsSheet<ByteArray> {
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is KeyInfo) return false
+
+            if (keyPurposes != other.keyPurposes) return false
+            if (!key.contentEquals(other.key)) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = keyPurposes.hashCode()
+            result = 31 * result + key.contentHashCode()
+            return result
+        }
+
+    }
 
 }
