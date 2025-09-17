@@ -1,4 +1,4 @@
-package com.tecknobit.kassaforte.key
+package com.tecknobit.kassaforte.key.usages
 
 import kotlinx.serialization.Serializable
 

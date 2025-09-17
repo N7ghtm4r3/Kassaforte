@@ -5,13 +5,13 @@ package com.tecknobit.kassaforte.services
 import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.helpers.*
-import com.tecknobit.kassaforte.key.KeyPurposes
 import com.tecknobit.kassaforte.key.genspec.AlgorithmType.AES
 import com.tecknobit.kassaforte.key.genspec.BlockModeType
 import com.tecknobit.kassaforte.key.genspec.BlockModeType.CBC
 import com.tecknobit.kassaforte.key.genspec.BlockModeType.CTR
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
+import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.util.checkIfIsSupportedType
 import com.tecknobit.kassaforte.wrappers.crypto.*
 import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey

@@ -1,7 +1,7 @@
 package com.tecknobit.kassaforte.services
 
-import com.tecknobit.kassaforte.key.KeyPurposes
 import com.tecknobit.kassaforte.key.genspec.KassaforteKeyGenSpec
+import com.tecknobit.kassaforte.key.usages.KeyPurposes
 
 abstract class KassaforteKeysService<KS: KassaforteKeyGenSpec> {
 

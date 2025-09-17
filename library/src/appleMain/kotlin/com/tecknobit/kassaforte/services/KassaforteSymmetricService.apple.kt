@@ -3,12 +3,12 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.kassaforte.Kassaforte
-import com.tecknobit.kassaforte.key.KeyPurposes
 import com.tecknobit.kassaforte.key.genspec.BlockModeType
 import com.tecknobit.kassaforte.key.genspec.BlockModeType.CTR
 import com.tecknobit.kassaforte.key.genspec.BlockModeType.GCM
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
+import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.util.checkIfIsSupportedType
 import korlibs.crypto.*
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -136,5 +136,56 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             key = alias
         )
     }
+
+//    @Serializable
+//    private data class KeyInfo(
+//        val algorithm: String,
+//        val key: String,
+//        val keyPurposes: KeyPurposes
+//    ) {
+//
+//        constructor(
+//            algorithm: String,
+//            key: Key,
+//            keyPurposes: KeyPurposes
+//        ) : this (
+//            algorithm = algorithm,
+//            key = Base64.encode(key.encoded),
+//            keyPurposes = keyPurposes
+//        )
+//
+//        val canEncrypt = keyPurposes.canEncrypt
+//
+//        val canDecrypt = keyPurposes.canDecrypt
+//
+//        val canSign = keyPurposes.canSign
+//
+//        val canVerify = keyPurposes.canVerify
+//
+//        val canAgree = keyPurposes.canAgree
+//
+//        val canWrapKey = keyPurposes.canWrapKey
+//
+//        fun resolveKey(): Key = SecretKeySpec(
+//            Base64.decode(key.encodeToByteArray()),
+//            algorithm
+//        )
+//
+//        @Validator
+//        fun canPerform(
+//            keyOperation: KeyOperation
+//        ) : Boolean {
+//            return when(keyOperation) {
+//                ENCRYPT -> canEncrypt
+//                DECRYPT -> canDecrypt
+//                SIGN -> canSign
+//                VERIFY -> canVerify
+//                AGREE -> canAgree
+//                WRAP -> canWrapKey
+//                OBTAIN_KEY -> true
+//            }
+//        }
+//
+//    }
 
 }

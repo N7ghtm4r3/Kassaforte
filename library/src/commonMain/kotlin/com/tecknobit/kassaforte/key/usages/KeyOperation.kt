@@ -1,4 +1,4 @@
-package com.tecknobit.kassaforte.services
+package com.tecknobit.kassaforte.key.usages
 
 internal enum class KeyOperation {
     

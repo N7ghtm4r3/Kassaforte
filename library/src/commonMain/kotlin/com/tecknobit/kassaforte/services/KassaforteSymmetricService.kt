@@ -1,10 +1,10 @@
 package com.tecknobit.kassaforte.services
 
-import com.tecknobit.kassaforte.key.KeyPurposes
 import com.tecknobit.kassaforte.key.genspec.BlockModeType
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType.NONE
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
+import com.tecknobit.kassaforte.key.usages.KeyPurposes
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 expect object KassaforteSymmetricService: KassaforteKeysService<SymmetricKeyGenSpec> {

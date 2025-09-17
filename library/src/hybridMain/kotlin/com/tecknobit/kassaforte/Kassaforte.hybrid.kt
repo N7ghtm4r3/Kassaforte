@@ -1,11 +1,11 @@
 package com.tecknobit.kassaforte
 
 import com.tecknobit.equinoxcore.annotations.Returner
-import com.tecknobit.kassaforte.key.KeyPurposes
 import com.tecknobit.kassaforte.key.genspec.BlockModeType.CBC
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType.PKCS7
 import com.tecknobit.kassaforte.key.genspec.KeySize.S256
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
+import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.KassaforteSymmetricService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
