@@ -26,6 +26,8 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         keyGenSpec: SymmetricKeyGenSpec,
         purposes: KeyPurposes,
     ) {
+        if (aliasExists(alias))
+            throw RuntimeException(ALIAS_ALREADY_TAKEN_ERROR)
         val keySize = keyGenSpec.keySize.bytes
         val keyBytes = ByteArray(keySize)
         val status = keyBytes.usePinned { pinned ->
@@ -101,8 +103,9 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         iv: ByteArray,
         usage: (CipherWithModeAndPadding) -> ByteArray,
     ): ByteArray {
+        // TODO: to remove when GCM integrated
         if (blockModeType == GCM)
-            TODO("GCM on iOs is currently missing, use CBC or CTR instead") // remove when GCM integrated
+            throw RuntimeException("GCM on iOs is currently missing, use CBC or CTR instead")
         val kassaforte = Kassaforte(alias)
         val encodedKey = kassaforte.withdraw(
             key = alias
