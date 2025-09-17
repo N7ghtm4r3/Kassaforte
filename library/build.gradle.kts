@@ -59,6 +59,27 @@ kotlin {
             }
         }
 
+        val cipherBasedMain by creating {
+            dependsOn(commonMain)
+            // TODO: TO REMOVE AND USE IN THE CORE ONE
+            dependencies {
+                implementation(libs.equinox.core)
+            }
+        }
+
+        val hybridKassaforteServiceMain by creating {
+            dependsOn(commonMain)
+        }
+
+        val jvmMain by getting {
+            dependsOn(cipherBasedMain)
+            dependsOn(hybridKassaforteServiceMain)
+            dependencies {
+                implementation(libs.keyring)
+                implementation(libs.kotlinx.coroutines.swing)
+            }
+        }
+
         val iosX64Main by getting
         val iosArm64Main by getting
         val iosSimulatorArm64Main by getting
@@ -66,6 +87,7 @@ kotlin {
         val macosArm64Main by getting
         val appleMain by creating {
             dependsOn(commonMain)
+            dependsOn(hybridKassaforteServiceMain)
             iosX64Main.dependsOn(this)
             iosArm64Main.dependsOn(this)
             iosSimulatorArm64Main.dependsOn(this)
@@ -76,23 +98,7 @@ kotlin {
             }
         }
 
-        val cipherBasedMain by creating {
-            dependsOn(commonMain)
-            // TODO: TO REMOVE AND USE IN THE CORE ONE
-            dependencies {
-                implementation(libs.equinox.core)
-            }
-        }
-
-        val jvmMain by getting {
-            dependsOn(cipherBasedMain)
-            dependencies {
-                implementation(libs.keyring)
-                implementation(libs.kotlinx.coroutines.swing)
-            }
-        }
-
-        val hybridMain by creating {
+        val hybridKassaforteMain by creating {
             dependsOn(commonMain)
             // TODO: TO REMOVE AND USE IN THE CORE ONE
             dependencies {
@@ -102,14 +108,14 @@ kotlin {
 
         val androidMain by getting {
             dependsOn(cipherBasedMain)
-            dependsOn(hybridMain)
+            dependsOn(hybridKassaforteMain)
             dependencies {
                 implementation(libs.startup)
             }
         }
 
         val wasmJsMain by getting {
-            dependsOn(hybridMain)
+            dependsOn(hybridKassaforteMain)
             dependencies {
                 implementation(libs.kotlin.browser)
             }

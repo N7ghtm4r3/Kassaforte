@@ -2,15 +2,14 @@ package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.equinoxcore.annotations.Returner
-import com.tecknobit.equinoxcore.annotations.Validator
 import com.tecknobit.kassaforte.Kassaforte
 import com.tecknobit.kassaforte.key.genspec.AlgorithmType.AES
 import com.tecknobit.kassaforte.key.genspec.BlockModeType
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType.PKCS7
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
+import com.tecknobit.kassaforte.key.usages.KeyDetailsSheet
 import com.tecknobit.kassaforte.key.usages.KeyOperation
-import com.tecknobit.kassaforte.key.usages.KeyOperation.*
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.ALIAS_ALREADY_TAKEN_ERROR
 import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.IMPOSSIBLE_TO_RETRIEVE_KEY_ERROR
@@ -88,6 +87,7 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() {
         alias: String,
         keyOperation: KeyOperation,
     ): Key {
+
         val kassaforte = Kassaforte(alias)
         val encodedKeyData = kassaforte.unsuspendedWithdraw(
             key = alias
@@ -98,7 +98,8 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() {
             .decodeToString()
         val keyInfo: KeyInfo = Json.decodeFromString(decodedKeyData)
         if(!keyInfo.canPerform(keyOperation))
-            throw IllegalAccessException(KEY_CANNOT_PERFORM_OPERATION_ERROR.format(keyOperation))
+            throw RuntimeException(KEY_CANNOT_PERFORM_OPERATION_ERROR.format(keyOperation))
+
         return keyInfo.resolveKey()
     }
 
@@ -138,9 +139,9 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() {
     @Serializable
     private data class KeyInfo(
         val algorithm: String,
-        val key: String,
-        val keyPurposes: KeyPurposes
-    ) {
+        override val keyPurposes: KeyPurposes,
+        override val key: String,
+    ) : KeyDetailsSheet<String> {
 
         constructor(
             algorithm: String,
@@ -152,37 +153,10 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() {
             keyPurposes = keyPurposes
         )
 
-        val canEncrypt = keyPurposes.canEncrypt
-
-        val canDecrypt = keyPurposes.canDecrypt
-
-        val canSign = keyPurposes.canSign
-
-        val canVerify = keyPurposes.canVerify
-
-        val canAgree = keyPurposes.canAgree
-
-        val canWrapKey = keyPurposes.canWrapKey
-
         fun resolveKey(): Key = SecretKeySpec(
             Base64.decode(key.encodeToByteArray()),
             algorithm
         )
-
-        @Validator
-        fun canPerform(
-            keyOperation: KeyOperation
-        ) : Boolean {
-            return when(keyOperation) {
-                ENCRYPT -> canEncrypt
-                DECRYPT -> canDecrypt
-                SIGN -> canSign
-                VERIFY -> canVerify
-                AGREE -> canAgree
-                WRAP -> canWrapKey
-                OBTAIN_KEY -> true
-            }
-        }
 
     }
 
