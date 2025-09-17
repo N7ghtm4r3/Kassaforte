@@ -8,7 +8,5 @@ enum class AlgorithmType(
 
     EC("EC"),
 
-    AES("AES"),
-
-    HMAC_SHA256("HmacSHA256")
+    AES("AES")
 }

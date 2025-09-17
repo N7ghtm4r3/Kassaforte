@@ -5,10 +5,10 @@ import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties.*
 import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.kassaforte.key.KeyPurposes
+import com.tecknobit.kassaforte.key.genspec.AlgorithmType.AES
 import com.tecknobit.kassaforte.key.genspec.BlockModeType
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
-import com.tecknobit.kassaforte.key.genspec.convert
 import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.ALIAS_ALREADY_TAKEN_ERROR
 import java.security.Key
 import java.security.KeyStore
@@ -36,7 +36,7 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() {
         if(aliasExists(alias))
             throw IllegalAccessException(ALIAS_ALREADY_TAKEN_ERROR)
         val keyGenerator = KeyGenerator.getInstance(
-            keyGenSpec.algorithm.value,
+            AES.value,
             ANDROID_KEYSTORE
         )
         val genSpec = KeyGenParameterSpec.Builder(
@@ -46,11 +46,8 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() {
             )
         ).run {
             setBlockModes(keyGenSpec.blockMode.value)
-            setDigests(*keyGenSpec.digests.convert())
-            setEncryptionPaddings(*keyGenSpec.encryptionPaddings.convert())
-            keyGenSpec.keySize?.let { keySize ->
-                setKeySize(keySize)
-            }
+            setEncryptionPaddings(keyGenSpec.encryptionPadding.value)
+            setKeySize(keyGenSpec.keySize.bitCount)
             build()
         }
         keyGenerator.init(genSpec)

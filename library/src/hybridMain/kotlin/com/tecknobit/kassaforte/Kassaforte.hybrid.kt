@@ -2,9 +2,9 @@ package com.tecknobit.kassaforte
 
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.key.KeyPurposes
-import com.tecknobit.kassaforte.key.genspec.AlgorithmType
 import com.tecknobit.kassaforte.key.genspec.BlockModeType.CBC
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType.PKCS7
+import com.tecknobit.kassaforte.key.genspec.KeySize.S256
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.tecknobit.kassaforte.services.KassaforteSymmetricService
 import kotlinx.coroutines.CoroutineScope
@@ -40,8 +40,7 @@ actual class Kassaforte actual constructor(
             KassaforteSymmetricService.generateKey(
                 alias = SECRET_KEY,
                 keyGenSpec = SymmetricKeyGenSpec(
-                    algorithm = AlgorithmType.AES,
-                    keySize = 256,
+                    keySize = S256,
                     blockMode = CBC,
                     encryptionPadding = PKCS7
                 ),

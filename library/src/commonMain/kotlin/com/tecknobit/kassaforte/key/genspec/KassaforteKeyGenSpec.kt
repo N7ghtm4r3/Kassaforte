@@ -2,12 +2,8 @@ package com.tecknobit.kassaforte.key.genspec
 
 sealed interface KassaforteKeyGenSpec {
 
-    val algorithm: AlgorithmType
+    val keySize: KeySize
 
-    val keySize: Int?
-
-    val digests: Array<DigestType>
-
-    val encryptionPaddings: Array<EncryptionPaddingType>
+    val encryptionPadding: EncryptionPaddingType
 
 }

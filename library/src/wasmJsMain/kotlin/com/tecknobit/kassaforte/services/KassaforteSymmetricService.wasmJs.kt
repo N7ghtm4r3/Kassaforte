@@ -6,6 +6,7 @@ import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.helpers.*
 import com.tecknobit.kassaforte.key.KeyPurposes
+import com.tecknobit.kassaforte.key.genspec.AlgorithmType.AES
 import com.tecknobit.kassaforte.key.genspec.BlockModeType
 import com.tecknobit.kassaforte.key.genspec.BlockModeType.*
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
@@ -43,9 +44,9 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             onNotAvailable = { return@performIfAliasAvailable },
             onAvailable = {
                 val genSpec = resolveKeyGenSpec(
-                    algorithm = keyGenSpec.algorithm.value,
+                    algorithm = AES.value,
                     blockType = keyGenSpec.blockMode.value,
-                    size = keyGenSpec.keySize ?: 128
+                    size = keyGenSpec.keySize.bitCount
                 )
                 val keyUsages = resolveUsages(
                     purposes = purposes
@@ -263,9 +264,9 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
 
 @JsFun(
     """
-    (algorithm, blockType, size) => ({
+    (algorithm, blockType, bitCount) => ({
         name: `${'$'}{algorithm}-${'$'}{blockType}`,
-        length: size
+        length: bitCount
     })
     """
 )

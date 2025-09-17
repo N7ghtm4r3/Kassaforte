@@ -5,6 +5,7 @@ import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.equinoxcore.annotations.Validator
 import com.tecknobit.kassaforte.Kassaforte
 import com.tecknobit.kassaforte.key.KeyPurposes
+import com.tecknobit.kassaforte.key.genspec.AlgorithmType.AES
 import com.tecknobit.kassaforte.key.genspec.BlockModeType
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType.PKCS7
@@ -36,11 +37,9 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() {
     ) {
         if (aliasExists(alias))
             throw IllegalAccessException(ALIAS_ALREADY_TAKEN_ERROR)
-        val algorithm = keyGenSpec.algorithm.value
+        val algorithm = AES.value
         val keyGenerator = KeyGenerator.getInstance(algorithm)
-        keyGenSpec.keySize?.let { keySize ->
-            keyGenerator.init(keySize)
-        }
+        keyGenerator.init(keyGenSpec.keySize.bitCount)
         val key = keyGenerator.generateKey()
         storeKeyData(
             alias = alias,

@@ -106,6 +106,15 @@ actual class Kassaforte actual constructor(
     actual suspend fun withdraw(
         key: String,
     ): String? {
+        return unsuspendedWithdraw(
+            key = key
+        )
+    }
+
+    // TODO: TO INDICATE WHY AT THE MOMENT THIS METHOD IS REQUIRED
+    internal fun unsuspendedWithdraw(
+        key: String,
+    ): String? {
         val query = searchingDictionary(
             key = key
         )
