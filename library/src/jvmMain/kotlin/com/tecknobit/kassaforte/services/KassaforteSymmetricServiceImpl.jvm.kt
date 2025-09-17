@@ -87,7 +87,6 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() {
         alias: String,
         keyOperation: KeyOperation,
     ): Key {
-
         val kassaforte = Kassaforte(alias)
         val encodedKeyData = kassaforte.unsuspendedWithdraw(
             key = alias
@@ -99,7 +98,6 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() {
         val keyInfo: KeyInfo = Json.decodeFromString(decodedKeyData)
         if(!keyInfo.canPerform(keyOperation))
             throw RuntimeException(KEY_CANNOT_PERFORM_OPERATION_ERROR.format(keyOperation))
-
         return keyInfo.resolveKey()
     }
 

@@ -140,7 +140,6 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         // TODO: to remove when GCM integrated
         if (blockModeType == GCM)
             throw RuntimeException("GCM on iOs is currently missing, use CBC or CTR instead")
-
         val kassaforte = Kassaforte(alias)
         val encodedKeyData = kassaforte.withdraw(
             key = alias
@@ -152,7 +151,6 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         val keyInfo: KeyInfo = Json.decodeFromString(decodedKeyData)
         if (!keyInfo.canPerform(keyOperation))
             throw RuntimeException(KEY_CANNOT_PERFORM_OPERATION_ERROR.replace("%s", keyOperation.name))
-
         // TODO: WHEN GCM AVAILABLE INTEGRATE IT
         val cipher = AES(keyInfo.key).get(
             mode = when (blockModeType) {

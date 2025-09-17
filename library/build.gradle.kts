@@ -59,6 +59,23 @@ kotlin {
             }
         }
 
+        val iosX64Main by getting
+        val iosArm64Main by getting
+        val iosSimulatorArm64Main by getting
+        val macosX64Main by getting
+        val macosArm64Main by getting
+        val appleMain by creating {
+            dependsOn(commonMain)
+            iosX64Main.dependsOn(this)
+            iosArm64Main.dependsOn(this)
+            iosSimulatorArm64Main.dependsOn(this)
+            macosX64Main.dependsOn(this)
+            macosArm64Main.dependsOn(this)
+            dependencies {
+                implementation(libs.krypto)
+            }
+        }
+
         val cipherBasedMain by creating {
             dependsOn(commonMain)
             // TODO: TO REMOVE AND USE IN THE CORE ONE
@@ -67,34 +84,11 @@ kotlin {
             }
         }
 
-        val hybridKassaforteServiceMain by creating {
-            dependsOn(commonMain)
-        }
-
         val jvmMain by getting {
             dependsOn(cipherBasedMain)
-            dependsOn(hybridKassaforteServiceMain)
             dependencies {
                 implementation(libs.keyring)
                 implementation(libs.kotlinx.coroutines.swing)
-            }
-        }
-
-        val iosX64Main by getting
-        val iosArm64Main by getting
-        val iosSimulatorArm64Main by getting
-        val macosX64Main by getting
-        val macosArm64Main by getting
-        val appleMain by creating {
-            dependsOn(commonMain)
-            dependsOn(hybridKassaforteServiceMain)
-            iosX64Main.dependsOn(this)
-            iosArm64Main.dependsOn(this)
-            iosSimulatorArm64Main.dependsOn(this)
-            macosX64Main.dependsOn(this)
-            macosArm64Main.dependsOn(this)
-            dependencies {
-                implementation(libs.krypto)
             }
         }
 
