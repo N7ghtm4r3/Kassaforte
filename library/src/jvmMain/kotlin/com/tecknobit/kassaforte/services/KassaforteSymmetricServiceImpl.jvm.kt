@@ -54,9 +54,7 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() {
     actual fun aliasExists(
         alias: String,
     ): Boolean {
-        val kassaforte = Kassaforte(
-            name = alias
-        )
+        val kassaforte = Kassaforte(alias)
         return kassaforte.unsuspendedWithdraw(
             key = alias
         ) != null
@@ -69,9 +67,7 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() {
         val keyData = formatKeyData(
             keyInfo = keyInfo
         )
-        val kassaforte = Kassaforte(
-            name = alias
-        )
+        val kassaforte = Kassaforte(alias)
         kassaforte.safeguard(
             key = alias,
             data = keyData
@@ -91,9 +87,7 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() {
         alias: String,
         keyOperation: KeyOperation,
     ): Key {
-        val kassaforte = Kassaforte(
-            name = alias
-        )
+        val kassaforte = Kassaforte(alias)
         val encodedKeyData = kassaforte.unsuspendedWithdraw(
             key = alias
         )
@@ -134,9 +128,7 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() {
     actual fun deleteKey(
         alias: String,
     ) {
-        val kassaforte = Kassaforte(
-            name = alias
-        )
+        val kassaforte = Kassaforte(alias)
         kassaforte.remove(
             key = alias
         )

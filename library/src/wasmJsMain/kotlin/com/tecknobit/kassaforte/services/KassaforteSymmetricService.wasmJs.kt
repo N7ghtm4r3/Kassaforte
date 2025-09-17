@@ -8,7 +8,8 @@ import com.tecknobit.kassaforte.helpers.*
 import com.tecknobit.kassaforte.key.KeyPurposes
 import com.tecknobit.kassaforte.key.genspec.AlgorithmType.AES
 import com.tecknobit.kassaforte.key.genspec.BlockModeType
-import com.tecknobit.kassaforte.key.genspec.BlockModeType.*
+import com.tecknobit.kassaforte.key.genspec.BlockModeType.CBC
+import com.tecknobit.kassaforte.key.genspec.BlockModeType.CTR
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.tecknobit.kassaforte.util.checkIfIsSupportedType
@@ -164,15 +165,12 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         val decryptedData = useKey(
             rawKey = rawKey,
             usage = { key ->
-                val blockSize = when (blockModeType) {
-                    GCM -> GCM_BLOCK_SIZE
-                    else -> CBC_CTR_BLOCK_SIZE
-                }
+                val blockSize = blockModeType.blockSize
                 val dataToDecrypt = Base64.decode(data)
-                val buffer = dataToDecrypt.copyOfRange(0, blockSize)
+                val iv = dataToDecrypt.copyOfRange(0, blockSize)
                 val cipherText = dataToDecrypt.copyOfRange(blockSize, dataToDecrypt.size)
                 val aesParams = key.resolveAesParams(
-                    buffer = buffer.toArrayBuffer()
+                    iv = iv.toArrayBuffer()
                 )
                 val decryptedData: ArrayBuffer = subtleCrypto.decrypt(
                     algorithm = aesParams.first,
@@ -231,22 +229,22 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
 
     @Returner
     private fun CryptoKey.resolveAesParams(
-        buffer: ArrayBuffer = ArrayBuffer(0),
+        iv: ArrayBuffer = ArrayBuffer(0),
     ): Pair<AesParams, ArrayBuffer> {
         val algorithm = algorithm.name
         return when {
             algorithm.endsWith(CBC.value) -> {
-                val aesCbcParams: AesCbcParams = aesCbcParams(algorithm, buffer)
+                val aesCbcParams: AesCbcParams = aesCbcParams(algorithm, iv)
                 Pair(aesCbcParams, aesCbcParams.iv)
             }
 
             algorithm.endsWith(CTR.value) -> {
-                val aesCtrParams: AesCtrParams = aesCtrParams(algorithm, buffer)
+                val aesCtrParams: AesCtrParams = aesCtrParams(algorithm, iv)
                 Pair(aesCtrParams, aesCtrParams.counter)
             }
 
             else -> {
-                val aesGcmParams: AesGcmParams = aesGcmParams(algorithm, buffer)
+                val aesGcmParams: AesGcmParams = aesGcmParams(algorithm, iv)
                 Pair(aesGcmParams, aesGcmParams.iv)
             }
         }

@@ -3,9 +3,6 @@ package com.tecknobit.kassaforte.helpers
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.key.genspec.BlockModeType
 import com.tecknobit.kassaforte.key.genspec.BlockModeType.CBC
-import com.tecknobit.kassaforte.key.genspec.BlockModeType.GCM
-import com.tecknobit.kassaforte.services.CBC_CTR_BLOCK_SIZE
-import com.tecknobit.kassaforte.services.GCM_BLOCK_SIZE
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
 
@@ -24,9 +21,7 @@ fun Any.prepareToEncrypt(
 private fun ByteArray.pad(
     blockModeType: BlockModeType,
 ): Uint8Array {
-    val blockSize = computeBlockSize(
-        blockModeType = blockModeType
-    )
+    val blockSize = blockModeType.blockSize
     val padding = blockSize - (this.size % blockSize)
     val paddedArray = this + ByteArray(padding) { padding.toByte() }
     return paddedArray.toUint8Array()
@@ -56,21 +51,8 @@ fun ArrayBuffer.asPlainText(
 fun ByteArray.unPad(
     blockModeType: BlockModeType,
 ): ByteArray {
-    val blockSize = computeBlockSize(
-        blockModeType = blockModeType
-    )
     val padding = this.last().toInt()
-    if (padding !in 1..blockSize)
+    if (padding !in 1..blockModeType.blockSize)
         throw IllegalArgumentException("Invalid padding")
     return this.copyOfRange(0, this.size - padding)
-}
-
-@Returner
-private fun computeBlockSize(
-    blockModeType: BlockModeType,
-): Int {
-    return when (blockModeType) {
-        GCM -> GCM_BLOCK_SIZE
-        else -> CBC_CTR_BLOCK_SIZE
-    }
 }

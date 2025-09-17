@@ -78,19 +78,15 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             keyOperation = DECRYPT
         ) { cipher, key ->
             val dataToDecrypt = Base64.decode(data)
-            val cypherText = when(blockModeType) {
-                GCM -> {
-                    val ivSeed = dataToDecrypt.copyOfRange(0, GCM_BLOCK_SIZE)
-                    cipher.init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(128, ivSeed))
-                    dataToDecrypt.copyOfRange(GCM_BLOCK_SIZE, dataToDecrypt.size)
-                }
-                else -> {
-                    val iv = IvParameterSpec(dataToDecrypt.copyOfRange(0, CBC_CTR_BLOCK_SIZE))
-                    cipher.init(Cipher.DECRYPT_MODE, key, iv)
-                    dataToDecrypt.copyOfRange(CBC_CTR_BLOCK_SIZE, dataToDecrypt.size)
-                }
+            val blockSize = blockModeType.blockSize
+            val ivSeed = dataToDecrypt.copyOfRange(0, blockSize)
+            val algorithmParameterSpec = when (blockModeType) {
+                GCM -> GCMParameterSpec(128, ivSeed)
+                else -> IvParameterSpec(ivSeed)
             }
-            cipher.doFinal(cypherText)
+            cipher.init(Cipher.DECRYPT_MODE, key, algorithmParameterSpec)
+            val cipherText = dataToDecrypt.copyOfRange(blockSize, dataToDecrypt.size)
+            cipher.doFinal(cipherText)
         }
         return decryptedData.decodeToString()
     }

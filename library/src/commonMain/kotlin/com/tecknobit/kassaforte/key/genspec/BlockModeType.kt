@@ -1,12 +1,23 @@
-package com.tecknobit.kassaforte.key.genspec;
+package com.tecknobit.kassaforte.key.genspec
 
 enum class BlockModeType(
-    val value: String
+    val value: String,
+    val blockSize: Int,
 ) {
-    
-    CBC("CBC"),
-    
-    CTR("CTR"),
-    
-    GCM("GCM");
+
+    CBC(
+        value = "CBC",
+        blockSize = 16
+    ),
+
+    CTR(
+        value = "CTR",
+        blockSize = 16
+    ),
+
+    GCM(
+        value = "GCM",
+        blockSize = 12
+    );
+
 }

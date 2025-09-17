@@ -8,7 +8,6 @@ actual class Kassaforte actual constructor(
     private val name: String
 ) {
 
-    // TODO: INSERT INTO THE ARCHICTURE REFERENCE
     private val keyring = Keyring.create()
 
     actual fun safeguard(

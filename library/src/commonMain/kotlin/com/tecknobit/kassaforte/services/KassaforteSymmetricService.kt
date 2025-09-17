@@ -6,10 +6,6 @@ import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType.NONE
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 
-const val CBC_CTR_BLOCK_SIZE = 16
-
-const val GCM_BLOCK_SIZE = 12
-
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 expect object KassaforteSymmetricService: KassaforteKeysService<SymmetricKeyGenSpec> {
 
