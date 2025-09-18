@@ -9,7 +9,7 @@ import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import java.security.Key
 import java.security.KeyStore
 
-internal class KassaforteServiceImplManager {
+internal class KassaforteServiceImplManager : KassaforteServiceManager<Key> {
 
     internal companion object {
 
@@ -59,19 +59,19 @@ internal class KassaforteServiceImplManager {
         return purposes
     }
 
-    fun isAliasTaken(
+    override fun isAliasTaken(
         alias: String,
     ): Boolean {
         return keyStore.isKeyEntry(alias)
     }
 
-    fun retrieveKey(
+    override fun retrieveKey(
         alias: String,
     ): Key {
         return keyStore.getKey(alias, null)
     }
 
-    fun removeKey(
+    override fun removeKey(
         alias: String,
     ) {
         keyStore.deleteEntry(alias)

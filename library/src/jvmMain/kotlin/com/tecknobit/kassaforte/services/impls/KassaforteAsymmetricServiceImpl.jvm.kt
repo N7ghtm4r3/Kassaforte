@@ -4,10 +4,15 @@ import com.tecknobit.kassaforte.key.genspec.AlgorithmType
 import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyOperation
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
+import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.ALIAS_ALREADY_TAKEN_ERROR
+import com.tecknobit.kassaforte.services.helpers.KassaforteServiceImplManager
 import java.security.Key
+import java.security.KeyPairGenerator
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 internal actual class KassaforteAsymmetricServiceImpl actual constructor() : KassaforteServiceImpl() {
+
+    private val kassaforteServiceImplManager = KassaforteServiceImplManager()
 
     actual fun generateKey(
         algorithmType: AlgorithmType,
@@ -15,12 +20,22 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
         keyGenSpec: AsymmetricKeyGenSpec,
         purposes: KeyPurposes,
     ) {
+        if (aliasExists(alias))
+            throw IllegalAccessException(ALIAS_ALREADY_TAKEN_ERROR)
+        val algorithm = algorithmType.value
+        val keyPairGenerator = KeyPairGenerator.getInstance(algorithm)
+        keyPairGenerator.initialize(keyGenSpec.keySize.bitCount)
+        val a = keyPairGenerator.genKeyPair()
+        println(a.public)
+        println(a.private)
     }
 
     actual override fun aliasExists(
         alias: String,
     ): Boolean {
-        TODO("Not yet implemented")
+        return kassaforteServiceImplManager.isAliasTaken(
+            alias = alias
+        )
     }
 
     actual override fun getKey(
