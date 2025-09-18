@@ -11,6 +11,7 @@ import com.tecknobit.kassaforte.key.usages.KeyDetailsSheet
 import com.tecknobit.kassaforte.key.usages.KeyOperation
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.KassaforteKeysService
+import com.tecknobit.kassaforte.services.helpers.KassaforteServiceImplManager.Companion.encode64
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.security.Key
@@ -144,7 +145,7 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() : Kass
             keyPurposes: KeyPurposes,
         ) : this(
             algorithm = algorithm,
-            key = Base64.encode(key.encoded),
+            key = key.encode64(),
             keyPurposes = keyPurposes
         )
 

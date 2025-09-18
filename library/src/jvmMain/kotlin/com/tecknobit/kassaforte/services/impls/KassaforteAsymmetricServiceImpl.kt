@@ -2,17 +2,21 @@ package com.tecknobit.kassaforte.services.impls
 
 import com.tecknobit.kassaforte.key.genspec.AlgorithmType
 import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
+import com.tecknobit.kassaforte.key.usages.KeyDetailsSheet
 import com.tecknobit.kassaforte.key.usages.KeyOperation
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.ALIAS_ALREADY_TAKEN_ERROR
 import com.tecknobit.kassaforte.services.helpers.KassaforteServiceImplManager
+import com.tecknobit.kassaforte.services.helpers.KassaforteServiceImplManager.Companion.encode64
+import kotlinx.serialization.Serializable
 import java.security.Key
+import java.security.KeyPair
 import java.security.KeyPairGenerator
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 internal actual class KassaforteAsymmetricServiceImpl actual constructor() : KassaforteServiceImpl() {
 
-    private val kassaforteServiceImplManager = KassaforteServiceImplManager()
+    private val serviceImplManager = KassaforteServiceImplManager<KeyInfo>()
 
     actual fun generateKey(
         algorithmType: AlgorithmType,
@@ -25,15 +29,20 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
         val algorithm = algorithmType.value
         val keyPairGenerator = KeyPairGenerator.getInstance(algorithm)
         keyPairGenerator.initialize(keyGenSpec.keySize.bitCount)
-        val a = keyPairGenerator.genKeyPair()
-        println(a.public)
-        println(a.private)
+        val keyPair = keyPairGenerator.genKeyPair()
+        serviceImplManager.storeKeyData(
+            alias = alias,
+            keyInfo = KeyInfo(
+                keyPurposes = purposes,
+                keyPair = keyPair
+            )
+        )
     }
 
     actual override fun aliasExists(
         alias: String,
     ): Boolean {
-        return kassaforteServiceImplManager.isAliasTaken(
+        return serviceImplManager.isAliasTaken(
             alias = alias
         )
     }
@@ -48,6 +57,24 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
     actual override fun deleteKey(
         alias: String,
     ) {
+    }
+
+    @Serializable
+    private data class KeyInfo(
+        override val keyPurposes: KeyPurposes,
+        override val key: String,
+        val publicKey: String,
+    ) : KeyDetailsSheet<String> {
+
+        constructor(
+            keyPurposes: KeyPurposes,
+            keyPair: KeyPair,
+        ) : this(
+            keyPurposes = keyPurposes,
+            key = keyPair.private.encode64(),
+            publicKey = keyPair.public.encode64()
+        )
+
     }
 
 }

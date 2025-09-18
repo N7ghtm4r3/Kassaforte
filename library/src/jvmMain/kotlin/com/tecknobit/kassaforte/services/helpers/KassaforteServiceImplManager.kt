@@ -1,9 +1,25 @@
+@file:OptIn(InternalSerializationApi::class)
+
 package com.tecknobit.kassaforte.services.helpers
 
+import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.Kassaforte
+import com.tecknobit.kassaforte.key.usages.KeyDetailsSheet
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
 import java.security.Key
+import kotlin.io.encoding.Base64
 
-internal class KassaforteServiceImplManager : KassaforteServiceManager<Key> {
+internal class KassaforteServiceImplManager<KI : KeyDetailsSheet<*>> : KassaforteServiceManager<KI> {
+
+    internal companion object {
+
+        fun Key.encode64(): String {
+            return Base64.encode(this.encoded)
+        }
+
+    }
 
     override fun isAliasTaken(
         alias: String,
@@ -14,9 +30,34 @@ internal class KassaforteServiceImplManager : KassaforteServiceManager<Key> {
         ) != null
     }
 
+    inline fun <reified KI : KeyDetailsSheet<String>> storeKeyData(
+        alias: String,
+        keyInfo: KI,
+    ) {
+        val keyData = formatKeyData(
+            keyInfo = keyInfo
+        )
+        val kassaforte = Kassaforte(alias)
+        kassaforte.safeguard(
+            key = alias,
+            data = keyData
+        )
+    }
+
+    @Returner
+    private inline fun <reified KI : KeyDetailsSheet<String>> formatKeyData(
+        keyInfo: KI,
+    ): String {
+        val encodedKeyInfo = Json.encodeToString(
+            serializer = KI::class.serializer(),
+            keyInfo
+        ).encodeToByteArray()
+        return Base64.encode(encodedKeyInfo)
+    }
+
     override fun retrieveKey(
         alias: String,
-    ): Key {
+    ): KI {
 //        val kassaforte = Kassaforte(alias)
 //        val encodedKeyData = kassaforte.unsuspendedWithdraw(
 //            key = alias
