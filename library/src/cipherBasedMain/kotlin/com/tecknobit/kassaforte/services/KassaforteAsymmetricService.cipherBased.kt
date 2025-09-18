@@ -8,6 +8,7 @@ import com.tecknobit.kassaforte.key.usages.KeyOperation.DECRYPT
 import com.tecknobit.kassaforte.key.usages.KeyOperation.ENCRYPT
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.impls.KassaforteAsymmetricServiceImpl
+import com.tecknobit.kassaforte.util.checkIfIsSupportedCipherAlgorithm
 import com.tecknobit.kassaforte.util.checkIfIsSupportedType
 import javax.crypto.Cipher
 import kotlin.io.encoding.Base64
@@ -51,9 +52,13 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             alias = alias,
             keyOperation = ENCRYPT
         )
+        val algorithm = key.algorithm
+        checkIfIsSupportedCipherAlgorithm(
+            algorithm = algorithm
+        )
         val cipher = Cipher.getInstance(
             resolveTransformation(
-                algorithm = key.algorithm,
+                algorithm = algorithm,
                 paddingType = paddingType
             )
         )
@@ -72,9 +77,13 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             alias = alias,
             keyOperation = DECRYPT
         )
+        val algorithm = key.algorithm
+        checkIfIsSupportedCipherAlgorithm(
+            algorithm = algorithm
+        )
         val cipher = Cipher.getInstance(
             resolveTransformation(
-                algorithm = key.algorithm,
+                algorithm = algorithm,
                 paddingType = paddingType
             )
         )
