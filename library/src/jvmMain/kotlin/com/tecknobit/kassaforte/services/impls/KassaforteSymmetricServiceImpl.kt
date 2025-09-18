@@ -2,7 +2,6 @@ package com.tecknobit.kassaforte.services.impls
 
 import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.equinoxcore.annotations.Returner
-import com.tecknobit.kassaforte.Kassaforte
 import com.tecknobit.kassaforte.key.genspec.AlgorithmType
 import com.tecknobit.kassaforte.key.genspec.BlockModeType
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
@@ -11,9 +10,10 @@ import com.tecknobit.kassaforte.key.usages.KeyDetailsSheet
 import com.tecknobit.kassaforte.key.usages.KeyOperation
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.KassaforteKeysService
+import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.KEY_CANNOT_PERFORM_OPERATION_ERROR
+import com.tecknobit.kassaforte.services.helpers.KassaforteServiceImplManager
 import com.tecknobit.kassaforte.services.helpers.KassaforteServiceImplManager.Companion.encode64
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import java.security.Key
 import javax.crypto.KeyGenerator
 import javax.crypto.spec.SecretKeySpec
@@ -28,6 +28,10 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() : Kass
 
     }
 
+    private val serviceImplManager = KassaforteServiceImplManager(
+        serializer = KeyInfo.serializer()
+    )
+
     actual fun generateKey(
         alias: String,
         keyGenSpec: SymmetricKeyGenSpec,
@@ -39,7 +43,7 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() : Kass
         val keyGenerator = KeyGenerator.getInstance(algorithm)
         keyGenerator.init(keyGenSpec.keySize.bitCount)
         val key = keyGenerator.generateKey()
-        storeKeyData(
+        serviceImplManager.storeKeyData(
             alias = alias,
             keyInfo = KeyInfo(
                 algorithm = algorithm,
@@ -52,50 +56,20 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() : Kass
     actual override fun aliasExists(
         alias: String,
     ): Boolean {
-        val kassaforte = Kassaforte(alias)
-        return kassaforte.unsuspendedWithdraw(
-            key = alias
-        ) != null
-    }
-
-    private fun storeKeyData(
-        alias: String,
-        keyInfo: KeyInfo,
-    ) {
-        val keyData = formatKeyData(
-            keyInfo = keyInfo
+        return serviceImplManager.isAliasTaken(
+            alias = alias
         )
-        val kassaforte = Kassaforte(alias)
-        kassaforte.safeguard(
-            key = alias,
-            data = keyData
-        )
-    }
-
-    @Returner
-    private fun formatKeyData(
-        keyInfo: KeyInfo,
-    ): String {
-        val encodedKeyInfo = Json.encodeToString(keyInfo)
-            .encodeToByteArray()
-        return Base64.encode(encodedKeyInfo)
     }
 
     actual override fun getKey(
         alias: String,
         keyOperation: KeyOperation,
     ): Key {
-        val kassaforte = Kassaforte(alias)
-        val encodedKeyData = kassaforte.unsuspendedWithdraw(
-            key = alias
+        val keyInfo = serviceImplManager.retrieveKey(
+            alias = alias
         )
-        if (encodedKeyData == null)
-            throw IllegalAccessException(KassaforteKeysService.IMPOSSIBLE_TO_RETRIEVE_KEY_ERROR)
-        val decodedKeyData = Base64.decode(encodedKeyData)
-            .decodeToString()
-        val keyInfo: KeyInfo = Json.decodeFromString(decodedKeyData)
         if (!keyInfo.canPerform(keyOperation))
-            throw RuntimeException(KassaforteKeysService.KEY_CANNOT_PERFORM_OPERATION_ERROR.format(keyOperation))
+            throw RuntimeException(KEY_CANNOT_PERFORM_OPERATION_ERROR.format(keyOperation))
         return keyInfo.resolveKey()
     }
 
@@ -126,9 +100,8 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() : Kass
     actual override fun deleteKey(
         alias: String,
     ) {
-        val kassaforte = Kassaforte(alias)
-        kassaforte.remove(
-            key = alias
+        serviceImplManager.removeKey(
+            alias = alias
         )
     }
 
@@ -149,6 +122,7 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() : Kass
             keyPurposes = keyPurposes
         )
 
+        @Returner
         fun resolveKey(): Key = SecretKeySpec(
             Base64.decode(key.encodeToByteArray()),
             algorithm

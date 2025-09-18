@@ -7,7 +7,7 @@ import com.tecknobit.kassaforte.key.genspec.AlgorithmType.RSA
 import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType.NONE
 import com.tecknobit.kassaforte.key.usages.KeyOperation
-import com.tecknobit.kassaforte.key.usages.KeyOperation.ENCRYPT
+import com.tecknobit.kassaforte.key.usages.KeyOperation.Companion.checkIfRequiresPublicKey
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.ALIAS_ALREADY_TAKEN_ERROR
 import com.tecknobit.kassaforte.services.helpers.KassaforteServiceImplManager
@@ -79,14 +79,6 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
             )
         } else
             storedKey
-    }
-
-    @Returner
-    private fun KeyOperation.checkIfRequiresPublicKey(): Boolean {
-        return when (this) {
-            ENCRYPT -> true
-            else -> false
-        }
     }
 
     @Returner

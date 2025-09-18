@@ -14,6 +14,18 @@ enum class KeyOperation {
     
     WRAP,
 
-    OBTAIN_KEY
+    OBTAIN_KEY;
+
+    companion object {
+
+        // TODO: TO ANNOTATE WITH @Returner
+        fun KeyOperation.checkIfRequiresPublicKey(): Boolean {
+            return when (this) {
+                ENCRYPT -> true
+                else -> false
+            }
+        }
+
+    }
     
 }
