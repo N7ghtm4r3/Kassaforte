@@ -13,6 +13,7 @@ import java.security.Key
 import java.security.KeyPair
 import java.security.KeyPairGenerator
 
+
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 internal actual class KassaforteAsymmetricServiceImpl actual constructor() : KassaforteServiceImpl() {
 
@@ -35,7 +36,8 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
             keyInfo = KeyInfo(
                 keyPurposes = purposes,
                 keyPair = keyPair
-            )
+            ),
+            encode64 = false
         )
     }
 

@@ -33,9 +33,11 @@ internal class KassaforteServiceImplManager<KI : KeyDetailsSheet<*>> : Kassafort
     inline fun <reified KI : KeyDetailsSheet<String>> storeKeyData(
         alias: String,
         keyInfo: KI,
+        encode64: Boolean = true,
     ) {
         val keyData = formatKeyData(
-            keyInfo = keyInfo
+            keyInfo = keyInfo,
+            encode64 = encode64
         )
         val kassaforte = Kassaforte(alias)
         kassaforte.safeguard(
@@ -47,12 +49,16 @@ internal class KassaforteServiceImplManager<KI : KeyDetailsSheet<*>> : Kassafort
     @Returner
     private inline fun <reified KI : KeyDetailsSheet<String>> formatKeyData(
         keyInfo: KI,
+        encode64: Boolean,
     ): String {
         val encodedKeyInfo = Json.encodeToString(
             serializer = KI::class.serializer(),
             keyInfo
-        ).encodeToByteArray()
-        return Base64.encode(encodedKeyInfo)
+        )
+        return if (encode64)
+            Base64.encode(encodedKeyInfo.encodeToByteArray())
+        else
+            encodedKeyInfo
     }
 
     override fun retrieveKey(
