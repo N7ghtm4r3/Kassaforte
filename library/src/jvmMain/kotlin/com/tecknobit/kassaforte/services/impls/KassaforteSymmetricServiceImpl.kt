@@ -28,7 +28,7 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() : Kass
 
     }
 
-    private val serviceImplManager = KassaforteServiceImplManager(
+    private val serviceImplManager = KassaforteServiceImplManager.getInstance(
         serializer = KeyInfo.serializer()
     )
 

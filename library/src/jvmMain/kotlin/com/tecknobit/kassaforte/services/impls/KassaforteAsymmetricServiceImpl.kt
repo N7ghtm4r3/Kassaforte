@@ -22,7 +22,7 @@ import kotlin.io.encoding.Base64
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 internal actual class KassaforteAsymmetricServiceImpl actual constructor() : KassaforteServiceImpl() {
 
-    private val serviceImplManager = KassaforteServiceImplManager(
+    private val serviceImplManager = KassaforteServiceImplManager.getInstance(
         serializer = KeyInfo.serializer()
     )
 
@@ -44,8 +44,7 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
                 algorithm = algorithm,
                 keyPurposes = purposes,
                 keyPair = keyPair
-            ),
-            encode64 = false
+            )
         )
     }
 
