@@ -5,6 +5,7 @@ package com.tecknobit.kassaforte.services
 import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.helpers.*
+import com.tecknobit.kassaforte.key.genspec.AlgorithmType
 import com.tecknobit.kassaforte.key.genspec.AlgorithmType.AES
 import com.tecknobit.kassaforte.key.genspec.BlockModeType
 import com.tecknobit.kassaforte.key.genspec.BlockModeType.CBC
@@ -36,6 +37,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     private val serviceScope = CoroutineScope(Dispatchers.Main)
 
     actual override fun generateKey(
+        algorithmType: AlgorithmType,
         alias: String,
         keyGenSpec: SymmetricKeyGenSpec,
         purposes: KeyPurposes,

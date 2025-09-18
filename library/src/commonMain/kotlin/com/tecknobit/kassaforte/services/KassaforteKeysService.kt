@@ -1,5 +1,6 @@
 package com.tecknobit.kassaforte.services
 
+import com.tecknobit.kassaforte.key.genspec.AlgorithmType
 import com.tecknobit.kassaforte.key.genspec.KassaforteKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 
@@ -16,9 +17,10 @@ abstract class KassaforteKeysService<KS: KassaforteKeyGenSpec> {
     }
 
     abstract fun generateKey(
+        algorithmType: AlgorithmType,
         alias: String,
         keyGenSpec: KS,
-        purposes: KeyPurposes
+        purposes: KeyPurposes,
     )
 
     protected abstract fun aliasExists(

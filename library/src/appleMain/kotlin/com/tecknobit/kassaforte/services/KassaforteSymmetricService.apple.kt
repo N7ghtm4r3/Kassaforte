@@ -3,6 +3,7 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.kassaforte.Kassaforte
+import com.tecknobit.kassaforte.key.genspec.AlgorithmType
 import com.tecknobit.kassaforte.key.genspec.BlockModeType
 import com.tecknobit.kassaforte.key.genspec.BlockModeType.CTR
 import com.tecknobit.kassaforte.key.genspec.BlockModeType.GCM
@@ -28,6 +29,7 @@ import kotlin.io.encoding.Base64
 actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGenSpec>() {
 
     actual override fun generateKey(
+        algorithmType: AlgorithmType,
         alias: String,
         keyGenSpec: SymmetricKeyGenSpec,
         purposes: KeyPurposes,

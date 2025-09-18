@@ -1,6 +1,7 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
+import com.tecknobit.kassaforte.key.genspec.AlgorithmType
 import com.tecknobit.kassaforte.key.genspec.BlockModeType
 import com.tecknobit.kassaforte.key.genspec.BlockModeType.GCM
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
@@ -22,6 +23,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     private val serviceImpl = KassaforteSymmetricServiceImpl()
 
     actual override fun generateKey(
+        algorithmType: AlgorithmType,
         alias: String,
         keyGenSpec: SymmetricKeyGenSpec,
         purposes: KeyPurposes,

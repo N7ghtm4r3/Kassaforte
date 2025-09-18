@@ -1,19 +1,25 @@
 package com.tecknobit.kassaforte.services
 
+import com.tecknobit.kassaforte.key.genspec.AlgorithmType
+import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGen
+import com.tecknobit.kassaforte.key.usages.KeyPurposes
+
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
-expect class KassaforteAsymmetricService(
-    alias: String
-) {
+expect object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyGen> {
 
-    fun sign(
-        data: Any
-    ): String
+    override fun generateKey(
+        algorithmType: AlgorithmType,
+        alias: String,
+        keyGenSpec: AsymmetricKeyGen,
+        purposes: KeyPurposes,
+    )
 
-    fun verify(
-        data: String
+    override fun aliasExists(
+        alias: String,
     ): Boolean
 
-
-    // TODO: CREATE THE WRAPPER UTIL LIKE KassaforteSymmetricService.decrypt
+    override fun deleteKey(
+        alias: String,
+    )
 
 }

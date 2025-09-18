@@ -1,5 +1,6 @@
 package com.tecknobit.kassaforte.services
 
+import com.tecknobit.kassaforte.key.genspec.AlgorithmType
 import com.tecknobit.kassaforte.key.genspec.BlockModeType
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType.NONE
@@ -10,9 +11,10 @@ import com.tecknobit.kassaforte.key.usages.KeyPurposes
 expect object KassaforteSymmetricService: KassaforteKeysService<SymmetricKeyGenSpec> {
 
     override fun generateKey(
+        algorithmType: AlgorithmType,
         alias: String,
         keyGenSpec: SymmetricKeyGenSpec,
-        purposes: KeyPurposes
+        purposes: KeyPurposes,
     )
 
     override fun aliasExists(

@@ -38,6 +38,7 @@ actual class Kassaforte actual constructor(
     private fun generateSecretKeyIfMissing() {
         try {
             KassaforteSymmetricService.generateKey(
+                ,
                 alias = SECRET_KEY,
                 keyGenSpec = SymmetricKeyGenSpec(
                     keySize = S256,
