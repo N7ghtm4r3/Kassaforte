@@ -1,10 +1,7 @@
 package com.tecknobit.kassaforte.services.impls
 
-import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.kassaforte.key.genspec.AlgorithmType
 import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
-import com.tecknobit.kassaforte.key.genspec.DigestType
-import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
 import com.tecknobit.kassaforte.key.usages.KeyOperation
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import java.security.Key
@@ -27,13 +24,6 @@ internal expect class KassaforteAsymmetricServiceImpl() : KassaforteServiceImpl 
         alias: String,
         keyOperation: KeyOperation,
     ): Key
-
-    @Assembler
-    fun resolveTransformation(
-        algorithm: String,
-        paddingType: EncryptionPaddingType?,
-        digestType: DigestType?,
-    ): String
 
     override fun deleteKey(
         alias: String,

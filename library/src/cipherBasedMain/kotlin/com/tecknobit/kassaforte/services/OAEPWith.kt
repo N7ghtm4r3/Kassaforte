@@ -16,7 +16,7 @@ enum class OAEPWith(
 
     OAEPWithSHA384AndMGF1Padding("OAEPWithSHA-384AndMGF1Padding"),
 
-    OAEPWithSHA512AndMGF1Padding("OAEPWithSHA-384AndMGF1Padding");
+    OAEPWithSHA512AndMGF1Padding("OAEPWithSHA-512AndMGF1Padding");
 
     companion object {
 

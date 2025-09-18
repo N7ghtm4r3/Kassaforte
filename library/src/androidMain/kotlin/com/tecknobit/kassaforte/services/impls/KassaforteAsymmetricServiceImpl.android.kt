@@ -1,19 +1,15 @@
 package com.tecknobit.kassaforte.services.impls
 
-import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.key.genspec.AlgorithmType
 import com.tecknobit.kassaforte.key.genspec.AlgorithmType.EC
 import com.tecknobit.kassaforte.key.genspec.AlgorithmType.RSA
 import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
-import com.tecknobit.kassaforte.key.genspec.DigestType
-import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
-import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType.*
+import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType.NONE
 import com.tecknobit.kassaforte.key.usages.KeyOperation
 import com.tecknobit.kassaforte.key.usages.KeyOperation.ENCRYPT
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.ALIAS_ALREADY_TAKEN_ERROR
-import com.tecknobit.kassaforte.services.OAEPWith.Companion.oaepWithValue
 import com.tecknobit.kassaforte.services.helpers.KassaforteServiceImplManager
 import com.tecknobit.kassaforte.services.helpers.KassaforteServiceImplManager.Companion.ANDROID_KEYSTORE
 import java.security.Key
@@ -101,26 +97,6 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
             val certificate = keystore.getCertificate(alias)
             certificate.publicKey
         }
-    }
-
-    @Assembler
-    actual fun resolveTransformation(
-        algorithm: String,
-        paddingType: EncryptionPaddingType?,
-        digestType: DigestType?,
-    ): String {
-        var transformation = "$algorithm/ECB"
-        transformation += "/" + when (paddingType) {
-            RSA_OAEP -> {
-                if (digestType == null)
-                    throw IllegalStateException("The OAEPPadding padding mode requires to specify the digest to use")
-                digestType.oaepWithValue().value
-            }
-
-            RSA_PKCS1 -> paddingType.value
-            else -> throw IllegalArgumentException("Invalid padding value")
-        }
-        return transformation
     }
 
     actual override fun deleteKey(

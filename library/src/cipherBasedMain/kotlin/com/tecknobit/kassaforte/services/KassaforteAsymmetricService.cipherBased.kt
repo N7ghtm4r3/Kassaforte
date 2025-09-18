@@ -5,10 +5,13 @@ import com.tecknobit.kassaforte.key.genspec.AlgorithmType
 import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.genspec.DigestType
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
+import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType.RSA_OAEP
+import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType.RSA_PKCS1
 import com.tecknobit.kassaforte.key.usages.KeyOperation
 import com.tecknobit.kassaforte.key.usages.KeyOperation.DECRYPT
 import com.tecknobit.kassaforte.key.usages.KeyOperation.ENCRYPT
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
+import com.tecknobit.kassaforte.services.OAEPWith.Companion.oaepWithValue
 import com.tecknobit.kassaforte.services.impls.KassaforteAsymmetricServiceImpl
 import com.tecknobit.kassaforte.util.checkIfIsSupportedCipherAlgorithm
 import com.tecknobit.kassaforte.util.checkIfIsSupportedType
@@ -117,11 +120,18 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         paddingType: EncryptionPaddingType?,
         digestType: DigestType?,
     ): String {
-        return serviceImpl.resolveTransformation(
-            algorithm = algorithm,
-            paddingType = paddingType,
-            digestType = digestType
-        )
+        var transformation = "$algorithm/ECB"
+        transformation += "/" + when (paddingType) {
+            RSA_OAEP -> {
+                if (digestType == null)
+                    throw IllegalStateException("The OAEPPadding padding mode requires to specify the digest to use")
+                digestType.oaepWithValue().value
+            }
+
+            RSA_PKCS1 -> paddingType.value
+            else -> throw IllegalArgumentException("Invalid padding value")
+        }
+        return transformation
     }
 
     actual override fun deleteKey(
