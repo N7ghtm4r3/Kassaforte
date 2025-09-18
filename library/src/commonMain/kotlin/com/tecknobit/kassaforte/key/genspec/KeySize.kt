@@ -53,11 +53,6 @@ enum class KeySize(
     S4096(
         bitCount = 4096,
         bytes = 512
-    ),
-
-    S8192(
-        bitCount = 8192,
-        bytes = 1024
     )
 
 }
