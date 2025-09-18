@@ -21,7 +21,7 @@ internal expect class KassaforteSymmetricServiceImpl() : KassaforteServiceImpl {
         alias: String,
     ): Boolean
 
-    fun getKey(
+    override fun getKey(
         alias: String,
         keyOperation: KeyOperation,
     ): Key

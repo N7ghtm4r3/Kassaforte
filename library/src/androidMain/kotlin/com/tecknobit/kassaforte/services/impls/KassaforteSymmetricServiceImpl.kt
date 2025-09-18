@@ -1,6 +1,5 @@
 package com.tecknobit.kassaforte.services.impls
 
-import android.security.keystore.KeyGenParameterSpec
 import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.kassaforte.key.genspec.AlgorithmType
 import com.tecknobit.kassaforte.key.genspec.BlockModeType
@@ -31,15 +30,13 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() : Kass
             AlgorithmType.AES.value,
             ANDROID_KEYSTORE
         )
-        val genSpec = KeyGenParameterSpec.Builder(
-            alias,
-            serviceImplManager.resolvePurposes(
-                keyPurposes = purposes
-            )
+        val genSpec = serviceImplManager.resolveGenSpec(
+            alias = alias,
+            keyGenSpec = keyGenSpec,
+            purposes = purposes
         ).run {
             setBlockModes(keyGenSpec.blockMode.value)
             setEncryptionPaddings(keyGenSpec.encryptionPadding.value)
-            setKeySize(keyGenSpec.keySize.bitCount)
             build()
         }
         keyGenerator.init(genSpec)
@@ -54,7 +51,7 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() : Kass
         )
     }
 
-    actual fun getKey(
+    actual override fun getKey(
         alias: String,
         keyOperation: KeyOperation,
     ): Key {

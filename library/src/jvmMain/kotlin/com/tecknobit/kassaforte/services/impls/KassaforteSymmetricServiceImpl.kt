@@ -80,7 +80,7 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() : Kass
         return Base64.encode(encodedKeyInfo)
     }
 
-    actual fun getKey(
+    actual override fun getKey(
         alias: String,
         keyOperation: KeyOperation,
     ): Key {

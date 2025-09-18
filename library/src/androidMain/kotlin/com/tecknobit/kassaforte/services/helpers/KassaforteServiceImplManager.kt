@@ -1,8 +1,10 @@
 package com.tecknobit.kassaforte.services.helpers
 
 import android.os.Build
+import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import com.tecknobit.equinoxcore.annotations.Assembler
+import com.tecknobit.kassaforte.key.genspec.KassaforteKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import java.security.Key
 import java.security.KeyStore
@@ -20,7 +22,23 @@ internal class KassaforteServiceImplManager {
     }
 
     @Assembler
-    fun resolvePurposes(
+    fun resolveGenSpec(
+        alias: String,
+        keyGenSpec: KassaforteKeyGenSpec,
+        purposes: KeyPurposes,
+    ): KeyGenParameterSpec.Builder {
+        return KeyGenParameterSpec.Builder(
+            alias,
+            resolvePurposes(
+                keyPurposes = purposes
+            )
+        ).run {
+            setKeySize(keyGenSpec.keySize.bitCount)
+        }
+    }
+
+    @Assembler
+    private fun resolvePurposes(
         keyPurposes: KeyPurposes,
     ): Int {
         var purposes = 0
@@ -57,6 +75,12 @@ internal class KassaforteServiceImplManager {
         alias: String,
     ) {
         keyStore.deleteEntry(alias)
+    }
+
+    fun <T> performKeyStoreOpe(
+        keyStoreOpe: (KeyStore) -> T,
+    ): T {
+        return keyStoreOpe(keyStore)
     }
 
 }
