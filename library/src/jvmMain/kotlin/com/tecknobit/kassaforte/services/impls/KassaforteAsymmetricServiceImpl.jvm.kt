@@ -1,27 +1,18 @@
-package com.tecknobit.kassaforte.services
+package com.tecknobit.kassaforte.services.impls
 
 import com.tecknobit.kassaforte.key.genspec.AlgorithmType
 import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGen
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
-import com.tecknobit.kassaforte.services.impls.KassaforteAsymmetricServiceImpl
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
-actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyGen>() {
+internal actual class KassaforteAsymmetricServiceImpl actual constructor() : KassaforteServiceImpl() {
 
-    private val serviceImpl = KassaforteAsymmetricServiceImpl()
-
-    actual override fun generateKey(
+    actual fun generateKey(
         algorithmType: AlgorithmType,
         alias: String,
         keyGenSpec: AsymmetricKeyGen,
         purposes: KeyPurposes,
     ) {
-        serviceImpl.generateKey(
-            algorithmType = algorithmType,
-            alias = alias,
-            keyGenSpec = keyGenSpec,
-            purposes = purposes
-        )
     }
 
     actual override fun aliasExists(

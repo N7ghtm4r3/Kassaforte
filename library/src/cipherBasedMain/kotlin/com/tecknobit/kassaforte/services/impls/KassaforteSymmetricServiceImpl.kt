@@ -1,4 +1,4 @@
-package com.tecknobit.kassaforte.services
+package com.tecknobit.kassaforte.services.impls
 
 import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.kassaforte.key.genspec.BlockModeType
@@ -9,32 +9,32 @@ import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import java.security.Key
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
-internal expect class KassaforteSymmetricServiceImpl() {
+internal expect class KassaforteSymmetricServiceImpl() : KassaforteServiceImpl {
 
     fun generateKey(
         alias: String,
         keyGenSpec: SymmetricKeyGenSpec,
-        purposes: KeyPurposes
+        purposes: KeyPurposes,
     )
 
-    fun aliasExists(
-        alias: String
+    override fun aliasExists(
+        alias: String,
     ): Boolean
 
     fun getKey(
         alias: String,
-        keyOperation: KeyOperation
+        keyOperation: KeyOperation,
     ): Key
 
     @Assembler
-    internal fun resolveTransformation(
+    fun resolveTransformation(
         algorithm: String,
         blockModeType: BlockModeType?,
-        paddingType: EncryptionPaddingType?
+        paddingType: EncryptionPaddingType?,
     ): String
 
-    fun deleteKey(
-        alias: String
+    override fun deleteKey(
+        alias: String,
     )
 
 }

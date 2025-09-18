@@ -1,19 +1,16 @@
-package com.tecknobit.kassaforte.services
+package com.tecknobit.kassaforte.services.impls
 
 import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.Kassaforte
-import com.tecknobit.kassaforte.key.genspec.AlgorithmType.AES
+import com.tecknobit.kassaforte.key.genspec.AlgorithmType
 import com.tecknobit.kassaforte.key.genspec.BlockModeType
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
-import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType.PKCS7
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyDetailsSheet
 import com.tecknobit.kassaforte.key.usages.KeyOperation
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
-import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.ALIAS_ALREADY_TAKEN_ERROR
-import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.IMPOSSIBLE_TO_RETRIEVE_KEY_ERROR
-import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.KEY_CANNOT_PERFORM_OPERATION_ERROR
+import com.tecknobit.kassaforte.services.KassaforteKeysService
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.security.Key
@@ -22,7 +19,7 @@ import javax.crypto.spec.SecretKeySpec
 import kotlin.io.encoding.Base64
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
-internal actual class KassaforteSymmetricServiceImpl actual constructor() {
+internal actual class KassaforteSymmetricServiceImpl actual constructor() : KassaforteServiceImpl() {
 
     private companion object {
 
@@ -36,8 +33,8 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() {
         purposes: KeyPurposes,
     ) {
         if (aliasExists(alias))
-            throw IllegalAccessException(ALIAS_ALREADY_TAKEN_ERROR)
-        val algorithm = AES.value
+            throw IllegalAccessException(KassaforteKeysService.ALIAS_ALREADY_TAKEN_ERROR)
+        val algorithm = AlgorithmType.AES.value
         val keyGenerator = KeyGenerator.getInstance(algorithm)
         keyGenerator.init(keyGenSpec.keySize.bitCount)
         val key = keyGenerator.generateKey()
@@ -51,7 +48,7 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() {
         )
     }
 
-    actual fun aliasExists(
+    actual override fun aliasExists(
         alias: String,
     ): Boolean {
         val kassaforte = Kassaforte(alias)
@@ -77,7 +74,7 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() {
     @Returner
     private fun formatKeyData(
         keyInfo: KeyInfo,
-    ) : String {
+    ): String {
         val encodedKeyInfo = Json.encodeToString(keyInfo)
             .encodeToByteArray()
         return Base64.encode(encodedKeyInfo)
@@ -91,18 +88,18 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() {
         val encodedKeyData = kassaforte.unsuspendedWithdraw(
             key = alias
         )
-        if(encodedKeyData == null)
-            throw IllegalAccessException(IMPOSSIBLE_TO_RETRIEVE_KEY_ERROR)
+        if (encodedKeyData == null)
+            throw IllegalAccessException(KassaforteKeysService.IMPOSSIBLE_TO_RETRIEVE_KEY_ERROR)
         val decodedKeyData = Base64.decode(encodedKeyData)
             .decodeToString()
         val keyInfo: KeyInfo = Json.decodeFromString(decodedKeyData)
-        if(!keyInfo.canPerform(keyOperation))
-            throw RuntimeException(KEY_CANNOT_PERFORM_OPERATION_ERROR.format(keyOperation))
+        if (!keyInfo.canPerform(keyOperation))
+            throw RuntimeException(KassaforteKeysService.KEY_CANNOT_PERFORM_OPERATION_ERROR.format(keyOperation))
         return keyInfo.resolveKey()
     }
 
     @Assembler
-    internal actual fun resolveTransformation(
+    actual fun resolveTransformation(
         algorithm: String,
         blockModeType: BlockModeType?,
         paddingType: EncryptionPaddingType?,
@@ -118,14 +115,14 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() {
     }
 
     @Returner
-    private fun EncryptionPaddingType.adapt() : String {
-        return "/" + when(this) {
-            PKCS7 -> PKCS5
+    private fun EncryptionPaddingType.adapt(): String {
+        return "/" + when (this) {
+            EncryptionPaddingType.PKCS7 -> PKCS5
             else -> this.value
         }
     }
 
-    actual fun deleteKey(
+    actual override fun deleteKey(
         alias: String,
     ) {
         val kassaforte = Kassaforte(alias)
@@ -144,8 +141,8 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() {
         constructor(
             algorithm: String,
             key: Key,
-            keyPurposes: KeyPurposes
-        ) : this (
+            keyPurposes: KeyPurposes,
+        ) : this(
             algorithm = algorithm,
             key = Base64.encode(key.encoded),
             keyPurposes = keyPurposes

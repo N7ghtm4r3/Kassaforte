@@ -10,6 +10,7 @@ import com.tecknobit.kassaforte.key.usages.KeyOperation
 import com.tecknobit.kassaforte.key.usages.KeyOperation.DECRYPT
 import com.tecknobit.kassaforte.key.usages.KeyOperation.ENCRYPT
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
+import com.tecknobit.kassaforte.services.impls.KassaforteSymmetricServiceImpl
 import com.tecknobit.kassaforte.util.checkIfIsSupportedType
 import java.security.Key
 import javax.crypto.Cipher

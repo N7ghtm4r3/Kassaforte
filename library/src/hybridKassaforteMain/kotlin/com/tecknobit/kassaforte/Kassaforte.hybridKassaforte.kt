@@ -1,6 +1,7 @@
 package com.tecknobit.kassaforte
 
 import com.tecknobit.equinoxcore.annotations.Returner
+import com.tecknobit.kassaforte.key.genspec.AlgorithmType
 import com.tecknobit.kassaforte.key.genspec.BlockModeType.CBC
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType.PKCS7
 import com.tecknobit.kassaforte.key.genspec.KeySize.S256
@@ -38,7 +39,7 @@ actual class Kassaforte actual constructor(
     private fun generateSecretKeyIfMissing() {
         try {
             KassaforteSymmetricService.generateKey(
-                ,
+                algorithmType = AlgorithmType.AES,
                 alias = SECRET_KEY,
                 keyGenSpec = SymmetricKeyGenSpec(
                     keySize = S256,
