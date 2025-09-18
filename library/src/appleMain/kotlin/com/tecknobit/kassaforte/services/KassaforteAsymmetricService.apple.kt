@@ -2,6 +2,7 @@ package com.tecknobit.kassaforte.services
 
 import com.tecknobit.kassaforte.key.genspec.AlgorithmType
 import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
+import com.tecknobit.kassaforte.key.genspec.DigestType
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 
@@ -25,6 +26,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     actual suspend fun encrypt(
         alias: String,
         paddingType: EncryptionPaddingType?,
+        digestType: DigestType?,
         data: Any,
     ): String {
         TODO("Not yet implemented")
@@ -33,6 +35,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     actual suspend fun decrypt(
         alias: String,
         paddingType: EncryptionPaddingType?,
+        digestType: DigestType?,
         data: String,
     ): String {
         TODO("Not yet implemented")

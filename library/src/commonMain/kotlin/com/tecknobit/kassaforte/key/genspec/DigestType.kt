@@ -17,4 +17,5 @@ enum class DigestType(
     SHA384("SHA-384"),
 
     SHA512("SHA-512");
+
 }

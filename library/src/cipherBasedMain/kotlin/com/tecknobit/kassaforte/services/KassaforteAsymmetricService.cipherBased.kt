@@ -3,13 +3,16 @@ package com.tecknobit.kassaforte.services
 import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.kassaforte.key.genspec.AlgorithmType
 import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
+import com.tecknobit.kassaforte.key.genspec.DigestType
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
+import com.tecknobit.kassaforte.key.usages.KeyOperation
 import com.tecknobit.kassaforte.key.usages.KeyOperation.DECRYPT
 import com.tecknobit.kassaforte.key.usages.KeyOperation.ENCRYPT
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.impls.KassaforteAsymmetricServiceImpl
 import com.tecknobit.kassaforte.util.checkIfIsSupportedCipherAlgorithm
 import com.tecknobit.kassaforte.util.checkIfIsSupportedType
+import java.security.Key
 import javax.crypto.Cipher
 import kotlin.io.encoding.Base64
 
@@ -43,39 +46,56 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     actual suspend fun encrypt(
         alias: String,
         paddingType: EncryptionPaddingType?,
+        digestType: DigestType?,
         data: Any,
     ): String {
         checkIfIsSupportedType(
             data = data
         )
-        val key = serviceImpl.getKey(
+        val cipherText = useCipher(
             alias = alias,
-            keyOperation = ENCRYPT
+            keyOperation = ENCRYPT,
+            paddingType = paddingType,
+            digestType = digestType,
+            usage = { cipher, key ->
+                cipher.init(Cipher.ENCRYPT_MODE, key)
+                val plainText = data.toString().encodeToByteArray()
+                cipher.doFinal(plainText)
+            }
         )
-        val algorithm = key.algorithm
-        checkIfIsSupportedCipherAlgorithm(
-            algorithm = algorithm
-        )
-        val cipher = Cipher.getInstance(
-            resolveTransformation(
-                algorithm = algorithm,
-                paddingType = paddingType
-            )
-        )
-        cipher.init(Cipher.ENCRYPT_MODE, key)
-        val plainText = data.toString().encodeToByteArray()
-        val cipherText = cipher.doFinal(plainText)
         return Base64.encode(cipherText)
     }
 
     actual suspend fun decrypt(
         alias: String,
         paddingType: EncryptionPaddingType?,
+        digestType: DigestType?,
         data: String,
     ): String {
+        val plainText = useCipher(
+            alias = alias,
+            keyOperation = DECRYPT,
+            paddingType = paddingType,
+            digestType = digestType,
+            usage = { cipher, key ->
+                cipher.init(Cipher.DECRYPT_MODE, key)
+                val cipherText = Base64.decode(data)
+                cipher.doFinal(cipherText)
+            }
+        )
+        return plainText.decodeToString()
+    }
+
+    private inline fun useCipher(
+        alias: String,
+        keyOperation: KeyOperation,
+        paddingType: EncryptionPaddingType?,
+        digestType: DigestType?,
+        usage: (Cipher, Key) -> ByteArray,
+    ): ByteArray {
         val key = serviceImpl.getKey(
             alias = alias,
-            keyOperation = DECRYPT
+            keyOperation = keyOperation
         )
         val algorithm = key.algorithm
         checkIfIsSupportedCipherAlgorithm(
@@ -84,23 +104,23 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         val cipher = Cipher.getInstance(
             resolveTransformation(
                 algorithm = algorithm,
-                paddingType = paddingType
+                paddingType = paddingType,
+                digestType = digestType
             )
         )
-        cipher.init(Cipher.DECRYPT_MODE, key)
-        val cipherText = Base64.decode(data)
-        val plainText = cipher.doFinal(cipherText)
-        return plainText.decodeToString()
+        return usage(cipher, key)
     }
 
     @Assembler
     private fun resolveTransformation(
         algorithm: String,
         paddingType: EncryptionPaddingType?,
+        digestType: DigestType?,
     ): String {
         return serviceImpl.resolveTransformation(
             algorithm = algorithm,
-            paddingType = paddingType
+            paddingType = paddingType,
+            digestType = digestType
         )
     }
 
