@@ -4,7 +4,7 @@ package com.tecknobit.kassaforte.wrappers.crypto
 
 import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
-import com.tecknobit.kassaforte.wrappers.crypto.key.KeyGenSpec
+import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.KeyGenSpec
 import com.tecknobit.kassaforte.wrappers.crypto.params.AesCbcParams
 import com.tecknobit.kassaforte.wrappers.crypto.params.AesCtrParams
 import com.tecknobit.kassaforte.wrappers.crypto.params.AesGcmParams

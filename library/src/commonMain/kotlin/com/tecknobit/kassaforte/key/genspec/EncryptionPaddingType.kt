@@ -1,4 +1,4 @@
-package com.tecknobit.kassaforte.key.genspec;
+package com.tecknobit.kassaforte.key.genspec
 
 enum class EncryptionPaddingType(
     val value: String

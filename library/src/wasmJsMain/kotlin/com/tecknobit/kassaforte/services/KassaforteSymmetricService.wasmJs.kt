@@ -16,7 +16,6 @@ import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.util.checkIfIsSupportedType
 import com.tecknobit.kassaforte.wrappers.crypto.*
 import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
-import com.tecknobit.kassaforte.wrappers.crypto.key.KeyGenSpec
 import com.tecknobit.kassaforte.wrappers.crypto.key.RawCryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.params.AesCbcParams
 import com.tecknobit.kassaforte.wrappers.crypto.params.AesCtrParams
@@ -275,4 +274,4 @@ private external fun resolveKeyGenSpec(
     algorithm: String,
     blockType: String,
     size: Int,
-): KeyGenSpec
+): com.tecknobit.kassaforte.wrappers.crypto.key.genspec.SymmetricKeyGenSpec
