@@ -2,7 +2,6 @@
 
 package com.tecknobit.kassaforte.services
 
-import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.helpers.*
 import com.tecknobit.kassaforte.key.genspec.AlgorithmType
@@ -13,6 +12,7 @@ import com.tecknobit.kassaforte.key.genspec.BlockModeType.CTR
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
+import com.tecknobit.kassaforte.services.helpers.KassaforteSymmetricImplManager
 import com.tecknobit.kassaforte.util.checkIfIsSupportedType
 import com.tecknobit.kassaforte.wrappers.crypto.*
 import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
@@ -21,7 +21,8 @@ import com.tecknobit.kassaforte.wrappers.crypto.params.AesCbcParams
 import com.tecknobit.kassaforte.wrappers.crypto.params.AesCtrParams
 import com.tecknobit.kassaforte.wrappers.crypto.params.AesGcmParams
 import com.tecknobit.kassaforte.wrappers.crypto.params.AesParams
-import kotlinx.coroutines.*
+import kotlinx.coroutines.await
+import kotlinx.coroutines.suspendCancellableCoroutine
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
 import kotlin.coroutines.resume
@@ -33,7 +34,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
 
     private val subtleCrypto = subtleCrypto()
 
-    private val serviceScope = CoroutineScope(Dispatchers.Main)
+    private val serviceImplManager = KassaforteSymmetricImplManager()
 
     actual override fun generateKey(
         algorithmType: AlgorithmType,
@@ -41,87 +42,22 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         keyGenSpec: SymmetricKeyGenSpec,
         purposes: KeyPurposes,
     ) {
-        performIfAliasAvailable(
+        serviceImplManager.generateKey(
             alias = alias,
-            onNotAvailable = { return@performIfAliasAvailable },
-            onAvailable = {
-                val genSpec = resolveKeyGenSpec(
+            genSpec = {
+                resolveKeyGenSpec(
                     algorithm = AES.value,
                     blockType = keyGenSpec.blockMode.value,
                     size = keyGenSpec.keySize.bitCount
                 )
-                val keyUsages = resolveUsages(
-                    purposes = purposes
-                )
-                serviceScope.launch {
-                    val key: CryptoKey = subtleCrypto.generateKey(
-                        algorithm = genSpec,
-                        extractable = true,
-                        keyUsages = keyUsages
-                    ).await()
-                    storeKey(
-                        alias = alias,
-                        key = key
-                    )
-                }
-            }
+            },
+            purposes = purposes
         )
     }
 
     actual override fun aliasExists(
         alias: String,
     ): Boolean = true
-
-    private fun performIfAliasAvailable(
-        alias: String,
-        onNotAvailable: () -> Unit,
-        onAvailable: () -> Unit,
-    ) {
-        IndexedDBManager.checkIfAliasExists(
-            alias = alias,
-            onKeyExists = { onNotAvailable() },
-            onKeyNotFound = { onAvailable() }
-        )
-    }
-
-    @Assembler
-    private fun resolveUsages(
-        purposes: KeyPurposes,
-    ): JsArray<JsString> {
-        val keyUsages = mutableListOf<String>()
-        if (purposes.canEncrypt)
-            keyUsages.add("encrypt")
-        if (purposes.canDecrypt)
-            keyUsages.add("decrypt")
-        if (purposes.canSign)
-            keyUsages.add("sign")
-        if (purposes.canVerify)
-            keyUsages.add("verify")
-        if (purposes.canWrapKey)
-            keyUsages.add("wrapKey")
-        if (purposes.canAgree)
-            keyUsages.add("deriveKey")
-        if (keyUsages.isEmpty())
-            throw IllegalStateException("Key usages not valid")
-        return keyUsages.map { it.toJsString() }.toJsArray()
-    }
-
-    private fun storeKey(
-        alias: String,
-        key: CryptoKey,
-    ) {
-        serviceScope.launch {
-            val exportedKey: ArrayBuffer = subtleCrypto.exportKey(
-                format = RAW_EXPORT_FORMAT,
-                key = key
-            ).await()
-            IndexedDBManager.addKey(
-                alias = alias,
-                key = key,
-                keyData = exportedKey
-            )
-        }
-    }
 
     actual suspend fun encrypt(
         alias: String,
@@ -254,7 +190,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     actual override fun deleteKey(
         alias: String,
     ) {
-        IndexedDBManager.removeKey(
+        serviceImplManager.removeKey(
             alias = alias
         )
     }
