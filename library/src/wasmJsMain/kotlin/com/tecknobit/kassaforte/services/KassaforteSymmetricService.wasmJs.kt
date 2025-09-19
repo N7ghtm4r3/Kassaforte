@@ -3,7 +3,10 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Returner
-import com.tecknobit.kassaforte.helpers.*
+import com.tecknobit.kassaforte.enums.ExportFormat.RAW
+import com.tecknobit.kassaforte.helpers.asPlainText
+import com.tecknobit.kassaforte.helpers.toArrayBuffer
+import com.tecknobit.kassaforte.helpers.toByteArray
 import com.tecknobit.kassaforte.key.genspec.AlgorithmType
 import com.tecknobit.kassaforte.key.genspec.AlgorithmType.AES
 import com.tecknobit.kassaforte.key.genspec.BlockModeType
@@ -14,18 +17,17 @@ import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.helpers.KassaforteSymmetricImplManager
 import com.tecknobit.kassaforte.util.checkIfIsSupportedType
-import com.tecknobit.kassaforte.wrappers.crypto.*
+import com.tecknobit.kassaforte.wrappers.crypto.aesCbcParams
+import com.tecknobit.kassaforte.wrappers.crypto.aesCtrParams
+import com.tecknobit.kassaforte.wrappers.crypto.aesGcmParams
 import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.key.raw.RawCryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.params.AesCbcParams
 import com.tecknobit.kassaforte.wrappers.crypto.params.AesCtrParams
 import com.tecknobit.kassaforte.wrappers.crypto.params.AesGcmParams
-import com.tecknobit.kassaforte.wrappers.crypto.params.AesParams
-import kotlinx.coroutines.await
-import kotlinx.coroutines.suspendCancellableCoroutine
+import com.tecknobit.kassaforte.wrappers.crypto.params.EncryptionParams
+import com.tecknobit.kassaforte.wrappers.crypto.subtleCrypto
 import org.khronos.webgl.ArrayBuffer
-import org.khronos.webgl.Uint8Array
-import kotlin.coroutines.resume
 import kotlin.io.encoding.Base64
 
 
@@ -68,20 +70,20 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         checkIfIsSupportedType(
             data = data
         )
-        val rawKey = obtainRawKey(
+        val rawKey: RawCryptoKey = serviceImplManager.retrieveKeyData(
             alias = alias
         )
-        val encryptedData = useKey(
-            rawKey = rawKey,
+        val encryptedData = serviceImplManager.useKey(
+            rawKey = rawKey.keyData,
+            rawKeyData = rawKey,
+            format = RAW,
             usage = { key ->
                 val aesParams = key.resolveAesParams()
-                val encryptedData: ArrayBuffer = subtleCrypto.encrypt(
+                val encryptedData = serviceImplManager.encrypt(
                     algorithm = aesParams.first,
                     key = key,
-                    data = data.prepareToEncrypt(
-                        blockModeType = blockModeType
-                    )
-                ).await()
+                    data = data
+                )
                 val iv = aesParams.second.toByteArray()
                 val encryptedDataBytes = encryptedData.toByteArray()
                 Base64.encode(iv + encryptedDataBytes)
@@ -96,11 +98,13 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         paddingType: EncryptionPaddingType,
         data: String,
     ): String {
-        val rawKey = obtainRawKey(
+        val rawKey: RawCryptoKey = serviceImplManager.retrieveKeyData(
             alias = alias
         )
-        val decryptedData = useKey(
-            rawKey = rawKey,
+        val decryptedData = serviceImplManager.useKey(
+            rawKey = rawKey.keyData,
+            rawKeyData = rawKey,
+            format = RAW,
             usage = { key ->
                 val blockSize = blockModeType.blockSize
                 val dataToDecrypt = Base64.decode(data)
@@ -109,11 +113,11 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
                 val aesParams = key.resolveAesParams(
                     iv = iv.toArrayBuffer()
                 )
-                val decryptedData: ArrayBuffer = subtleCrypto.decrypt(
+                val decryptedData: ArrayBuffer = serviceImplManager.decrypt(
                     algorithm = aesParams.first,
                     key = key,
-                    data = cipherText.prepareToDecrypt()
-                ).await()
+                    data = cipherText
+                )
                 val plainText = decryptedData.asPlainText(
                     blockModeType = blockModeType
                 )
@@ -124,50 +128,9 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     }
 
     @Returner
-    private suspend fun obtainRawKey(
-        alias: String,
-    ): RawCryptoKey {
-        return suspendCancellableCoroutine { continuation ->
-            IndexedDBManager.getAndUseKeyData(
-                alias = alias,
-                onSuccess = { _, rawKey -> continuation.resume(rawKey) },
-                onError = { eventError -> throw RuntimeException(eventError.type) }
-            )
-        }
-    }
-
-    private suspend fun useKey(
-        rawKey: RawCryptoKey,
-        usage: suspend (CryptoKey) -> String,
-    ): String {
-        val keyData = rawKey.keyData.toDecodedKeyData()
-        val key: CryptoKey = subtleCrypto.importKey(
-            format = RAW_EXPORT_FORMAT,
-            keyData = keyData,
-            algorithm = rawKey.algorithm,
-            extractable = rawKey.extractable,
-            keyUsages = rawKey.usages.unsafeCast()
-        ).await()
-        return usage(key)
-    }
-
-    @Returner
-    private fun String.toDecodedKeyData(): ArrayBuffer {
-        val encodedKeyData = Base64.decode(this)
-        val uint8Array = Uint8Array(encodedKeyData.size)
-        val mappedSourceArray = encodedKeyData
-            .map { (it.toInt() and 0xFF).toJsNumber() }
-            .toJsArray()
-        uint8Array.set(
-            array = mappedSourceArray
-        )
-        return uint8Array.buffer
-    }
-
-    @Returner
     private fun CryptoKey.resolveAesParams(
         iv: ArrayBuffer = ArrayBuffer(0),
-    ): Pair<AesParams, ArrayBuffer> {
+    ): Pair<EncryptionParams, ArrayBuffer> {
         val algorithm = algorithm.name
         return when {
             algorithm.endsWith(CBC.value) -> {

@@ -3,8 +3,10 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Returner
+import com.tecknobit.kassaforte.enums.ExportFormat.SPKI
 import com.tecknobit.kassaforte.enums.NamedCurve.Companion.toNamedCurve
 import com.tecknobit.kassaforte.enums.RsaAlgorithmName.Companion.toRsaAlgorithmName
+import com.tecknobit.kassaforte.helpers.toByteArray
 import com.tecknobit.kassaforte.key.genspec.AlgorithmType
 import com.tecknobit.kassaforte.key.genspec.AlgorithmType.EC
 import com.tecknobit.kassaforte.key.genspec.AlgorithmType.RSA
@@ -13,9 +15,13 @@ import com.tecknobit.kassaforte.key.genspec.DigestType
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.helpers.KassaforteAsymmetricImplManager
+import com.tecknobit.kassaforte.util.checkIfIsSupportedType
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.EcKeyGenParams
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.KeyGenSpec
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.RsaHashedKeyGenParams
+import com.tecknobit.kassaforte.wrappers.crypto.key.raw.RawCryptoKeyPair
+import com.tecknobit.kassaforte.wrappers.crypto.rsaOaepParams
+import kotlin.io.encoding.Base64
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyGenSpec>() {
@@ -85,7 +91,27 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         digestType: DigestType?,
         data: Any,
     ): String {
-        TODO("Not yet implemented")
+        checkIfIsSupportedType(
+            data = data
+        )
+        val rawCryptoKeyPair: RawCryptoKeyPair = serviceImplManager.retrieveKeyData(
+            alias = alias
+        )
+        val encryptedData = serviceImplManager.useKey(
+            rawKey = rawCryptoKeyPair.publicKey,
+            rawKeyData = rawCryptoKeyPair,
+            format = SPKI,
+            usages = rawCryptoKeyPair.publicKeyUsages,
+            usage = { key ->
+                val encryptedData = serviceImplManager.encrypt(
+                    algorithm = rsaOaepParams(),
+                    key = key,
+                    data = data
+                )
+                Base64.encode(encryptedData.toByteArray())
+            }
+        )
+        return encryptedData
     }
 
     actual suspend fun decrypt(

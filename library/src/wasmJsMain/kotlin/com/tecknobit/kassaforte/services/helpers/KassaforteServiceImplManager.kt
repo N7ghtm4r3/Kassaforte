@@ -6,19 +6,22 @@ import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.enums.ExportFormat
 import com.tecknobit.kassaforte.helpers.IndexedDBManager
+import com.tecknobit.kassaforte.helpers.prepareToDecrypt
+import com.tecknobit.kassaforte.helpers.prepareToEncrypt
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.KeyGenSpec
+import com.tecknobit.kassaforte.wrappers.crypto.params.EncryptionParams
 import com.tecknobit.kassaforte.wrappers.crypto.subtleCrypto
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.await
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.khronos.webgl.ArrayBuffer
+import org.khronos.webgl.Uint8Array
+import kotlin.coroutines.resume
+import kotlin.io.encoding.Base64
 
-internal abstract class KassaforteServiceImplManager<K : JsAny> : KassaforteServiceManager<K> {
+internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> : KassaforteServiceManager<K> {
 
-    protected val subtleCrypto = subtleCrypto()
+    private val subtleCrypto = subtleCrypto()
 
     protected val managerScope = CoroutineScope(
         context = Dispatchers.Default
@@ -81,12 +84,14 @@ internal abstract class KassaforteServiceImplManager<K : JsAny> : KassaforteServ
         ).await()
         store(
             alias = alias,
+            algorithm = genSpec,
             result = result
         )
     }
 
     protected abstract fun store(
         alias: String,
+        algorithm: KeyGenSpec,
         result: K,
     )
 
@@ -101,14 +106,72 @@ internal abstract class KassaforteServiceImplManager<K : JsAny> : KassaforteServ
         ).await()
     }
 
-    override fun isAliasTaken(
+    suspend fun retrieveKeyData(
         alias: String,
-    ): Boolean = true
+    ): RK {
+        return suspendCancellableCoroutine { continuation ->
+            IndexedDBManager.getAndUseKeyData<RK>(
+                alias = alias,
+                onSuccess = { _, rawKeyData -> continuation.resume(rawKeyData) },
+                onError = { eventError -> throw RuntimeException(eventError.type) }
+            )
+        }
+    }
 
-    override fun retrieveKey(
-        alias: String,
-    ): K {
-        TODO()
+    suspend fun useKey(
+        rawKey: String,
+        rawKeyData: CryptoKey,
+        usages: JsArray<JsString> = rawKeyData.usages,
+        format: ExportFormat,
+        usage: suspend (CryptoKey) -> String,
+    ): String {
+        println(rawKeyData.algorithm.name)
+        val keyData = rawKey.toDecodedKeyData()
+        val key: CryptoKey = subtleCrypto.importKey(
+            format = format.value,
+            keyData = keyData,
+            algorithm = rawKeyData.algorithm,
+            extractable = rawKeyData.extractable,
+            keyUsages = usages
+        ).await()
+        return usage(key)
+    }
+
+    @Returner
+    private fun String.toDecodedKeyData(): ArrayBuffer {
+        val encodedKeyData = Base64.decode(this)
+        val uint8Array = Uint8Array(encodedKeyData.size)
+        val mappedSourceArray = encodedKeyData
+            .map { (it.toInt() and 0xFF).toJsNumber() }
+            .toJsArray()
+        uint8Array.set(
+            array = mappedSourceArray
+        )
+        return uint8Array.buffer
+    }
+
+    suspend fun encrypt(
+        algorithm: EncryptionParams,
+        key: CryptoKey,
+        data: Any,
+    ): ArrayBuffer {
+        return subtleCrypto.encrypt(
+            algorithm = algorithm,
+            key = key,
+            data = data.prepareToEncrypt()
+        ).await()
+    }
+
+    suspend fun decrypt(
+        algorithm: EncryptionParams,
+        key: CryptoKey,
+        data: Any,
+    ): ArrayBuffer {
+        return subtleCrypto.decrypt(
+            algorithm = algorithm,
+            key = key,
+            data = data.prepareToDecrypt()
+        ).await()
     }
 
     override fun removeKey(
@@ -118,5 +181,13 @@ internal abstract class KassaforteServiceImplManager<K : JsAny> : KassaforteServ
             alias = alias
         )
     }
+
+    override fun isAliasTaken(
+        alias: String,
+    ): Boolean = true
+
+    override fun retrieveKey(
+        alias: String,
+    ): K = TODO("UNUSED")
 
 }

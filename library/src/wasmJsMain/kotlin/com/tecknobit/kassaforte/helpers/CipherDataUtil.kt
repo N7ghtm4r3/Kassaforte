@@ -7,7 +7,7 @@ import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
 
 fun Any.prepareToEncrypt(
-    blockModeType: BlockModeType,
+    blockModeType: BlockModeType? = null,
 ): Uint8Array {
     val plainText = this.toString().encodeToByteArray()
     return if (blockModeType == CBC) {

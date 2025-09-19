@@ -1,12 +1,12 @@
-package com.tecknobit.kassaforte.wrappers.crypto.key.genspec
+@file:OptIn(ExperimentalWasmJsInterop::class)
 
-import org.khronos.webgl.Uint8Array
+package com.tecknobit.kassaforte.wrappers.crypto.key.genspec
 
 external interface RsaHashedKeyGenParams : KeyGenSpec {
 
     val modulusLength: Int
 
-    val publicExponent: Uint8Array
+    val publicExponent: JsArray<JsNumber>
 
     val hash: String
 

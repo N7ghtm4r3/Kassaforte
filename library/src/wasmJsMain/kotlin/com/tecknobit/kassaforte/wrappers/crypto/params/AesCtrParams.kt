@@ -2,7 +2,7 @@ package com.tecknobit.kassaforte.wrappers.crypto.params
 
 import org.khronos.webgl.ArrayBuffer
 
-external interface AesCtrParams : AesParams {
+external interface AesCtrParams : EncryptionParams {
 
     val counter: ArrayBuffer
 

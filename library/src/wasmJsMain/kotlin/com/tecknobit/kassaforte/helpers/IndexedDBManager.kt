@@ -7,7 +7,6 @@ import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKeyPair
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.KeyGenSpec
-import com.tecknobit.kassaforte.wrappers.crypto.key.raw.RawCryptoKey
 import com.tecknobit.kassaforte.wrappers.indexeddb.*
 import com.tecknobit.kassaforte.wrappers.indexeddb.TransactionMode.READONLY
 import com.tecknobit.kassaforte.wrappers.indexeddb.TransactionMode.READ_WRITE_MODE
@@ -58,6 +57,7 @@ object IndexedDBManager {
 
     fun addKeyPair(
         alias: String,
+        algorithm: KeyGenSpec,
         keyPair: CryptoKeyPair,
         privateKey: ArrayBuffer,
         publicKey: ArrayBuffer,
@@ -71,11 +71,12 @@ object IndexedDBManager {
                 objectStore.put(
                     item = buildRawKeyPair(
                         alias = alias,
-                        algorithm = privateKeyData.algorithm,
+                        algorithm = algorithm,
                         extractable = privateKeyData.extractable,
-                        publicKey = publicKey.toEncodedKey(),
                         privateKey = privateKey.toEncodedKey(),
-                        usages = privateKeyData.usages
+                        publicKey = publicKey.toEncodedKey(),
+                        usages = privateKeyData.usages,
+                        publicKeyUsages = keyPair.publicKey.usages
                     )
                 )
             }
@@ -113,9 +114,9 @@ object IndexedDBManager {
         )
     }
 
-    fun getAndUseKeyData(
+    fun <K : CryptoKey> getAndUseKeyData(
         alias: String,
-        onSuccess: (Event, RawCryptoKey) -> Unit,
+        onSuccess: (Event, K) -> Unit,
         onError: (Event) -> Unit = { throw RuntimeException(it.type) },
         onKeyNotFound: (Event) -> Unit = onError,
     ) {
@@ -132,7 +133,7 @@ object IndexedDBManager {
                     if (result == null)
                         onKeyNotFound(event)
                     else {
-                        val rawKey = result.unsafeCast<RawCryptoKey>()
+                        val rawKey = result.unsafeCast<K>()
                         onSuccess(event, rawKey)
                     }
                 }
@@ -248,14 +249,15 @@ private external fun buildRawKey(
 
 @JsFun(
     """
-    (alias, algorithm, extractable, publicKey, privateKey, usages) => (
+    (alias, algorithm, extractable, publicKey, privateKey, usages, publicKeyUsages) => (
         {
             alias: alias,
             algorithm: algorithm,
             extractable: extractable,
             publicKey: publicKey,
             privateKey: privateKey,
-            usages: usages
+            usages: usages,
+            publicKeyUsages: publicKeyUsages
         }
     )
     """
@@ -268,4 +270,5 @@ private external fun buildRawKeyPair(
     publicKey: String,
     privateKey: String,
     usages: JsArray<JsString>,
+    publicKeyUsages: JsArray<JsString>,
 ): JsAny

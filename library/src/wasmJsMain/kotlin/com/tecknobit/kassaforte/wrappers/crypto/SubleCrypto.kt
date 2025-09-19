@@ -8,12 +8,10 @@ import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.KeyGenSpec
 import com.tecknobit.kassaforte.wrappers.crypto.params.AesCbcParams
 import com.tecknobit.kassaforte.wrappers.crypto.params.AesCtrParams
 import com.tecknobit.kassaforte.wrappers.crypto.params.AesGcmParams
+import com.tecknobit.kassaforte.wrappers.crypto.params.EncryptionParams
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
 import kotlin.js.Promise
-
-// TODO: TO REMOVE
-const val RAW_EXPORT_FORMAT: String = "raw"
 
 external interface SubtleCrypto {
 
@@ -122,3 +120,15 @@ external fun aesGcmParams(
     name: String,
     iv: ArrayBuffer,
 ): AesGcmParams
+
+@JsFun(
+    """
+    (name) => (
+       {
+          name: RSA-OAEP
+       }
+    )   
+    """
+)
+@Assembler
+external fun rsaOaepParams(): EncryptionParams
