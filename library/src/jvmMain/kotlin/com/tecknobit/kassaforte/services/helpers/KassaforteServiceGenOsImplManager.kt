@@ -45,12 +45,11 @@ internal class KassaforteServiceGenOsImplManager<KI : KeyDetailsSheet<*>>(
         )
         if (encodedKeyData == null)
             throw IllegalAccessException(IMPOSSIBLE_TO_RETRIEVE_KEY_ERROR)
-        val storedData = try {
-            Base64.decode(encodedKeyData).decodeToString()
-        } catch (e: IllegalArgumentException) {
-            encodedKeyData
-        }
-        return Json.decodeFromString(serializer, storedData)
+        val storedData = Base64.decode(encodedKeyData).decodeToString()
+        return Json.decodeFromString(
+            deserializer = serializer,
+            string = storedData
+        )
     }
 
     override fun removeKey(

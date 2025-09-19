@@ -5,3 +5,5 @@ Insert into ARCHICTURE REFERENCE:
 https://github.com/javakeyring/java-keyring
 
 https://github.com/korlibs/korlibs-crypto
+
+https://github.com/peter-gergely-horvath/windpapi4j

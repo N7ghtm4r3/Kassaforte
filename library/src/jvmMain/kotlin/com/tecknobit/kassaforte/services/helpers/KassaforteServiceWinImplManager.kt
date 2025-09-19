@@ -10,6 +10,7 @@ import com.tecknobit.kassaforte.Kassaforte
 import com.tecknobit.kassaforte.key.usages.KeyDetailsSheet
 import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.IMPOSSIBLE_TO_RETRIEVE_KEY_ERROR
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.FileWriter
 import java.nio.file.Files
@@ -54,8 +55,11 @@ internal class KassaforteServiceWinImplManager<KI : KeyDetailsSheet<*>>(
             alias = alias
         )
         val decryptedRegistryData = winDPAPI.unprotectData(registryData)
-        println(decryptedRegistryData.decodeToString())
-        TODO("Not yet implemented")
+        val keyInfo: KI = Json.decodeFromString(
+            deserializer = serializer,
+            string = decryptedRegistryData.decodeToString()
+        )
+        return keyInfo
     }
 
     override fun removeKey(
