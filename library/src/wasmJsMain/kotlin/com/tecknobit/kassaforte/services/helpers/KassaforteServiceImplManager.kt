@@ -3,30 +3,52 @@
 package com.tecknobit.kassaforte.services.helpers
 
 import com.tecknobit.equinoxcore.annotations.Assembler
+import com.tecknobit.equinoxcore.annotations.Returner
+import com.tecknobit.kassaforte.enums.ExportFormat
 import com.tecknobit.kassaforte.helpers.IndexedDBManager
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
-import com.tecknobit.kassaforte.wrappers.crypto.key.RawCryptoKey
+import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.KeyGenSpec
 import com.tecknobit.kassaforte.wrappers.crypto.subtleCrypto
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.await
+import kotlinx.coroutines.launch
+import org.khronos.webgl.ArrayBuffer
 
-internal class KassaforteServiceImplManager : KassaforteServiceManager<RawCryptoKey> {
+internal abstract class KassaforteServiceImplManager<K : JsAny> : KassaforteServiceManager<K> {
 
-    private val subtleCrypto = subtleCrypto()
+    protected val subtleCrypto = subtleCrypto()
 
-    fun checkIfAliasAvailable(
+    protected val managerScope = CoroutineScope(
+        context = Dispatchers.Default
+    )
+
+    fun generateKey(
         alias: String,
-        onNotAvailable: () -> Unit,
-        onAvailable: () -> Unit,
+        genSpec: () -> KeyGenSpec,
+        purposes: KeyPurposes,
     ) {
         IndexedDBManager.checkIfAliasExists(
             alias = alias,
-            onKeyExists = { onNotAvailable() },
-            onKeyNotFound = { onAvailable() }
+            onKeyExists = { return@checkIfAliasExists },
+            onKeyNotFound = {
+                managerScope.launch {
+                    generateAndStore(
+                        alias = alias,
+                        genSpec = genSpec(),
+                        usages = resolveUsages(
+                            purposes = purposes
+                        )
+                    )
+                }
+            }
         )
     }
 
+    // TODO: TO DOCU ABOUT THE COMBINATION WITH USAGES AND KEYGEN 
     @Assembler
-    fun resolveUsages(
+    private fun resolveUsages(
         purposes: KeyPurposes,
     ): JsArray<JsString> {
         val keyUsages = mutableListOf<String>()
@@ -47,15 +69,36 @@ internal class KassaforteServiceImplManager : KassaforteServiceManager<RawCrypto
         return keyUsages.map { it.toJsString() }.toJsArray()
     }
 
-    fun generateKey(
+    private suspend fun generateAndStore(
+        alias: String,
         genSpec: KeyGenSpec,
         usages: JsArray<JsString>,
     ) {
-        subtleCrypto.generateKey(
+        val result: K = subtleCrypto.generateKey(
             algorithm = genSpec,
             extractable = true,
             keyUsages = usages
+        ).await()
+        store(
+            alias = alias,
+            result = result
         )
+    }
+
+    protected abstract fun store(
+        alias: String,
+        result: K,
+    )
+
+    @Returner
+    protected suspend fun exportKey(
+        key: CryptoKey,
+        format: ExportFormat,
+    ): ArrayBuffer {
+        return subtleCrypto.exportKey(
+            format = format.value,
+            key = key
+        ).await()
     }
 
     override fun isAliasTaken(
@@ -64,14 +107,16 @@ internal class KassaforteServiceImplManager : KassaforteServiceManager<RawCrypto
 
     override fun retrieveKey(
         alias: String,
-    ): RawCryptoKey {
+    ): K {
         TODO()
     }
 
     override fun removeKey(
         alias: String,
     ) {
-        TODO()
+        IndexedDBManager.removeKey(
+            alias = alias
+        )
     }
 
 }

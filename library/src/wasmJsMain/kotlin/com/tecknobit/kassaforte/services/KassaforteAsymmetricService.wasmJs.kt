@@ -4,16 +4,15 @@ package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.enums.NamedCurve.Companion.toNamedCurve
+import com.tecknobit.kassaforte.enums.RsaAlgorithmName.Companion.toRsaAlgorithmName
 import com.tecknobit.kassaforte.key.genspec.AlgorithmType
 import com.tecknobit.kassaforte.key.genspec.AlgorithmType.EC
 import com.tecknobit.kassaforte.key.genspec.AlgorithmType.RSA
 import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.genspec.DigestType
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
-import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType.RSA_OAEP
-import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType.RSA_PKCS1
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
-import com.tecknobit.kassaforte.services.helpers.KassaforteServiceImplManager
+import com.tecknobit.kassaforte.services.helpers.KassaforteAsymmetricImplManager
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.EcKeyGenParams
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.KeyGenSpec
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.RsaHashedKeyGenParams
@@ -24,7 +23,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     // TODO: PROVIDE ALSO ECDH WHEN INTEGRATED THE AGREEMENT
     private const val DEFAULT_EC_NAME = "ECDSA"
 
-    private val serviceImplManager = KassaforteServiceImplManager()
+    private val serviceImplManager = KassaforteAsymmetricImplManager()
 
     actual override fun generateKey(
         algorithmType: AlgorithmType,
@@ -32,22 +31,15 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         keyGenSpec: AsymmetricKeyGenSpec,
         purposes: KeyPurposes,
     ) {
-        serviceImplManager.checkIfAliasAvailable(
+        serviceImplManager.generateKey(
             alias = alias,
-            onAvailable = { return@checkIfAliasAvailable },
-            onNotAvailable = {
-                val genSpec = resolveGenSpec(
+            genSpec = {
+                resolveGenSpec(
                     algorithmType = algorithmType,
                     keyGenSpec = keyGenSpec
                 )
-                val usages = serviceImplManager.resolveUsages(
-                    purposes = purposes
-                )
-                serviceImplManager.generateKey(
-                    genSpec = genSpec,
-                    usages = usages
-                )
-            }
+            },
+            purposes = purposes
         )
     }
 
@@ -60,7 +52,9 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             RSA -> {
                 val digest = keyGenSpec.digest ?: throw IllegalArgumentException("The digest must be specified")
                 resolveRsaHashedKeyGenParams(
-                    name = keyGenSpec.encryptionPadding.adaptRsaAlgorithmName(),
+                    name = keyGenSpec.encryptionPadding
+                        .toRsaAlgorithmName()
+                        .value,
                     modulusLength = keyGenSpec.keySize.bitCount,
                     hash = digest.value
                 )
@@ -69,23 +63,14 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             EC -> {
                 resolveEcKeyGenParams(
                     name = DEFAULT_EC_NAME,
-                    namedCurve = keyGenSpec.keySize.toNamedCurve().value
+                    namedCurve = keyGenSpec.keySize
+                        .toNamedCurve()
+                        .value
                 )
             }
 
             else -> {
                 throw IllegalArgumentException("Invalid asymmetric algorithm")
-            }
-        }
-    }
-
-    @Returner
-    private fun EncryptionPaddingType.adaptRsaAlgorithmName(): String {
-        return RSA.value + "-" + when (this) {
-            RSA_OAEP -> "OAEP"
-            RSA_PKCS1 -> "PKCS1-v1_5"
-            else -> {
-                throw IllegalArgumentException("Invalid encryption padding value")
             }
         }
     }
@@ -115,6 +100,9 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     actual override fun deleteKey(
         alias: String,
     ) {
+        serviceImplManager.removeKey(
+            alias = alias
+        )
     }
 
 }
@@ -124,7 +112,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     (name, modulusLength, hash) => ({
         name: name,
         modulusLength: modulusLength,
-        publicExponent: [0x01, 0x00, 0x01],
+        publicExponent: new Uint8Array([0x01, 0x00, 0x01]),
         hash: hash
     })
     """

@@ -12,6 +12,7 @@ import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
 import kotlin.js.Promise
 
+// TODO: TO REMOVE
 const val RAW_EXPORT_FORMAT: String = "raw"
 
 external interface SubtleCrypto {

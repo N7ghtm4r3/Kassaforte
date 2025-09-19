@@ -1,12 +1,13 @@
-@file:OptIn(ExperimentalWasmJsInterop::class, ExperimentalAtomicApi::class)
+@file:OptIn(ExperimentalWasmJsInterop::class)
 
 package com.tecknobit.kassaforte.helpers
 
 import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
-import com.tecknobit.kassaforte.wrappers.crypto.key.RawCryptoKey
+import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKeyPair
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.KeyGenSpec
+import com.tecknobit.kassaforte.wrappers.crypto.key.raw.RawCryptoKey
 import com.tecknobit.kassaforte.wrappers.indexeddb.*
 import com.tecknobit.kassaforte.wrappers.indexeddb.TransactionMode.READONLY
 import com.tecknobit.kassaforte.wrappers.indexeddb.TransactionMode.READ_WRITE_MODE
@@ -14,7 +15,6 @@ import com.tecknobit.kassaforte.wrappers.indexeddb.requests.IDBOpenDBRequest
 import com.tecknobit.kassaforte.wrappers.indexeddb.requests.IDBRequest
 import org.khronos.webgl.ArrayBuffer
 import org.w3c.dom.events.Event
-import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.io.encoding.Base64
 
 object IndexedDBManager {
@@ -44,12 +44,38 @@ object IndexedDBManager {
                     transactionMode = READ_WRITE_MODE
                 )
                 objectStore.put(
-                    item = buildItem(
+                    item = buildRawKey(
                         alias = alias,
                         keyData = keyData.toEncodedKey(),
                         algorithm = key.algorithm,
                         extractable = key.extractable,
                         usages = key.usages
+                    )
+                )
+            }
+        )
+    }
+
+    fun addKeyPair(
+        alias: String,
+        keyPair: CryptoKeyPair,
+        privateKey: ArrayBuffer,
+        publicKey: ArrayBuffer,
+    ) {
+        useIndexedDB(
+            onReady = {
+                val objectStore = obtainObjectStore(
+                    transactionMode = READ_WRITE_MODE
+                )
+                val privateKeyData = keyPair.privateKey
+                objectStore.put(
+                    item = buildRawKeyPair(
+                        alias = alias,
+                        algorithm = privateKeyData.algorithm,
+                        extractable = privateKeyData.extractable,
+                        publicKey = publicKey.toEncodedKey(),
+                        privateKey = privateKey.toEncodedKey(),
+                        usages = privateKeyData.usages
                     )
                 )
             }
@@ -212,10 +238,34 @@ private external fun objectStoreOptions(): JsAny
     """
 )
 @Assembler
-private external fun buildItem(
+private external fun buildRawKey(
     alias: String,
     keyData: String,
     algorithm: KeyGenSpec,
     extractable: Boolean,
+    usages: JsArray<JsString>,
+): JsAny
+
+@JsFun(
+    """
+    (alias, algorithm, extractable, publicKey, privateKey, usages) => (
+        {
+            alias: alias,
+            algorithm: algorithm,
+            extractable: extractable,
+            publicKey: publicKey,
+            privateKey: privateKey,
+            usages: usages
+        }
+    )
+    """
+)
+@Assembler
+private external fun buildRawKeyPair(
+    alias: String,
+    algorithm: KeyGenSpec,
+    extractable: Boolean,
+    publicKey: String,
+    privateKey: String,
     usages: JsArray<JsString>,
 ): JsAny
