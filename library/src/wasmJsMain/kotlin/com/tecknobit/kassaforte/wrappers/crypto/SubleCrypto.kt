@@ -125,7 +125,7 @@ external fun aesGcmParams(
     """
     (name) => (
        {
-          name: RSA-OAEP
+          name: "RSA-OAEP"
        }
     )   
     """

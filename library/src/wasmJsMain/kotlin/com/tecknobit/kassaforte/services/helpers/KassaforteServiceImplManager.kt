@@ -125,7 +125,6 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
         format: ExportFormat,
         usage: suspend (CryptoKey) -> String,
     ): String {
-        println(rawKeyData.algorithm.name)
         val keyData = rawKey.toDecodedKeyData()
         val key: CryptoKey = subtleCrypto.importKey(
             format = format.value,

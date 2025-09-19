@@ -3,9 +3,11 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Returner
+import com.tecknobit.kassaforte.enums.ExportFormat.PKCS8
 import com.tecknobit.kassaforte.enums.ExportFormat.SPKI
 import com.tecknobit.kassaforte.enums.NamedCurve.Companion.toNamedCurve
 import com.tecknobit.kassaforte.enums.RsaAlgorithmName.Companion.toRsaAlgorithmName
+import com.tecknobit.kassaforte.helpers.asPlainText
 import com.tecknobit.kassaforte.helpers.toByteArray
 import com.tecknobit.kassaforte.key.genspec.AlgorithmType
 import com.tecknobit.kassaforte.key.genspec.AlgorithmType.EC
@@ -120,7 +122,23 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         digestType: DigestType?,
         data: String,
     ): String {
-        TODO("Not yet implemented")
+        val rawCryptoKeyPair: RawCryptoKeyPair = serviceImplManager.retrieveKeyData(
+            alias = alias
+        )
+        val decryptedData = serviceImplManager.useKey(
+            rawKey = rawCryptoKeyPair.privateKey,
+            rawKeyData = rawCryptoKeyPair,
+            format = PKCS8,
+            usage = { key ->
+                val decryptedData = serviceImplManager.decrypt(
+                    algorithm = rsaOaepParams(),
+                    key = key,
+                    data = Base64.decode(data)
+                )
+                decryptedData.asPlainText()
+            }
+        )
+        return decryptedData
     }
 
     actual override fun deleteKey(

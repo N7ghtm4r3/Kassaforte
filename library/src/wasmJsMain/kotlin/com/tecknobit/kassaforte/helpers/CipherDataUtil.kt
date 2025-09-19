@@ -36,7 +36,7 @@ fun Any.prepareToDecrypt(): Uint8Array {
 }
 
 fun ArrayBuffer.asPlainText(
-    blockModeType: BlockModeType,
+    blockModeType: BlockModeType? = null,
 ): String {
     val unpaddedData = this.toByteArray()
     val plainTextBytes = if (blockModeType == CBC) {
