@@ -46,12 +46,16 @@ internal abstract class KassaforteServiceImplManager<KI : KeyDetailsSheet<*>> in
     @Returner
     protected fun formatKeyData(
         keyInfo: KI,
+        encode64: Boolean = true,
     ): String {
         val encodedKeyInfo = Json.encodeToString(
             serializer = serializer,
             keyInfo
         )
-        return Base64.encode(encodedKeyInfo.encodeToByteArray())
+        return if (encode64)
+            Base64.encode(encodedKeyInfo.encodeToByteArray())
+        else
+            encodedKeyInfo
     }
 
 }

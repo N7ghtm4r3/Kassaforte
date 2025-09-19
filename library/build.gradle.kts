@@ -89,6 +89,7 @@ kotlin {
             dependencies {
                 implementation(libs.keyring)
                 implementation(libs.kotlinx.coroutines.swing)
+                implementation(libs.windpapi4j)
             }
         }
 
