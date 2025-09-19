@@ -6,6 +6,6 @@ external interface RawCryptoKey : CryptoKey {
 
     val alias: String
 
-    val keyData: String
+    val key: String
 
 }

@@ -26,15 +26,11 @@ import com.tecknobit.kassaforte.wrappers.crypto.params.AesCbcParams
 import com.tecknobit.kassaforte.wrappers.crypto.params.AesCtrParams
 import com.tecknobit.kassaforte.wrappers.crypto.params.AesGcmParams
 import com.tecknobit.kassaforte.wrappers.crypto.params.EncryptionParams
-import com.tecknobit.kassaforte.wrappers.crypto.subtleCrypto
 import org.khronos.webgl.ArrayBuffer
 import kotlin.io.encoding.Base64
 
-
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGenSpec>() {
-
-    private val subtleCrypto = subtleCrypto()
 
     private val serviceImplManager = KassaforteSymmetricImplManager()
 
@@ -74,7 +70,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             alias = alias
         )
         val encryptedData = serviceImplManager.useKey(
-            rawKey = rawKey.keyData,
+            rawKey = rawKey.key,
             rawKeyData = rawKey,
             format = RAW,
             usage = { key ->
@@ -102,7 +98,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             alias = alias
         )
         val decryptedData = serviceImplManager.useKey(
-            rawKey = rawKey.keyData,
+            rawKey = rawKey.key,
             rawKeyData = rawKey,
             format = RAW,
             usage = { key ->

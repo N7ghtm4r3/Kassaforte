@@ -8,6 +8,7 @@ enum class RsaAlgorithmName(
     val value: String,
 ) {
 
+    // TODO: TO WARN ABOUT THAT ON THE WEB THIS IS USED TO VERIFY AND SIGN ONLY
     RSASSA_PKCS1_v1_5("RSASSA-PKCS1-v1_5"),
 
     RSA_OAEP("RSA-OAEP");

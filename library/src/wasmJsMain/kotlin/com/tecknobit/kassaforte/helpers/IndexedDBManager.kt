@@ -35,7 +35,7 @@ object IndexedDBManager {
     fun addKey(
         alias: String,
         key: CryptoKey,
-        keyData: ArrayBuffer,
+        exportedKey: ArrayBuffer,
     ) {
         useIndexedDB(
             onReady = {
@@ -45,7 +45,7 @@ object IndexedDBManager {
                 objectStore.put(
                     item = buildRawKey(
                         alias = alias,
-                        keyData = keyData.toEncodedKey(),
+                        key = exportedKey.toEncodedKey(),
                         algorithm = key.algorithm,
                         extractable = key.extractable,
                         usages = key.usages
@@ -227,10 +227,10 @@ private external fun objectStoreOptions(): JsAny
 
 @JsFun(
     """
-    (alias, keyData, algorithm, extractable, usages) => (
+    (alias, key, algorithm, extractable, usages) => (
         {
             alias: alias,
-            keyData: keyData,
+            key: key,
             algorithm: algorithm,
             extractable: extractable,
             usages: usages
@@ -241,7 +241,7 @@ private external fun objectStoreOptions(): JsAny
 @Assembler
 private external fun buildRawKey(
     alias: String,
-    keyData: String,
+    key: String,
     algorithm: KeyGenSpec,
     extractable: Boolean,
     usages: JsArray<JsString>,

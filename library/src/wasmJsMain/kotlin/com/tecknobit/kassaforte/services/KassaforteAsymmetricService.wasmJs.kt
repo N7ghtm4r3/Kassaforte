@@ -42,7 +42,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         serviceImplManager.generateKey(
             alias = alias,
             genSpec = {
-                resolveGenSpec(
+                resolveKeyGenSpec(
                     algorithmType = algorithmType,
                     keyGenSpec = keyGenSpec
                 )
@@ -52,7 +52,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     }
 
     @Returner
-    private fun resolveGenSpec(
+    private fun resolveKeyGenSpec(
         algorithmType: AlgorithmType,
         keyGenSpec: AsymmetricKeyGenSpec,
     ): KeyGenSpec {
@@ -77,9 +77,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                 )
             }
 
-            else -> {
-                throw IllegalArgumentException("Invalid asymmetric algorithm")
-            }
+            else -> throw IllegalArgumentException("Invalid asymmetric algorithm")
         }
     }
 
@@ -130,10 +128,11 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             rawKeyData = rawCryptoKeyPair,
             format = PKCS8,
             usage = { key ->
+                val dataToDecrypt = Base64.decode(data)
                 val decryptedData = serviceImplManager.decrypt(
                     algorithm = rsaOaepParams(),
                     key = key,
-                    data = Base64.decode(data)
+                    data = dataToDecrypt
                 )
                 decryptedData.asPlainText()
             }

@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalWasmJsInterop::class)
-
 package com.tecknobit.kassaforte.services.helpers
 
 import com.tecknobit.kassaforte.enums.ExportFormat.PKCS8
@@ -28,8 +26,8 @@ internal class KassaforteAsymmetricImplManager : KassaforteServiceImplManager<Cr
             )
             IndexedDBManager.addKeyPair(
                 alias = alias,
-                keyPair = result,
                 algorithm = algorithm,
+                keyPair = result,
                 privateKey = privateKey,
                 publicKey = publicKey
             )

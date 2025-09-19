@@ -22,7 +22,7 @@ internal class KassaforteSymmetricImplManager : KassaforteServiceImplManager<Cry
             IndexedDBManager.addKey(
                 alias = alias,
                 key = result,
-                keyData = key
+                exportedKey = key
             )
         }
     }
