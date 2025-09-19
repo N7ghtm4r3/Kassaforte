@@ -15,6 +15,9 @@ import com.tecknobit.kassaforte.services.OAEPWith.Companion.oaepWithValue
 import com.tecknobit.kassaforte.services.impls.KassaforteAsymmetricServiceImpl
 import com.tecknobit.kassaforte.util.checkIfIsSupportedCipherAlgorithm
 import com.tecknobit.kassaforte.util.checkIfIsSupportedType
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.security.Key
 import javax.crypto.Cipher
 import kotlin.io.encoding.Base64
@@ -24,18 +27,24 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
 
     private val serviceImpl = KassaforteAsymmetricServiceImpl()
 
+    private val serviceScope = CoroutineScope(
+        context = Dispatchers.IO
+    )
+
     actual override fun generateKey(
         algorithmType: AlgorithmType,
         alias: String,
         keyGenSpec: AsymmetricKeyGenSpec,
         purposes: KeyPurposes,
     ) {
-        serviceImpl.generateKey(
-            algorithmType = algorithmType,
-            alias = alias,
-            keyGenSpec = keyGenSpec,
-            purposes = purposes
-        )
+        serviceScope.launch {
+            serviceImpl.generateKey(
+                algorithmType = algorithmType,
+                alias = alias,
+                keyGenSpec = keyGenSpec,
+                purposes = purposes
+            )
+        }
     }
 
     actual override fun aliasExists(
