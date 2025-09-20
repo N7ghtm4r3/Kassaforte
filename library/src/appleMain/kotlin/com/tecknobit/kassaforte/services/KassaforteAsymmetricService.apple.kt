@@ -225,23 +225,24 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         checkIfIsSupportedType(
             data = data
         )
-        val publicKeyAlias = resolvePublicKeyAlias(
-            alias = alias
+        val encryptedData = useKey(
+            alias = resolvePublicKeyAlias(
+                alias = alias
+            ),
+            paddingType = paddingType,
+            digestType = digestType,
+            usage = { publicKey, algorithm ->
+                val dataToEncrypt = data.toString().toCFData()
+                val encryptedData = SecKeyCreateEncryptedData(
+                    key = publicKey,
+                    algorithm = algorithm,
+                    plaintext = dataToEncrypt,
+                    error = null
+                )
+                encryptedData.toByteArray()
+            }
         )
-        val publicKey = serviceManager.retrieveKey(
-            alias = publicKeyAlias
-        )
-        val algorithm = paddingType.toSecKeyAlgorithm(
-            digestType = digestType
-        )
-        val dataToEncrypt = data.toString().toCFData()
-        val encryptedData = SecKeyCreateEncryptedData(
-            key = publicKey,
-            algorithm = algorithm.algorithm,
-            plaintext = dataToEncrypt,
-            error = null
-        )
-        return Base64.encode(encryptedData.toByteArray())
+        return Base64.encode(encryptedData)
     }
 
     actual suspend fun decrypt(
@@ -250,36 +251,27 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         digestType: DigestType?,
         data: String,
     ): String {
-
         val decryptedData = useKey(
             alias = resolvePrivateKeyAlias(
                 alias = alias
             ),
             paddingType = paddingType,
             digestType = digestType,
-            usage = { key, algorithm ->
+            usage = { privateKey, algorithm ->
                 val dataToDecrypt = Base64.decode(data).toCFData()
                 val decryptedData = SecKeyCreateDecryptedData(
                     key = privateKey,
-                    algorithm = algorithm.algorithm,
+                    algorithm = algorithm,
                     ciphertext = dataToDecrypt,
                     error = null
                 )
+                decryptedData.toByteArray()
             }
         )
-
-        val privateKeyAlias =
-        val privateKey = serviceManager.retrieveKey(
-            alias = privateKeyAlias
-        )
-        val algorithm = paddingType.toSecKeyAlgorithm(
-            digestType = digestType
-        )
-
-        return decryptedData.toByteArray().decodeToString()
+        return decryptedData.decodeToString()
     }
 
-    private suspend inline fun useKey(
+    private inline fun useKey(
         alias: String,
         paddingType: EncryptionPaddingType?,
         digestType: DigestType?,
