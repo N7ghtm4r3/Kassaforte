@@ -16,7 +16,7 @@ import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.genspec.DigestType
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
-import com.tecknobit.kassaforte.services.helpers.KassaforteAsymmetricImplManager
+import com.tecknobit.kassaforte.services.helpers.KassaforteAsymmetricServiceManager
 import com.tecknobit.kassaforte.util.checkIfIsSupportedType
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.EcKeyGenParams
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.KeyGenSpec
@@ -31,7 +31,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     // TODO: PROVIDE ALSO ECDH WHEN INTEGRATED THE AGREEMENT
     private const val DEFAULT_EC_NAME = "ECDSA"
 
-    private val serviceImplManager = KassaforteAsymmetricImplManager()
+    private val serviceManager = KassaforteAsymmetricServiceManager()
 
     actual override fun generateKey(
         algorithmType: AlgorithmType,
@@ -39,7 +39,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         keyGenSpec: AsymmetricKeyGenSpec,
         purposes: KeyPurposes,
     ) {
-        serviceImplManager.generateKey(
+        serviceManager.generateKey(
             alias = alias,
             genSpec = {
                 resolveKeyGenSpec(
@@ -94,16 +94,16 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         checkIfIsSupportedType(
             data = data
         )
-        val rawCryptoKeyPair: RawCryptoKeyPair = serviceImplManager.retrieveKeyData(
+        val rawCryptoKeyPair: RawCryptoKeyPair = serviceManager.retrieveKeyData(
             alias = alias
         )
-        val encryptedData = serviceImplManager.useKey(
+        val encryptedData = serviceManager.useKey(
             rawKey = rawCryptoKeyPair.publicKey,
             rawKeyData = rawCryptoKeyPair,
             format = SPKI,
             usages = rawCryptoKeyPair.publicKeyUsages,
             usage = { key ->
-                val encryptedData = serviceImplManager.encrypt(
+                val encryptedData = serviceManager.encrypt(
                     algorithm = rsaOaepParams(),
                     key = key,
                     data = data
@@ -120,16 +120,16 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         digestType: DigestType?,
         data: String,
     ): String {
-        val rawCryptoKeyPair: RawCryptoKeyPair = serviceImplManager.retrieveKeyData(
+        val rawCryptoKeyPair: RawCryptoKeyPair = serviceManager.retrieveKeyData(
             alias = alias
         )
-        val decryptedData = serviceImplManager.useKey(
+        val decryptedData = serviceManager.useKey(
             rawKey = rawCryptoKeyPair.privateKey,
             rawKeyData = rawCryptoKeyPair,
             format = PKCS8,
             usage = { key ->
                 val dataToDecrypt = Base64.decode(data)
-                val decryptedData = serviceImplManager.decrypt(
+                val decryptedData = serviceManager.decrypt(
                     algorithm = rsaOaepParams(),
                     key = key,
                     data = dataToDecrypt
@@ -143,7 +143,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     actual override fun deleteKey(
         alias: String,
     ) {
-        serviceImplManager.removeKey(
+        serviceManager.removeKey(
             alias = alias
         )
     }

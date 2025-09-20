@@ -15,7 +15,7 @@ import com.tecknobit.kassaforte.key.genspec.BlockModeType.CTR
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
-import com.tecknobit.kassaforte.services.helpers.KassaforteSymmetricImplManager
+import com.tecknobit.kassaforte.services.helpers.KassaforteSymmetricServiceManager
 import com.tecknobit.kassaforte.util.checkIfIsSupportedType
 import com.tecknobit.kassaforte.wrappers.crypto.aesCbcParams
 import com.tecknobit.kassaforte.wrappers.crypto.aesCtrParams
@@ -32,7 +32,7 @@ import kotlin.io.encoding.Base64
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGenSpec>() {
 
-    private val serviceImplManager = KassaforteSymmetricImplManager()
+    private val serviceManager = KassaforteSymmetricServiceManager()
 
     actual override fun generateKey(
         algorithmType: AlgorithmType,
@@ -40,7 +40,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         keyGenSpec: SymmetricKeyGenSpec,
         purposes: KeyPurposes,
     ) {
-        serviceImplManager.generateKey(
+        serviceManager.generateKey(
             alias = alias,
             genSpec = {
                 resolveKeyGenSpec(
@@ -66,16 +66,16 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         checkIfIsSupportedType(
             data = data
         )
-        val rawKey: RawCryptoKey = serviceImplManager.retrieveKeyData(
+        val rawKey: RawCryptoKey = serviceManager.retrieveKeyData(
             alias = alias
         )
-        val encryptedData = serviceImplManager.useKey(
+        val encryptedData = serviceManager.useKey(
             rawKey = rawKey.key,
             rawKeyData = rawKey,
             format = RAW,
             usage = { key ->
                 val aesParams = key.resolveAesParams()
-                val encryptedData = serviceImplManager.encrypt(
+                val encryptedData = serviceManager.encrypt(
                     algorithm = aesParams.first,
                     key = key,
                     data = data
@@ -94,10 +94,10 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         paddingType: EncryptionPaddingType,
         data: String,
     ): String {
-        val rawKey: RawCryptoKey = serviceImplManager.retrieveKeyData(
+        val rawKey: RawCryptoKey = serviceManager.retrieveKeyData(
             alias = alias
         )
-        val decryptedData = serviceImplManager.useKey(
+        val decryptedData = serviceManager.useKey(
             rawKey = rawKey.key,
             rawKeyData = rawKey,
             format = RAW,
@@ -109,7 +109,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
                 val aesParams = key.resolveAesParams(
                     iv = iv.toArrayBuffer()
                 )
-                val decryptedData: ArrayBuffer = serviceImplManager.decrypt(
+                val decryptedData: ArrayBuffer = serviceManager.decrypt(
                     algorithm = aesParams.first,
                     key = key,
                     data = cipherText
@@ -149,7 +149,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     actual override fun deleteKey(
         alias: String,
     ) {
-        serviceImplManager.removeKey(
+        serviceManager.removeKey(
             alias = alias
         )
     }

@@ -14,6 +14,7 @@ import com.tecknobit.kassaforte.key.usages.KeyOperation
 import com.tecknobit.kassaforte.key.usages.KeyOperation.DECRYPT
 import com.tecknobit.kassaforte.key.usages.KeyOperation.ENCRYPT
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
+import com.tecknobit.kassaforte.services.helpers.KassaforteSymmetricServiceManager
 import com.tecknobit.kassaforte.util.checkIfIsSupportedType
 import korlibs.crypto.*
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -27,6 +28,8 @@ import kotlin.io.encoding.Base64
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGenSpec>() {
+
+    private val serviceManager = KassaforteSymmetricServiceManager()
 
     actual override fun generateKey(
         algorithmType: AlgorithmType,
@@ -59,10 +62,9 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     actual override fun aliasExists(
         alias: String
     ): Boolean {
-        val kassaforte = Kassaforte(alias)
-        return kassaforte.unsuspendedWithdraw(
-            key = alias
-        ) != null
+        return serviceManager.isAliasTaken(
+            alias = alias
+        )
     }
 
     private fun storeKeyData(
@@ -100,7 +102,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         val iv = ByteArray(blockModeType.blockSize).apply {
             SecureRandom.nextBytes(this)
         }
-        val encryptedData = useCipher(
+        val encryptedData = useKey(
             alias = alias,
             keyOperation = ENCRYPT,
             blockModeType = blockModeType,
@@ -123,7 +125,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         val blockSize = blockModeType.blockSize
         val iv = dataToDecrypt.copyOfRange(0, blockSize)
         val cipherText = dataToDecrypt.copyOfRange(blockSize, dataToDecrypt.size)
-        return useCipher(
+        return useKey(
             alias = alias,
             keyOperation = DECRYPT,
             blockModeType = blockModeType,
@@ -132,7 +134,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         ).decodeToString()
     }
 
-    private suspend inline fun useCipher(
+    private suspend inline fun useKey(
         alias: String,
         keyOperation: KeyOperation,
         blockModeType: BlockModeType,
@@ -171,9 +173,8 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     actual override fun deleteKey(
         alias: String
     ) {
-        val kassaforte = Kassaforte(alias)
-        kassaforte.remove(
-            key = alias
+        serviceManager.removeKey(
+            alias = alias
         )
     }
 

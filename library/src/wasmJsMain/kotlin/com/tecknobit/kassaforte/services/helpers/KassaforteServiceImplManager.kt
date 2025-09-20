@@ -4,6 +4,7 @@ package com.tecknobit.kassaforte.services.helpers
 
 import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.equinoxcore.annotations.Returner
+import com.tecknobit.equinoxcore.annotations.Structure
 import com.tecknobit.kassaforte.enums.ExportFormat
 import com.tecknobit.kassaforte.helpers.IndexedDBManager
 import com.tecknobit.kassaforte.helpers.prepareToDecrypt
@@ -19,6 +20,7 @@ import org.khronos.webgl.Uint8Array
 import kotlin.coroutines.resume
 import kotlin.io.encoding.Base64
 
+@Structure
 internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> : KassaforteServiceManager<K> {
 
     private val subtleCrypto = subtleCrypto()
@@ -118,12 +120,12 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
         }
     }
 
-    suspend fun useKey(
+    suspend inline fun useKey(
         rawKey: String,
         rawKeyData: CryptoKey,
         usages: JsArray<JsString> = rawKeyData.usages,
         format: ExportFormat,
-        usage: suspend (CryptoKey) -> String,
+        usage: (CryptoKey) -> String,
     ): String {
         val keyData = rawKey.toDecodedKeyData()
         val key: CryptoKey = subtleCrypto.importKey(

@@ -3,12 +3,13 @@
 package com.tecknobit.kassaforte
 
 import com.tecknobit.kassaforte.util.UNSUPPORTED_TYPE
+import com.tecknobit.kassaforte.util.deleteFromKeychain
 import com.tecknobit.kassaforte.util.kassaforteDictionary
-import kotlinx.cinterop.*
+import com.tecknobit.kassaforte.util.retrieveFromKeychain
+import kotlinx.cinterop.ExperimentalForeignApi
 import platform.CoreFoundation.CFDictionaryAddValue
 import platform.CoreFoundation.CFMutableDictionaryRef
-import platform.CoreFoundation.CFTypeRefVar
-import platform.Foundation.CFBridgingRelease
+import platform.CoreFoundation.kCFBooleanTrue
 import platform.Foundation.CFBridgingRetain
 import platform.Foundation.NSString
 import platform.Foundation.create
@@ -121,21 +122,12 @@ actual class Kassaforte actual constructor(
         val query = searchingDictionary(
             key = key
         )
-        return memScoped {
-            val resultContainer = alloc<CFTypeRefVar>()
-            val resultStatus = SecItemCopyMatching(
-                query = query,
-                result = resultContainer.ptr
-            )
-            val storedData = CFBridgingRelease(resultContainer.value)
-            if(resultStatus == errSecSuccess)
-                storedData.toString()
-            else
-                null
-        }
+        return retrieveFromKeychain(
+            query = query
+        )
     }
 
-    // TODO TO ANNOTATE WITH @Returner
+    // TODO TO ANNOTATE WITH @Assembler
     private fun searchingDictionary(
         key: String
     ) : CFMutableDictionaryRef {
@@ -155,7 +147,7 @@ actual class Kassaforte actual constructor(
                 CFDictionaryAddValue(
                     theDict = this,
                     key = kSecReturnData,
-                    value = CFBridgingRetain(true)
+                    value = kCFBooleanTrue
                 )
             }
         )
@@ -167,12 +159,12 @@ actual class Kassaforte actual constructor(
         val query = deletingDictionary(
             key = key
         )
-        SecItemDelete(
+        deleteFromKeychain(
             query = query
         )
     }
 
-    // TODO TO ANNOTATE WITH @Returner
+    // TODO TO ANNOTATE WITH @Assembler
     private fun deletingDictionary(
         key: String
     ) : CFMutableDictionaryRef {

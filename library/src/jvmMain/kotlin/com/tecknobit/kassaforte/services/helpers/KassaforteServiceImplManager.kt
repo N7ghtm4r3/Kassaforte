@@ -3,6 +3,7 @@
 package com.tecknobit.kassaforte.services.helpers
 
 import com.tecknobit.equinoxcore.annotations.Returner
+import com.tecknobit.equinoxcore.annotations.Structure
 import com.tecknobit.equinoxcore.enums.OperatingSystem
 import com.tecknobit.equinoxcore.util.isRunningOn
 import com.tecknobit.kassaforte.key.usages.KeyDetailsSheet
@@ -11,6 +12,7 @@ import kotlinx.serialization.json.Json
 import java.security.Key
 import kotlin.io.encoding.Base64
 
+@Structure
 internal abstract class KassaforteServiceImplManager<KI : KeyDetailsSheet<*>> internal constructor(
     protected val serializer: KSerializer<KI>,
 ) : KassaforteServiceManager<KI> {

@@ -8,7 +8,7 @@ import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.KeyGenSpec
 import com.tecknobit.kassaforte.wrappers.crypto.key.raw.RawCryptoKeyPair
 import kotlinx.coroutines.launch
 
-internal class KassaforteAsymmetricImplManager : KassaforteServiceImplManager<CryptoKeyPair, RawCryptoKeyPair>() {
+internal class KassaforteAsymmetricServiceManager : KassaforteServiceImplManager<CryptoKeyPair, RawCryptoKeyPair>() {
 
     override fun store(
         alias: String,
