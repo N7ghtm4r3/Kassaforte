@@ -16,6 +16,8 @@ abstract class KassaforteKeysService<KS: KassaforteKeyGenSpec> {
 
         const val INVALID_ASYMETRIC_ALGORITHM = "Invalid asymmetric algorithm"
 
+        const val INVALID_ENCRYPTION_PADDING = "Invalid encryption padding"
+
     }
 
     abstract fun generateKey(

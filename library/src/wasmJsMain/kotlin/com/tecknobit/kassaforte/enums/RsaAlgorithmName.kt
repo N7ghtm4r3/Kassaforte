@@ -3,6 +3,7 @@ package com.tecknobit.kassaforte.enums
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType.RSA_PKCS1
+import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.INVALID_ENCRYPTION_PADDING
 
 enum class RsaAlgorithmName(
     val value: String,
@@ -20,9 +21,7 @@ enum class RsaAlgorithmName(
             return when (this) {
                 EncryptionPaddingType.RSA_OAEP -> RSA_OAEP
                 RSA_PKCS1 -> RSASSA_PKCS1_v1_5
-                else -> {
-                    throw IllegalArgumentException("Invalid encryption padding value")
-                }
+                else -> throw IllegalArgumentException(INVALID_ENCRYPTION_PADDING)
             }
         }
 

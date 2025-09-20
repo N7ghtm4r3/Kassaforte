@@ -16,7 +16,7 @@ import platform.CoreFoundation.*
 import platform.Foundation.CFBridgingRetain
 import platform.Security.*
 
-internal class KassaforteAsymmetricServiceManager : KassaforteServiceImplManager() {
+internal class KassaforteAsymmetricServiceManager : KassaforteServiceImplManager<SecKeyRef>() {
 
     override fun isAliasTaken(
         alias: String,
@@ -37,7 +37,7 @@ internal class KassaforteAsymmetricServiceManager : KassaforteServiceImplManager
 
     override fun retrieveKey(
         alias: String,
-    ): String {
+    ): SecKeyRef {
         val query = searchingDictionary(
             alias = alias,
             keyClass = when {

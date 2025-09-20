@@ -3,17 +3,22 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.kassaforte.enums.KeyType.Companion.toKeyType
+import com.tecknobit.kassaforte.enums.SecKeyAlgorithmType.Companion.toSecKeyAlgorithm
 import com.tecknobit.kassaforte.key.genspec.AlgorithmType
 import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.genspec.DigestType
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.helpers.KassaforteAsymmetricServiceManager
+import com.tecknobit.kassaforte.util.checkIfIsSupportedType
 import com.tecknobit.kassaforte.util.kassaforteDictionary
+import com.tecknobit.kassaforte.util.toByteArray
+import com.tecknobit.kassaforte.util.toCFData
 import kotlinx.cinterop.*
 import platform.CoreFoundation.*
 import platform.Foundation.CFBridgingRetain
 import platform.Security.*
+import kotlin.io.encoding.Base64
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyGenSpec>() {
@@ -217,7 +222,26 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         digestType: DigestType?,
         data: Any,
     ): String {
-        TODO("Not yet implemented")
+        checkIfIsSupportedType(
+            data = data
+        )
+        val publicKeyAlias = resolvePublicKeyAlias(
+            alias = alias
+        )
+        val publicKey = serviceManager.retrieveKey(
+            alias = publicKeyAlias
+        )
+        val algorithm = paddingType.toSecKeyAlgorithm(
+            digestType = digestType
+        )
+        val dataToEncrypt = data.toString().toCFData()
+        val encryptedData = SecKeyCreateEncryptedData(
+            key = publicKey,
+            algorithm = algorithm.algorithm,
+            plaintext = dataToEncrypt,
+            error = null
+        )
+        return Base64.encode(encryptedData.toByteArray())
     }
 
     actual suspend fun decrypt(
@@ -226,7 +250,48 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         digestType: DigestType?,
         data: String,
     ): String {
-        TODO("Not yet implemented")
+
+        val decryptedData = useKey(
+            alias = resolvePrivateKeyAlias(
+                alias = alias
+            ),
+            paddingType = paddingType,
+            digestType = digestType,
+            usage = { key, algorithm ->
+                val dataToDecrypt = Base64.decode(data).toCFData()
+                val decryptedData = SecKeyCreateDecryptedData(
+                    key = privateKey,
+                    algorithm = algorithm.algorithm,
+                    ciphertext = dataToDecrypt,
+                    error = null
+                )
+            }
+        )
+
+        val privateKeyAlias =
+        val privateKey = serviceManager.retrieveKey(
+            alias = privateKeyAlias
+        )
+        val algorithm = paddingType.toSecKeyAlgorithm(
+            digestType = digestType
+        )
+
+        return decryptedData.toByteArray().decodeToString()
+    }
+
+    private suspend inline fun useKey(
+        alias: String,
+        paddingType: EncryptionPaddingType?,
+        digestType: DigestType?,
+        usage: (SecKeyRef, SecKeyAlgorithm) -> ByteArray,
+    ): ByteArray {
+        val key = serviceManager.retrieveKey(
+            alias = alias
+        )
+        val algorithmType = paddingType.toSecKeyAlgorithm(
+            digestType = digestType
+        ).algorithm!!
+        return usage(key, algorithmType)
     }
 
     actual override fun deleteKey(

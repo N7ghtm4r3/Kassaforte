@@ -10,9 +10,10 @@ import platform.Security.SecItemCopyMatching
 import platform.Security.SecItemDelete
 import platform.Security.errSecSuccess
 
-fun retrieveFromKeychain(
+@Suppress("UNCHECKED_CAST")
+fun <T> retrieveFromKeychain(
     query: CFMutableDictionaryRef,
-): String? {
+): T? {
     return memScoped {
         val resultContainer = alloc<CFTypeRefVar>()
         val resultStatus = SecItemCopyMatching(
@@ -21,7 +22,7 @@ fun retrieveFromKeychain(
         )
         val storedData = CFBridgingRelease(resultContainer.value)
         if (resultStatus == errSecSuccess)
-            storedData.toString()
+            storedData as T
         else
             null
     }

@@ -3,7 +3,7 @@ package com.tecknobit.kassaforte.services.helpers
 import com.tecknobit.kassaforte.Kassaforte
 import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.IMPOSSIBLE_TO_RETRIEVE_KEY_ERROR
 
-internal class KassaforteSymmetricServiceManager : KassaforteServiceImplManager() {
+internal class KassaforteSymmetricServiceManager : KassaforteServiceImplManager<String>() {
 
     override fun isAliasTaken(
         alias: String,
