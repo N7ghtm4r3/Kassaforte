@@ -10,12 +10,13 @@ import com.tecknobit.kassaforte.key.genspec.DigestType
 import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.helpers.KassaforteAsymmetricServiceManager
-import com.tecknobit.kassaforte.util.checkIfIsSupportedType
-import com.tecknobit.kassaforte.util.kassaforteDictionary
-import com.tecknobit.kassaforte.util.toByteArray
-import com.tecknobit.kassaforte.util.toCFData
-import kotlinx.cinterop.*
-import platform.CoreFoundation.*
+import com.tecknobit.kassaforte.util.*
+import kotlinx.cinterop.CValuesRef
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.ptr
+import platform.CoreFoundation.CFDictionaryAddValue
+import platform.CoreFoundation.CFMutableDictionaryRef
+import platform.CoreFoundation.kCFBooleanTrue
 import platform.Foundation.CFBridgingRetain
 import platform.Security.*
 import kotlin.io.encoding.Base64
@@ -46,27 +47,12 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             keyGenSpec = keyGenSpec,
             usages = usages
         )
-        val errorVar = nativeHeap.alloc<CFErrorRefVar>()
-        val key = SecKeyCreateRandomKey(
-            parameters = genSpec,
-            error = errorVar.ptr
-        )
-        if (key == null) {
-            handleError(
-                errorVar = errorVar
+        errorScoped { errorVar ->
+            SecKeyCreateRandomKey(
+                parameters = genSpec,
+                error = errorVar.ptr
             )
         }
-    }
-
-    private fun handleError(
-        errorVar: CFErrorRefVar,
-    ) {
-        val cfError = errorVar.value
-        val description = cfError?.let { error ->
-            CFErrorCopyDescription(error)?.toString()
-        } ?: "Unknown error"
-        nativeHeap.free(errorVar)
-        throw Exception(description)
     }
 
     // TODO: ANNOTATE WITH @Assembler
@@ -233,12 +219,14 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             digestType = digestType,
             usage = { publicKey, algorithm ->
                 val dataToEncrypt = data.toString().toCFData()
-                val encryptedData = SecKeyCreateEncryptedData(
-                    key = publicKey,
-                    algorithm = algorithm,
-                    plaintext = dataToEncrypt,
-                    error = null
-                )
+                val encryptedData = errorScoped { errorVar ->
+                    SecKeyCreateEncryptedData(
+                        key = publicKey,
+                        algorithm = algorithm,
+                        plaintext = dataToEncrypt,
+                        error = errorVar.ptr
+                    )
+                }
                 encryptedData.toByteArray()
             }
         )
@@ -259,12 +247,14 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             digestType = digestType,
             usage = { privateKey, algorithm ->
                 val dataToDecrypt = Base64.decode(data).toCFData()
-                val decryptedData = SecKeyCreateDecryptedData(
-                    key = privateKey,
-                    algorithm = algorithm,
-                    ciphertext = dataToDecrypt,
-                    error = null
-                )
+                val decryptedData = errorScoped { errorVar ->
+                    SecKeyCreateDecryptedData(
+                        key = privateKey,
+                        algorithm = algorithm,
+                        ciphertext = dataToDecrypt,
+                        error = errorVar.ptr
+                    )
+                }
                 decryptedData.toByteArray()
             }
         )
