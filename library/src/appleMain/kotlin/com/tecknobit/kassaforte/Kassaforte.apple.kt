@@ -3,8 +3,11 @@
 package com.tecknobit.kassaforte
 
 import com.tecknobit.kassaforte.util.UNSUPPORTED_TYPE
+import com.tecknobit.kassaforte.util.kassaforteDictionary
 import kotlinx.cinterop.*
-import platform.CoreFoundation.*
+import platform.CoreFoundation.CFDictionaryAddValue
+import platform.CoreFoundation.CFMutableDictionaryRef
+import platform.CoreFoundation.CFTypeRefVar
 import platform.Foundation.CFBridgingRelease
 import platform.Foundation.CFBridgingRetain
 import platform.Foundation.NSString
@@ -183,21 +186,6 @@ actual class Kassaforte actual constructor(
                 secClassGenericPassword()
             }
         )
-    }
-
-    // TODO TO ANNOTATE WITH @Returner
-    private fun kassaforteDictionary(
-        capacity: Long,
-        addEntries: CFMutableDictionaryRef.() -> Unit
-    ) : CFMutableDictionaryRef {
-        val dictionary = CFDictionaryCreateMutable(
-            allocator = null,
-            capacity = capacity,
-            keyCallBacks = kCFTypeDictionaryKeyCallBacks.ptr,
-            valueCallBacks = kCFTypeDictionaryValueCallBacks.ptr
-        )!!
-        dictionary.addEntries()
-        return dictionary
     }
 
     private fun CFMutableDictionaryRef.secAttrService() {

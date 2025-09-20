@@ -14,6 +14,8 @@ abstract class KassaforteKeysService<KS: KassaforteKeyGenSpec> {
 
         const val KEY_CANNOT_PERFORM_OPERATION_ERROR = "The key cannot perform this operation: %s"
 
+        const val INVALID_ASYMETRIC_ALGORITHM = "Invalid asymmetric algorithm"
+
     }
 
     abstract fun generateKey(

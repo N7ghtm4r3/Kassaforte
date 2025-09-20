@@ -77,7 +77,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                 )
             }
 
-            else -> throw IllegalArgumentException("Invalid asymmetric algorithm")
+            else -> throw IllegalArgumentException(INVALID_ASYMETRIC_ALGORITHM)
         }
     }
 
