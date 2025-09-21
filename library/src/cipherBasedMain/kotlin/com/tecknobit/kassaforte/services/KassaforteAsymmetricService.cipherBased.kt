@@ -1,12 +1,12 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
-import com.tecknobit.kassaforte.key.genspec.AlgorithmType
+import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
-import com.tecknobit.kassaforte.key.genspec.DigestType
-import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
-import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType.RSA_OAEP
-import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType.RSA_PKCS1
+import com.tecknobit.kassaforte.key.genspec.Digest
+import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
+import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.RSA_OAEP
+import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.RSA_PKCS1
 import com.tecknobit.kassaforte.key.usages.KeyOperation
 import com.tecknobit.kassaforte.key.usages.KeyOperation.DECRYPT
 import com.tecknobit.kassaforte.key.usages.KeyOperation.ENCRYPT
@@ -32,14 +32,14 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     )
 
     actual override fun generateKey(
-        algorithmType: AlgorithmType,
+        algorithm: Algorithm,
         alias: String,
         keyGenSpec: AsymmetricKeyGenSpec,
         purposes: KeyPurposes,
     ) {
         serviceScope.launch {
             serviceImpl.generateKey(
-                algorithmType = algorithmType,
+                algorithm = algorithm,
                 alias = alias,
                 keyGenSpec = keyGenSpec,
                 purposes = purposes
@@ -57,8 +57,8 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
 
     actual suspend fun encrypt(
         alias: String,
-        paddingType: EncryptionPaddingType?,
-        digestType: DigestType?,
+        padding: EncryptionPadding?,
+        digest: Digest?,
         data: Any,
     ): String {
         checkIfIsSupportedType(
@@ -67,8 +67,8 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         val cipherText = useCipher(
             alias = alias,
             keyOperation = ENCRYPT,
-            paddingType = paddingType,
-            digestType = digestType,
+            padding = padding,
+            digest = digest,
             usage = { cipher, key ->
                 cipher.init(Cipher.ENCRYPT_MODE, key)
                 val plainText = data.toString().encodeToByteArray()
@@ -80,15 +80,15 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
 
     actual suspend fun decrypt(
         alias: String,
-        paddingType: EncryptionPaddingType?,
-        digestType: DigestType?,
+        padding: EncryptionPadding?,
+        digest: Digest?,
         data: String,
     ): String {
         val plainText = useCipher(
             alias = alias,
             keyOperation = DECRYPT,
-            paddingType = paddingType,
-            digestType = digestType,
+            padding = padding,
+            digest = digest,
             usage = { cipher, key ->
                 cipher.init(Cipher.DECRYPT_MODE, key)
                 val cipherText = Base64.decode(data)
@@ -101,8 +101,8 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     private inline fun useCipher(
         alias: String,
         keyOperation: KeyOperation,
-        paddingType: EncryptionPaddingType?,
-        digestType: DigestType?,
+        padding: EncryptionPadding?,
+        digest: Digest?,
         usage: (Cipher, Key) -> ByteArray,
     ): ByteArray {
         val key = serviceImpl.getKey(
@@ -116,8 +116,8 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         val cipher = Cipher.getInstance(
             resolveTransformation(
                 algorithm = algorithm,
-                paddingType = paddingType,
-                digestType = digestType
+                padding = padding,
+                digest = digest
             )
         )
         return usage(cipher, key)
@@ -126,18 +126,18 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     @Assembler
     private fun resolveTransformation(
         algorithm: String,
-        paddingType: EncryptionPaddingType?,
-        digestType: DigestType?,
+        padding: EncryptionPadding?,
+        digest: Digest?,
     ): String {
         var transformation = "$algorithm/ECB"
-        transformation += "/" + when (paddingType) {
+        transformation += "/" + when (padding) {
             RSA_OAEP -> {
-                if (digestType == null)
+                if (digest == null)
                     throw IllegalStateException("The OAEPPadding padding mode requires to specify the digest to use")
-                digestType.oaepWithValue().value
+                digest.oaepWithValue().value
             }
 
-            RSA_PKCS1 -> paddingType.value
+            RSA_PKCS1 -> padding.value
             else -> throw IllegalArgumentException("Invalid padding value")
         }
         return transformation

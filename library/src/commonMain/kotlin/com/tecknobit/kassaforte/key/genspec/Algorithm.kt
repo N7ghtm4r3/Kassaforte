@@ -5,8 +5,8 @@ package com.tecknobit.kassaforte.key.genspec
  *
  * @property value The name of the algorithm
  */
-enum class AlgorithmType(
-    val value: String
+enum class Algorithm(
+    val value: String,
 ) {
 
     /**

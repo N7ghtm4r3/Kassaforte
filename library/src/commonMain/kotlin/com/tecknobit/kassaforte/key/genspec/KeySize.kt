@@ -14,7 +14,7 @@ enum class KeySize(
     /**
      * `S128` Size to generate a key of `128` bits length.
      *
-     * Widely used with [AlgorithmType.AES] algorithm
+     * Widely used with [Algorithm.AES] algorithm
      */
     S128(
         bitCount = 128,
@@ -24,7 +24,7 @@ enum class KeySize(
     /**
      * `S192` Size to generate a key of `192` bits length
      *
-     * Widely used with [AlgorithmType.AES] algorithm
+     * Widely used with [Algorithm.AES] algorithm
      */
     S192(
         bitCount = 192,
@@ -34,7 +34,7 @@ enum class KeySize(
     /**
      * `S224` Size to generate a key of `224` bits length
      *
-     * Widely used with [AlgorithmType.EC] algorithm
+     * Widely used with [Algorithm.EC] algorithm
      */
     S224(
         bitCount = 224,
@@ -44,7 +44,7 @@ enum class KeySize(
     /**
      * `S256` Size to generate a key of `256` bits length
      *
-     * Widely used with [AlgorithmType.AES] algorithm
+     * Widely used with [Algorithm.AES] algorithm
      */
     S256(
         bitCount = 256,
@@ -54,7 +54,7 @@ enum class KeySize(
     /**
      * `S384` Size to generate a key of `384` bits length
      *
-     * Widely used with [AlgorithmType.EC] algorithm
+     * Widely used with [Algorithm.EC] algorithm
      */
     S384(
         bitCount = 384,
@@ -64,7 +64,7 @@ enum class KeySize(
     /**
      * `S512` Size to generate a key of `512` bits length
      *
-     * Widely used with [AlgorithmType.AES] algorithm
+     * Widely used with [Algorithm.AES] algorithm
      */
     S512(
         bitCount = 512,
@@ -74,7 +74,7 @@ enum class KeySize(
     /**
      * `S521` Size to generate a key of `521` bits length
      *
-     * Widely used with [AlgorithmType.EC] algorithm
+     * Widely used with [Algorithm.EC] algorithm
      */
     S521(
         bitCount = 521,
@@ -84,7 +84,7 @@ enum class KeySize(
     /**
      * `S1024` Size to generate a key of `1024` bits length
      *
-     * Widely used with [AlgorithmType.RSA] algorithm
+     * Widely used with [Algorithm.RSA] algorithm
      */
     S1024(
         bitCount = 1024,
@@ -94,7 +94,7 @@ enum class KeySize(
     /**
      * `S2048` Size to generate a key of `2048` bits length
      *
-     * Widely used with [AlgorithmType.RSA] algorithm
+     * Widely used with [Algorithm.RSA] algorithm
      */
     S2048(
         bitCount = 2048,
@@ -104,7 +104,7 @@ enum class KeySize(
     /**
      * `S4096` Size to generate a key of `4096` bits length
      *
-     * Widely used with [AlgorithmType.RSA] algorithm
+     * Widely used with [Algorithm.RSA] algorithm
      */
     S4096(
         bitCount = 4096,

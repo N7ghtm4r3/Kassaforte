@@ -13,7 +13,7 @@ package com.tecknobit.kassaforte.key.genspec
  */
 data class SymmetricKeyGenSpec(
     override val keySize: KeySize = KeySize.S128,
-    override val encryptionPadding: EncryptionPaddingType,
-    val blockMode: BlockModeType,
+    override val encryptionPadding: EncryptionPadding,
+    val blockMode: BlockMode,
 ) : KassaforteKeyGenSpec
 

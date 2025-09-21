@@ -2,9 +2,9 @@
 
 package com.tecknobit.kassaforte.enums
 
-import com.tecknobit.kassaforte.key.genspec.AlgorithmType
-import com.tecknobit.kassaforte.key.genspec.AlgorithmType.EC
-import com.tecknobit.kassaforte.key.genspec.AlgorithmType.RSA
+import com.tecknobit.kassaforte.key.genspec.Algorithm
+import com.tecknobit.kassaforte.key.genspec.Algorithm.EC
+import com.tecknobit.kassaforte.key.genspec.Algorithm.RSA
 import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.INVALID_ASYMETRIC_ALGORITHM
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.CoreFoundation.CFStringRef
@@ -22,7 +22,7 @@ enum class KeyType(
     companion object {
 
         // TODO: TO ANNOTATE WITH @Returner
-        fun AlgorithmType.toKeyType(): KeyType {
+        fun Algorithm.toKeyType(): KeyType {
             return when (this) {
                 RSA -> kAttrKeyRSA
                 EC -> kAttrKeyECSEC

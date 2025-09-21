@@ -13,6 +13,6 @@ package com.tecknobit.kassaforte.key.genspec
  */
 data class AsymmetricKeyGenSpec(
     override val keySize: KeySize,
-    override val encryptionPadding: EncryptionPaddingType = EncryptionPaddingType.NONE,
-    val digest: DigestType? = null,
+    override val encryptionPadding: EncryptionPadding = EncryptionPadding.NONE,
+    val digest: Digest? = null,
 ) : KassaforteKeyGenSpec

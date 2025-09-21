@@ -7,12 +7,12 @@ import com.tecknobit.kassaforte.enums.ExportFormat.RAW
 import com.tecknobit.kassaforte.helpers.asPlainText
 import com.tecknobit.kassaforte.helpers.toArrayBuffer
 import com.tecknobit.kassaforte.helpers.toByteArray
-import com.tecknobit.kassaforte.key.genspec.AlgorithmType
-import com.tecknobit.kassaforte.key.genspec.AlgorithmType.AES
-import com.tecknobit.kassaforte.key.genspec.BlockModeType
-import com.tecknobit.kassaforte.key.genspec.BlockModeType.CBC
-import com.tecknobit.kassaforte.key.genspec.BlockModeType.CTR
-import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
+import com.tecknobit.kassaforte.key.genspec.Algorithm
+import com.tecknobit.kassaforte.key.genspec.Algorithm.AES
+import com.tecknobit.kassaforte.key.genspec.BlockMode
+import com.tecknobit.kassaforte.key.genspec.BlockMode.CBC
+import com.tecknobit.kassaforte.key.genspec.BlockMode.CTR
+import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.helpers.KassaforteSymmetricServiceManager
@@ -35,7 +35,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     private val serviceManager = KassaforteSymmetricServiceManager()
 
     actual override fun generateKey(
-        algorithmType: AlgorithmType,
+        algorithm: Algorithm,
         alias: String,
         keyGenSpec: SymmetricKeyGenSpec,
         purposes: KeyPurposes,
@@ -59,8 +59,8 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
 
     actual suspend fun encrypt(
         alias: String,
-        blockModeType: BlockModeType,
-        paddingType: EncryptionPaddingType,
+        blockMode: BlockMode,
+        padding: EncryptionPadding,
         data: Any,
     ): String {
         checkIfIsSupportedType(
@@ -90,8 +90,8 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
 
     actual suspend fun decrypt(
         alias: String,
-        blockModeType: BlockModeType,
-        paddingType: EncryptionPaddingType,
+        blockMode: BlockMode,
+        padding: EncryptionPadding,
         data: String,
     ): String {
         val rawKey: RawCryptoKey = serviceManager.retrieveKeyData(
@@ -102,7 +102,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             rawKeyData = rawKey,
             format = RAW,
             usage = { key ->
-                val blockSize = blockModeType.blockSize
+                val blockSize = blockMode.blockSize
                 val dataToDecrypt = Base64.decode(data)
                 val iv = dataToDecrypt.copyOfRange(0, blockSize)
                 val cipherText = dataToDecrypt.copyOfRange(blockSize, dataToDecrypt.size)
@@ -115,7 +115,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
                     data = cipherText
                 )
                 val plainText = decryptedData.asPlainText(
-                    blockModeType = blockModeType
+                    blockMode = blockMode
                 )
                 plainText
             }

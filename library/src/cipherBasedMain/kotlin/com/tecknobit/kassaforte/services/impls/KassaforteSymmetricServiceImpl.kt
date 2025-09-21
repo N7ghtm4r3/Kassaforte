@@ -1,8 +1,8 @@
 package com.tecknobit.kassaforte.services.impls
 
 import com.tecknobit.equinoxcore.annotations.Assembler
-import com.tecknobit.kassaforte.key.genspec.BlockModeType
-import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
+import com.tecknobit.kassaforte.key.genspec.BlockMode
+import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyOperation
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
@@ -29,8 +29,8 @@ internal expect class KassaforteSymmetricServiceImpl() : KassaforteServiceImpl {
     @Assembler
     fun resolveTransformation(
         algorithm: String,
-        blockModeType: BlockModeType?,
-        paddingType: EncryptionPaddingType?,
+        blockMode: BlockMode?,
+        padding: EncryptionPadding?,
     ): String
 
     override fun deleteKey(

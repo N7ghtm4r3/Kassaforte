@@ -4,10 +4,10 @@ package com.tecknobit.kassaforte.services
 
 import com.tecknobit.kassaforte.enums.KeyType.Companion.toKeyType
 import com.tecknobit.kassaforte.enums.SecKeyAlgorithmType.Companion.toSecKeyAlgorithm
-import com.tecknobit.kassaforte.key.genspec.AlgorithmType
+import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
-import com.tecknobit.kassaforte.key.genspec.DigestType
-import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
+import com.tecknobit.kassaforte.key.genspec.Digest
+import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.helpers.KassaforteAsymmetricServiceManager
 import com.tecknobit.kassaforte.util.*
@@ -31,7 +31,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     private val serviceManager = KassaforteAsymmetricServiceManager()
 
     actual override fun generateKey(
-        algorithmType: AlgorithmType,
+        algorithm: Algorithm,
         alias: String,
         keyGenSpec: AsymmetricKeyGenSpec,
         purposes: KeyPurposes,
@@ -43,7 +43,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             purposes = purposes
         )
         val genSpec = resolveKeyGenSpec(
-            algorithmType = algorithmType,
+            algorithm = algorithm,
             keyGenSpec = keyGenSpec,
             usages = usages
         )
@@ -111,7 +111,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
 
     // TODO: ANNOTATE WITH @Assembler
     private fun resolveKeyGenSpec(
-        algorithmType: AlgorithmType,
+        algorithm: Algorithm,
         keyGenSpec: AsymmetricKeyGenSpec,
         usages: Pair<CFMutableDictionaryRef, CFMutableDictionaryRef>,
     ): CFMutableDictionaryRef {
@@ -120,7 +120,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         val genSpec = kassaforteDictionary(
             capacity = 4,
             addEntries = {
-                val attrKeyType = algorithmType.toKeyType()
+                val attrKeyType = algorithm.toKeyType()
                 CFDictionaryAddValue(
                     theDict = this,
                     key = kSecAttrKeyType,
@@ -204,8 +204,8 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
 
     actual suspend fun encrypt(
         alias: String,
-        paddingType: EncryptionPaddingType?,
-        digestType: DigestType?,
+        padding: EncryptionPadding?,
+        digest: Digest?,
         data: Any,
     ): String {
         checkIfIsSupportedType(
@@ -215,8 +215,8 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             alias = resolvePublicKeyAlias(
                 alias = alias
             ),
-            paddingType = paddingType,
-            digestType = digestType,
+            padding = padding,
+            digest = digest,
             usage = { publicKey, algorithm ->
                 val dataToEncrypt = data.toString().toCFData()
                 val encryptedData = errorScoped { errorVar ->
@@ -235,16 +235,16 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
 
     actual suspend fun decrypt(
         alias: String,
-        paddingType: EncryptionPaddingType?,
-        digestType: DigestType?,
+        padding: EncryptionPadding?,
+        digest: Digest?,
         data: String,
     ): String {
         val decryptedData = useKey(
             alias = resolvePrivateKeyAlias(
                 alias = alias
             ),
-            paddingType = paddingType,
-            digestType = digestType,
+            padding = padding,
+            digest = digest,
             usage = { privateKey, algorithm ->
                 val dataToDecrypt = Base64.decode(data).toCFData()
                 val decryptedData = errorScoped { errorVar ->
@@ -263,15 +263,15 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
 
     private inline fun useKey(
         alias: String,
-        paddingType: EncryptionPaddingType?,
-        digestType: DigestType?,
+        padding: EncryptionPadding?,
+        digest: Digest?,
         usage: (SecKeyRef, SecKeyAlgorithm) -> ByteArray,
     ): ByteArray {
         val key = serviceManager.retrieveKey(
             alias = alias
         )
-        val algorithmType = paddingType.toSecKeyAlgorithm(
-            digestType = digestType
+        val algorithmType = padding.toSecKeyAlgorithm(
+            digest = digest
         ).algorithm!!
         return usage(key, algorithmType)
     }

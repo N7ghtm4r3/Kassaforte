@@ -1,8 +1,8 @@
 package com.tecknobit.kassaforte.util
 
-import com.tecknobit.kassaforte.key.genspec.AlgorithmType.RSA
-import com.tecknobit.kassaforte.key.genspec.DigestType
-import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
+import com.tecknobit.kassaforte.key.genspec.Algorithm.RSA
+import com.tecknobit.kassaforte.key.genspec.Digest
+import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
 import com.tecknobit.kassaforte.services.KassaforteAsymmetricService
 
 /**
@@ -25,14 +25,14 @@ internal fun checkIfIsSupportedCipherAlgorithm(
 // TODO TO ANNOTATE WITH @Returner
 suspend fun KassaforteAsymmetricService.decryptToInt(
     alias: String,
-    paddingType: EncryptionPaddingType? = null,
-    digestType: DigestType? = null,
+    padding: EncryptionPadding? = null,
+    digest: Digest? = null,
     data: String,
 ): Int? {
     return decrypt(
         alias = alias,
-        paddingType = paddingType,
-        digestType = digestType,
+        padding = padding,
+        digest = digest,
         data = data
     ).toIntOrNull()
 }
@@ -40,14 +40,14 @@ suspend fun KassaforteAsymmetricService.decryptToInt(
 // TODO TO ANNOTATE WITH @Returner
 suspend fun KassaforteAsymmetricService.decryptToUInt(
     alias: String,
-    paddingType: EncryptionPaddingType? = null,
-    digestType: DigestType? = null,
+    padding: EncryptionPadding? = null,
+    digest: Digest? = null,
     data: String,
 ): UInt? {
     return decrypt(
         alias = alias,
-        paddingType = paddingType,
-        digestType = digestType,
+        padding = padding,
+        digest = digest,
         data = data
     ).toUIntOrNull()
 }
@@ -55,14 +55,14 @@ suspend fun KassaforteAsymmetricService.decryptToUInt(
 // TODO TO ANNOTATE WITH @Returner
 suspend fun KassaforteAsymmetricService.decryptToLong(
     alias: String,
-    paddingType: EncryptionPaddingType? = null,
-    digestType: DigestType? = null,
+    padding: EncryptionPadding? = null,
+    digest: Digest? = null,
     data: String,
 ): Long? {
     return decrypt(
         alias = alias,
-        paddingType = paddingType,
-        digestType = digestType,
+        padding = padding,
+        digest = digest,
         data = data
     ).toLongOrNull()
 }
@@ -70,14 +70,14 @@ suspend fun KassaforteAsymmetricService.decryptToLong(
 // TODO TO ANNOTATE WITH @Returner
 suspend fun KassaforteAsymmetricService.decryptToULong(
     alias: String,
-    paddingType: EncryptionPaddingType? = null,
-    digestType: DigestType? = null,
+    padding: EncryptionPadding? = null,
+    digest: Digest? = null,
     data: String,
 ): ULong? {
     return decrypt(
         alias = alias,
-        paddingType = paddingType,
-        digestType = digestType,
+        padding = padding,
+        digest = digest,
         data = data
     ).toULongOrNull()
 }
@@ -85,14 +85,14 @@ suspend fun KassaforteAsymmetricService.decryptToULong(
 // TODO TO ANNOTATE WITH @Returner
 suspend fun KassaforteAsymmetricService.decryptToShort(
     alias: String,
-    paddingType: EncryptionPaddingType? = null,
-    digestType: DigestType? = null,
+    padding: EncryptionPadding? = null,
+    digest: Digest? = null,
     data: String,
 ): Short? {
     return decrypt(
         alias = alias,
-        paddingType = paddingType,
-        digestType = digestType,
+        padding = padding,
+        digest = digest,
         data = data
     ).toShortOrNull()
 }
@@ -100,14 +100,14 @@ suspend fun KassaforteAsymmetricService.decryptToShort(
 // TODO TO ANNOTATE WITH @Returner
 suspend fun KassaforteAsymmetricService.decryptToUShort(
     alias: String,
-    paddingType: EncryptionPaddingType? = null,
-    digestType: DigestType? = null,
+    padding: EncryptionPadding? = null,
+    digest: Digest? = null,
     data: String,
 ): UShort? {
     return decrypt(
         alias = alias,
-        paddingType = paddingType,
-        digestType = digestType,
+        padding = padding,
+        digest = digest,
         data = data
     ).toUShortOrNull()
 }
@@ -115,14 +115,14 @@ suspend fun KassaforteAsymmetricService.decryptToUShort(
 // TODO TO ANNOTATE WITH @Returner
 suspend fun KassaforteAsymmetricService.decryptToByte(
     alias: String,
-    paddingType: EncryptionPaddingType? = null,
-    digestType: DigestType? = null,
+    padding: EncryptionPadding? = null,
+    digest: Digest? = null,
     data: String,
 ): Byte? {
     return decrypt(
         alias = alias,
-        paddingType = paddingType,
-        digestType = digestType,
+        padding = padding,
+        digest = digest,
         data = data
     ).toByteOrNull()
 }
@@ -130,14 +130,14 @@ suspend fun KassaforteAsymmetricService.decryptToByte(
 // TODO TO ANNOTATE WITH @Returner
 suspend fun KassaforteAsymmetricService.decryptToUByte(
     alias: String,
-    paddingType: EncryptionPaddingType? = null,
-    digestType: DigestType? = null,
+    padding: EncryptionPadding? = null,
+    digest: Digest? = null,
     data: String,
 ): UByte? {
     return decrypt(
         alias = alias,
-        paddingType = paddingType,
-        digestType = digestType,
+        padding = padding,
+        digest = digest,
         data = data
     ).toUByteOrNull()
 }
@@ -145,14 +145,14 @@ suspend fun KassaforteAsymmetricService.decryptToUByte(
 // TODO TO ANNOTATE WITH @Returner
 suspend fun KassaforteAsymmetricService.decryptToFloat(
     alias: String,
-    paddingType: EncryptionPaddingType? = null,
-    digestType: DigestType? = null,
+    padding: EncryptionPadding? = null,
+    digest: Digest? = null,
     data: String,
 ): Float? {
     return decrypt(
         alias = alias,
-        paddingType = paddingType,
-        digestType = digestType,
+        padding = padding,
+        digest = digest,
         data = data
     ).toFloatOrNull()
 }
@@ -160,14 +160,14 @@ suspend fun KassaforteAsymmetricService.decryptToFloat(
 // TODO TO ANNOTATE WITH @Returner
 suspend fun KassaforteAsymmetricService.decryptToDouble(
     alias: String,
-    paddingType: EncryptionPaddingType? = null,
-    digestType: DigestType? = null,
+    padding: EncryptionPadding? = null,
+    digest: Digest? = null,
     data: String,
 ): Double? {
     return decrypt(
         alias = alias,
-        paddingType = paddingType,
-        digestType = digestType,
+        padding = padding,
+        digest = digest,
         data = data
     ).toDoubleOrNull()
 }
@@ -175,14 +175,14 @@ suspend fun KassaforteAsymmetricService.decryptToDouble(
 // TODO TO ANNOTATE WITH @Returner
 suspend fun KassaforteAsymmetricService.decryptToBoolean(
     alias: String,
-    paddingType: EncryptionPaddingType? = null,
-    digestType: DigestType? = null,
+    padding: EncryptionPadding? = null,
+    digest: Digest? = null,
     data: String,
 ): Boolean? {
     return decrypt(
         alias = alias,
-        paddingType = paddingType,
-        digestType = digestType,
+        padding = padding,
+        digest = digest,
         data = data
     ).toBooleanStrictOrNull()
 }
@@ -190,14 +190,14 @@ suspend fun KassaforteAsymmetricService.decryptToBoolean(
 // TODO TO ANNOTATE WITH @Returner
 suspend fun KassaforteAsymmetricService.decryptToChar(
     alias: String,
-    paddingType: EncryptionPaddingType? = null,
-    digestType: DigestType? = null,
+    padding: EncryptionPadding? = null,
+    digest: Digest? = null,
     data: String,
 ): Char? {
     return decrypt(
         alias = alias,
-        paddingType = paddingType,
-        digestType = digestType,
+        padding = padding,
+        digest = digest,
         data = data
     ).singleOrNull()
 }

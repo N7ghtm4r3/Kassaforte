@@ -1,8 +1,8 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Returner
-import com.tecknobit.kassaforte.key.genspec.DigestType
-import com.tecknobit.kassaforte.key.genspec.DigestType.*
+import com.tecknobit.kassaforte.key.genspec.Digest
+import com.tecknobit.kassaforte.key.genspec.Digest.*
 
 enum class OAEPWith(
     val value: String,
@@ -20,9 +20,9 @@ enum class OAEPWith(
 
     companion object {
 
-        // TODO: CHECK TO MOVE INTO DigestType
+        // TODO: CHECK TO MOVE INTO Digest
         @Returner
-        fun DigestType.oaepWithValue(): OAEPWith {
+        fun Digest.oaepWithValue(): OAEPWith {
             return when (this) {
                 SHA1 -> OAEPWithSHA1AndMGF1Padding
                 SHA224 -> OAEPWithSHA224AndMGF1Padding

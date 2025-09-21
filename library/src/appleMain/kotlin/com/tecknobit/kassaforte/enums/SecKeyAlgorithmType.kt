@@ -2,11 +2,11 @@
 
 package com.tecknobit.kassaforte.enums
 
-import com.tecknobit.kassaforte.key.genspec.DigestType
-import com.tecknobit.kassaforte.key.genspec.DigestType.*
-import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
-import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType.RSA_OAEP
-import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType.RSA_PKCS1
+import com.tecknobit.kassaforte.key.genspec.Digest
+import com.tecknobit.kassaforte.key.genspec.Digest.*
+import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
+import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.RSA_OAEP
+import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.RSA_PKCS1
 import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.INVALID_ENCRYPTION_PADDING
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.Security.*
@@ -30,13 +30,13 @@ enum class SecKeyAlgorithmType(
     companion object {
 
         // TODO: TO ANNOTATE WITH @Returner
-        fun EncryptionPaddingType?.toSecKeyAlgorithm(
-            digestType: DigestType? = null,
+        fun EncryptionPadding?.toSecKeyAlgorithm(
+            digest: Digest? = null,
         ): SecKeyAlgorithmType {
             return when (this) {
                 RSA_PKCS1 -> rsaEncryptionPKCS1
                 RSA_OAEP -> {
-                    when (digestType) {
+                    when (digest) {
                         SHA1 -> rsaEncryptionOAEPSHA1
                         SHA224 -> rsaEncryptionOAEPSHA224
                         SHA256 -> rsaEncryptionOAEPSHA256

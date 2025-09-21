@@ -1,9 +1,9 @@
 package com.tecknobit.kassaforte
 
 import com.tecknobit.equinoxcore.annotations.Returner
-import com.tecknobit.kassaforte.key.genspec.AlgorithmType
-import com.tecknobit.kassaforte.key.genspec.BlockModeType.CBC
-import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType.PKCS7
+import com.tecknobit.kassaforte.key.genspec.Algorithm
+import com.tecknobit.kassaforte.key.genspec.BlockMode.CBC
+import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.PKCS7
 import com.tecknobit.kassaforte.key.genspec.KeySize.S256
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
@@ -64,7 +64,7 @@ actual class Kassaforte actual constructor(
     private fun generateSecretKeyIfMissing() {
         try {
             KassaforteSymmetricService.generateKey(
-                algorithmType = AlgorithmType.AES,
+                algorithm = Algorithm.AES,
                 alias = SECRET_KEY,
                 keyGenSpec = SymmetricKeyGenSpec(
                     keySize = S256,
@@ -132,8 +132,8 @@ actual class Kassaforte actual constructor(
         ) {
             KassaforteSymmetricService.decrypt(
                 alias = SECRET_KEY,
-                blockModeType = CBC,
-                paddingType = PKCS7,
+                blockMode = CBC,
+                padding = PKCS7,
                 data = data
             )
         }
@@ -194,8 +194,8 @@ actual class Kassaforte actual constructor(
     ): String {
         val encryptedData = KassaforteSymmetricService.encrypt(
             alias = SECRET_KEY,
-            blockModeType = CBC,
-            paddingType = PKCS7,
+            blockMode = CBC,
+            padding = PKCS7,
             data = data
         )
         return encryptedData

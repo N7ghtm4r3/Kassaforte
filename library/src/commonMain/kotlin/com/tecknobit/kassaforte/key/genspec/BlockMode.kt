@@ -1,12 +1,12 @@
 package com.tecknobit.kassaforte.key.genspec
 
 /**
- * These are the supported block modes to use with the [AlgorithmType.AES] algorithm
+ * These are the supported block modes to use with the [Algorithm.AES] algorithm
  *
  * @property value The name of the block
  * @property blockSize The size in bytes of each block
  */
-enum class BlockModeType(
+enum class BlockMode(
     val value: String,
     val blockSize: Int,
 ) {

@@ -1,16 +1,16 @@
 package com.tecknobit.kassaforte.services
 
-import com.tecknobit.kassaforte.key.genspec.AlgorithmType
+import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
-import com.tecknobit.kassaforte.key.genspec.DigestType
-import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
+import com.tecknobit.kassaforte.key.genspec.Digest
+import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 expect object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyGenSpec> {
 
     override fun generateKey(
-        algorithmType: AlgorithmType,
+        algorithm: Algorithm,
         alias: String,
         keyGenSpec: AsymmetricKeyGenSpec,
         purposes: KeyPurposes,
@@ -18,15 +18,15 @@ expect object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
 
     suspend fun encrypt(
         alias: String,
-        paddingType: EncryptionPaddingType? = null,
-        digestType: DigestType? = null,
+        padding: EncryptionPadding? = null,
+        digest: Digest? = null,
         data: Any,
     ): String
 
     suspend fun decrypt(
         alias: String,
-        paddingType: EncryptionPaddingType? = null,
-        digestType: DigestType? = null,
+        padding: EncryptionPadding? = null,
+        digest: Digest? = null,
         data: String,
     ): String
 

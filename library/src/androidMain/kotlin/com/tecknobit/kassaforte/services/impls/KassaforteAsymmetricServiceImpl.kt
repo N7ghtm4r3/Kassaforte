@@ -1,11 +1,11 @@
 package com.tecknobit.kassaforte.services.impls
 
 import com.tecknobit.equinoxcore.annotations.Returner
-import com.tecknobit.kassaforte.key.genspec.AlgorithmType
-import com.tecknobit.kassaforte.key.genspec.AlgorithmType.EC
-import com.tecknobit.kassaforte.key.genspec.AlgorithmType.RSA
+import com.tecknobit.kassaforte.key.genspec.Algorithm
+import com.tecknobit.kassaforte.key.genspec.Algorithm.EC
+import com.tecknobit.kassaforte.key.genspec.Algorithm.RSA
 import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
-import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType.NONE
+import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.NONE
 import com.tecknobit.kassaforte.key.usages.KeyOperation
 import com.tecknobit.kassaforte.key.usages.KeyOperation.Companion.checkIfRequiresPublicKey
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
@@ -23,7 +23,7 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
     private val serviceImplManager = KassaforteServiceImplManager()
 
     actual fun generateKey(
-        algorithmType: AlgorithmType,
+        algorithm: Algorithm,
         alias: String,
         keyGenSpec: AsymmetricKeyGenSpec,
         purposes: KeyPurposes,
@@ -31,7 +31,7 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
         if (aliasExists(alias))
             throw IllegalAccessException(ALIAS_ALREADY_TAKEN_ERROR)
         val keyPairGenerator = KeyPairGenerator.getInstance(
-            algorithmType.value,
+            algorithm.value,
             ANDROID_KEYSTORE
         )
         val genSpec = serviceImplManager.resolveGenSpec(
@@ -41,10 +41,10 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
         ).run {
             val digest = keyGenSpec.digest
             val encryptionPadding = keyGenSpec.encryptionPadding
-            if (algorithmType == EC && digest == null)
+            if (algorithm == EC && digest == null)
                 throw IllegalArgumentException("For Elliptic Curve algorithm a digest value is required")
-            if (algorithmType != EC) {
-                if (algorithmType == RSA && encryptionPadding == NONE)
+            if (algorithm != EC) {
+                if (algorithm == RSA && encryptionPadding == NONE)
                     throw IllegalArgumentException("For RSA must be used PKCS1Padding or OAEPPadding padding type")
                 setEncryptionPaddings(keyGenSpec.encryptionPadding.value)
             }

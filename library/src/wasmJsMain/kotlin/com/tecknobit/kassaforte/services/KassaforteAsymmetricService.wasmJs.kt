@@ -9,12 +9,12 @@ import com.tecknobit.kassaforte.enums.NamedCurve.Companion.toNamedCurve
 import com.tecknobit.kassaforte.enums.RsaAlgorithmName.Companion.toRsaAlgorithmName
 import com.tecknobit.kassaforte.helpers.asPlainText
 import com.tecknobit.kassaforte.helpers.toByteArray
-import com.tecknobit.kassaforte.key.genspec.AlgorithmType
-import com.tecknobit.kassaforte.key.genspec.AlgorithmType.EC
-import com.tecknobit.kassaforte.key.genspec.AlgorithmType.RSA
+import com.tecknobit.kassaforte.key.genspec.Algorithm
+import com.tecknobit.kassaforte.key.genspec.Algorithm.EC
+import com.tecknobit.kassaforte.key.genspec.Algorithm.RSA
 import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
-import com.tecknobit.kassaforte.key.genspec.DigestType
-import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
+import com.tecknobit.kassaforte.key.genspec.Digest
+import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.helpers.KassaforteAsymmetricServiceManager
 import com.tecknobit.kassaforte.util.checkIfIsSupportedType
@@ -34,7 +34,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     private val serviceManager = KassaforteAsymmetricServiceManager()
 
     actual override fun generateKey(
-        algorithmType: AlgorithmType,
+        algorithm: Algorithm,
         alias: String,
         keyGenSpec: AsymmetricKeyGenSpec,
         purposes: KeyPurposes,
@@ -43,7 +43,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             alias = alias,
             genSpec = {
                 resolveKeyGenSpec(
-                    algorithmType = algorithmType,
+                    algorithm = algorithm,
                     keyGenSpec = keyGenSpec
                 )
             },
@@ -53,10 +53,10 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
 
     @Returner
     private fun resolveKeyGenSpec(
-        algorithmType: AlgorithmType,
+        algorithm: Algorithm,
         keyGenSpec: AsymmetricKeyGenSpec,
     ): KeyGenSpec {
-        return when (algorithmType) {
+        return when (algorithm) {
             RSA -> {
                 val digest = keyGenSpec.digest ?: throw IllegalArgumentException("The digest must be specified")
                 resolveRsaHashedKeyGenParams(
@@ -87,8 +87,8 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
 
     actual suspend fun encrypt(
         alias: String,
-        paddingType: EncryptionPaddingType?,
-        digestType: DigestType?,
+        padding: EncryptionPadding?,
+        digest: Digest?,
         data: Any,
     ): String {
         checkIfIsSupportedType(
@@ -116,8 +116,8 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
 
     actual suspend fun decrypt(
         alias: String,
-        paddingType: EncryptionPaddingType?,
-        digestType: DigestType?,
+        padding: EncryptionPadding?,
+        digest: Digest?,
         data: String,
     ): String {
         val rawCryptoKeyPair: RawCryptoKeyPair = serviceManager.retrieveKeyData(

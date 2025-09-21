@@ -3,11 +3,11 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.kassaforte.Kassaforte
-import com.tecknobit.kassaforte.key.genspec.AlgorithmType
-import com.tecknobit.kassaforte.key.genspec.BlockModeType
-import com.tecknobit.kassaforte.key.genspec.BlockModeType.CTR
-import com.tecknobit.kassaforte.key.genspec.BlockModeType.GCM
-import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
+import com.tecknobit.kassaforte.key.genspec.Algorithm
+import com.tecknobit.kassaforte.key.genspec.BlockMode
+import com.tecknobit.kassaforte.key.genspec.BlockMode.CTR
+import com.tecknobit.kassaforte.key.genspec.BlockMode.GCM
+import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyDetailsSheet
 import com.tecknobit.kassaforte.key.usages.KeyOperation
@@ -32,7 +32,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     private val serviceManager = KassaforteSymmetricServiceManager()
 
     actual override fun generateKey(
-        algorithmType: AlgorithmType,
+        algorithm: Algorithm,
         alias: String,
         keyGenSpec: SymmetricKeyGenSpec,
         purposes: KeyPurposes,
@@ -92,20 +92,20 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
 
     actual suspend fun encrypt(
         alias: String,
-        blockModeType: BlockModeType,
-        paddingType: EncryptionPaddingType,
+        blockMode: BlockMode,
+        padding: EncryptionPadding,
         data: Any,
     ): String {
         checkIfIsSupportedType(
             data = data
         )
-        val iv = ByteArray(blockModeType.blockSize).apply {
+        val iv = ByteArray(blockMode.blockSize).apply {
             SecureRandom.nextBytes(this)
         }
         val encryptedData = useKey(
             alias = alias,
             keyOperation = ENCRYPT,
-            blockModeType = blockModeType,
+            blockMode = blockMode,
             iv = iv,
             usage = { cipher ->
                 val dataToEncrypt = data.toString().encodeToByteArray()
@@ -117,18 +117,18 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
 
     actual suspend fun decrypt(
         alias: String,
-        blockModeType: BlockModeType,
-        paddingType: EncryptionPaddingType,
+        blockMode: BlockMode,
+        padding: EncryptionPadding,
         data: String,
     ): String {
         val dataToDecrypt = Base64.decode(data)
-        val blockSize = blockModeType.blockSize
+        val blockSize = blockMode.blockSize
         val iv = dataToDecrypt.copyOfRange(0, blockSize)
         val cipherText = dataToDecrypt.copyOfRange(blockSize, dataToDecrypt.size)
         return useKey(
             alias = alias,
             keyOperation = DECRYPT,
-            blockModeType = blockModeType,
+            blockMode = blockMode,
             iv = iv,
             usage = { cipher -> cipher.decrypt(cipherText) }
         ).decodeToString()
@@ -137,12 +137,12 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     private suspend inline fun useKey(
         alias: String,
         keyOperation: KeyOperation,
-        blockModeType: BlockModeType,
+        blockMode: BlockMode,
         iv: ByteArray,
         usage: (CipherWithModeAndPadding) -> ByteArray,
     ): ByteArray {
         // TODO: to remove when GCM integrated
-        if (blockModeType == GCM)
+        if (blockMode == GCM)
             throw RuntimeException("GCM on iOs is currently missing, use CBC or CTR instead")
         val kassaforte = Kassaforte(alias)
         val encodedKeyData = kassaforte.withdraw(
@@ -157,11 +157,11 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             throw RuntimeException(KEY_CANNOT_PERFORM_OPERATION_ERROR.replace("%s", keyOperation.name))
         // TODO: WHEN GCM AVAILABLE INTEGRATE IT
         val cipher = AES(keyInfo.key).get(
-            mode = when (blockModeType) {
+            mode = when (blockMode) {
                 CTR -> CipherMode.CTR
                 else -> CipherMode.CBC
             },
-            padding = when (blockModeType) {
+            padding = when (blockMode) {
                 CTR -> CipherPadding.NoPadding
                 else -> CipherPadding.PKCS7Padding
             },

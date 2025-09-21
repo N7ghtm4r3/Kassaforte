@@ -5,7 +5,7 @@ package com.tecknobit.kassaforte.key.genspec
  *
  * @property value The name of the digest
  */
-enum class DigestType(
+enum class Digest(
     val value: String,
 ) {
 

@@ -1,6 +1,6 @@
 package com.tecknobit.kassaforte.services.impls
 
-import com.tecknobit.kassaforte.key.genspec.AlgorithmType
+import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyOperation
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
@@ -10,7 +10,7 @@ import java.security.Key
 internal expect class KassaforteAsymmetricServiceImpl() : KassaforteServiceImpl {
 
     fun generateKey(
-        algorithmType: AlgorithmType,
+        algorithm: Algorithm,
         alias: String,
         keyGenSpec: AsymmetricKeyGenSpec,
         purposes: KeyPurposes,

@@ -2,9 +2,9 @@ package com.tecknobit.kassaforte.services.impls
 
 import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.equinoxcore.annotations.Returner
-import com.tecknobit.kassaforte.key.genspec.AlgorithmType
-import com.tecknobit.kassaforte.key.genspec.BlockModeType
-import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
+import com.tecknobit.kassaforte.key.genspec.Algorithm
+import com.tecknobit.kassaforte.key.genspec.BlockMode
+import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyDetailsSheet
 import com.tecknobit.kassaforte.key.usages.KeyOperation
@@ -39,7 +39,7 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() : Kass
     ) {
         if (aliasExists(alias))
             throw IllegalAccessException(KassaforteKeysService.ALIAS_ALREADY_TAKEN_ERROR)
-        val algorithm = AlgorithmType.AES.value
+        val algorithm = Algorithm.AES.value
         val keyGenerator = KeyGenerator.getInstance(algorithm)
         keyGenerator.init(keyGenSpec.keySize.bitCount)
         val key = keyGenerator.generateKey()
@@ -76,23 +76,23 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() : Kass
     @Assembler
     actual fun resolveTransformation(
         algorithm: String,
-        blockModeType: BlockModeType?,
-        paddingType: EncryptionPaddingType?,
+        blockMode: BlockMode?,
+        padding: EncryptionPadding?,
     ): String {
         var transformation = algorithm
-        blockModeType?.let { blockMode ->
+        blockMode?.let {
             transformation += "/${blockMode.value}"
         }
-        paddingType?.let { padding ->
+        padding?.let {
             transformation += padding.adapt()
         }
         return transformation
     }
 
     @Returner
-    private fun EncryptionPaddingType.adapt(): String {
+    private fun EncryptionPadding.adapt(): String {
         return "/" + when (this) {
-            EncryptionPaddingType.PKCS7 -> PKCS5
+            EncryptionPadding.PKCS7 -> PKCS5
             else -> this.value
         }
     }

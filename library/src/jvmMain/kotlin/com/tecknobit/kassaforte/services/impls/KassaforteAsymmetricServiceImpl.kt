@@ -1,7 +1,7 @@
 package com.tecknobit.kassaforte.services.impls
 
 import com.tecknobit.equinoxcore.annotations.Returner
-import com.tecknobit.kassaforte.key.genspec.AlgorithmType
+import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyDetailsSheet
 import com.tecknobit.kassaforte.key.usages.KeyOperation
@@ -27,14 +27,14 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
     )
 
     actual fun generateKey(
-        algorithmType: AlgorithmType,
+        algorithm: Algorithm,
         alias: String,
         keyGenSpec: AsymmetricKeyGenSpec,
         purposes: KeyPurposes,
     ) {
         if (aliasExists(alias))
             throw IllegalAccessException(ALIAS_ALREADY_TAKEN_ERROR)
-        val algorithm = algorithmType.value
+        val algorithm = algorithm.value
         val keyPairGenerator = KeyPairGenerator.getInstance(algorithm)
         keyPairGenerator.initialize(keyGenSpec.keySize.bitCount)
         val keyPair = keyPairGenerator.genKeyPair()

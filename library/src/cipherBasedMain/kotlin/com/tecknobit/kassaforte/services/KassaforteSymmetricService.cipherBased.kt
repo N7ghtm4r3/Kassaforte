@@ -1,10 +1,10 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
-import com.tecknobit.kassaforte.key.genspec.AlgorithmType
-import com.tecknobit.kassaforte.key.genspec.BlockModeType
-import com.tecknobit.kassaforte.key.genspec.BlockModeType.GCM
-import com.tecknobit.kassaforte.key.genspec.EncryptionPaddingType
+import com.tecknobit.kassaforte.key.genspec.Algorithm
+import com.tecknobit.kassaforte.key.genspec.BlockMode
+import com.tecknobit.kassaforte.key.genspec.BlockMode.GCM
+import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyOperation
 import com.tecknobit.kassaforte.key.usages.KeyOperation.DECRYPT
@@ -24,7 +24,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     private val serviceImpl = KassaforteSymmetricServiceImpl()
 
     actual override fun generateKey(
-        algorithmType: AlgorithmType,
+        algorithm: Algorithm,
         alias: String,
         keyGenSpec: SymmetricKeyGenSpec,
         purposes: KeyPurposes,
@@ -46,8 +46,8 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
 
     actual suspend fun encrypt(
         alias: String,
-        blockModeType: BlockModeType,
-        paddingType: EncryptionPaddingType,
+        blockMode: BlockMode,
+        padding: EncryptionPadding,
         data: Any,
     ): String {
         checkIfIsSupportedType(
@@ -56,8 +56,8 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         var cipherIv: ByteArray = byteArrayOf()
         var encryptedData = useCipher(
             alias = alias,
-            blockModeType = blockModeType,
-            paddingType = paddingType,
+            blockMode = blockMode,
+            padding = padding,
             keyOperation = ENCRYPT
         ) { cipher, key ->
             cipher.init(Cipher.ENCRYPT_MODE, key)
@@ -71,20 +71,20 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
 
     actual suspend fun decrypt(
         alias: String,
-        blockModeType: BlockModeType,
-        paddingType: EncryptionPaddingType,
+        blockMode: BlockMode,
+        padding: EncryptionPadding,
         data: String,
     ): String {
         val decryptedData = useCipher(
             alias = alias,
-            blockModeType = blockModeType,
-            paddingType = paddingType,
+            blockMode = blockMode,
+            padding = padding,
             keyOperation = DECRYPT
         ) { cipher, key ->
             val dataToDecrypt = Base64.decode(data)
-            val blockSize = blockModeType.blockSize
+            val blockSize = blockMode.blockSize
             val ivSeed = dataToDecrypt.copyOfRange(0, blockSize)
-            val algorithmParameterSpec = when (blockModeType) {
+            val algorithmParameterSpec = when (blockMode) {
                 GCM -> GCMParameterSpec(128, ivSeed)
                 else -> IvParameterSpec(ivSeed)
             }
@@ -97,10 +97,10 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
 
     private inline fun useCipher(
         alias: String,
-        blockModeType: BlockModeType?,
-        paddingType: EncryptionPaddingType?,
+        blockMode: BlockMode?,
+        padding: EncryptionPadding?,
         keyOperation: KeyOperation,
-        cypherUsage: (Cipher, Key) -> ByteArray
+        cypherUsage: (Cipher, Key) -> ByteArray,
     ): ByteArray {
         val key = serviceImpl.getKey(
             alias = alias,
@@ -108,8 +108,8 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         )
         val transformation = resolveTransformation(
             algorithm = key.algorithm,
-            blockModeType = blockModeType,
-            paddingType = paddingType
+            blockMode = blockMode,
+            padding = padding
         )
         val cipher = Cipher.getInstance(transformation)
         return cypherUsage(cipher, key)
@@ -118,13 +118,13 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     @Assembler
     private fun resolveTransformation(
         algorithm: String,
-        blockModeType: BlockModeType?,
-        paddingType: EncryptionPaddingType?
+        blockMode: BlockMode?,
+        padding: EncryptionPadding?,
     ): String {
         return serviceImpl.resolveTransformation(
             algorithm = algorithm,
-            blockModeType = blockModeType,
-            paddingType = paddingType
+            blockMode = blockMode,
+            padding = padding
         )
     }
 

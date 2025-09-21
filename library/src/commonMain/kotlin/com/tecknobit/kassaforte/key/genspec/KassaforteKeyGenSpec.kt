@@ -15,6 +15,6 @@ sealed interface KassaforteKeyGenSpec {
     /**
      * `encryptionPadding` The encryption padding the key can use
      */
-    val encryptionPadding: EncryptionPaddingType
+    val encryptionPadding: EncryptionPadding
 
 }
