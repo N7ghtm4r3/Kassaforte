@@ -38,17 +38,6 @@ expect class Kassaforte(
     )
 
     /**
-     * Method used to refresh sensitive data previously safeguarded
-     *
-     * @param key The key used to represent the data to safeguard
-     * @param data The refreshed sensitive data to safeguard and to replace the currently safeguarded
-     */
-    fun refresh(
-        key: String,
-        data: Any,
-    )
-
-    /**
      * Method used to withdraw safeguarded data
      *
      * @param key The key of the safeguarded data to withdraw
@@ -58,6 +47,17 @@ expect class Kassaforte(
     suspend fun withdraw(
         key: String,
     ): String?
+
+    /**
+     * Method used to refresh sensitive data previously safeguarded
+     *
+     * @param key The key used to represent the data to safeguard
+     * @param data The refreshed sensitive data to safeguard and to replace the currently safeguarded
+     */
+    fun refresh(
+        key: String,
+        data: Any,
+    )
 
     /**
      * Method used to remove safeguarded data
