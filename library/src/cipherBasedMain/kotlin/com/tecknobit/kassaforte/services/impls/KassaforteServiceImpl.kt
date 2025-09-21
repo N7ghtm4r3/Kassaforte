@@ -5,7 +5,7 @@ import com.tecknobit.kassaforte.key.usages.KeyOperation
 import java.security.Key
 
 /**
- * The `KassaforteServiceImpl` class allows to implement a symmetric or asymmetric service providing the basic behavior
+ * The `KassaforteServiceImpl` class allows to implement a symmetric or aservice providing the basic behavior
  * that the service must have to correctly perform the operations for what is designed
  *
  * @author Tecknobit - N7ghtm4r3

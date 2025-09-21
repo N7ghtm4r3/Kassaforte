@@ -17,7 +17,7 @@ import java.security.KeyPairGenerator
 import java.security.PublicKey
 
 /**
- * The `KassaforteAsymmetricServiceImpl` class allows to implement an asymmetric service to perform the operations
+ * The `KassaforteAsymmetricServiceImpl` class allows to implement a service to perform the operations
  * with asymmetric keys
  *
  * @author Tecknobit - N7ghtm4r3

@@ -14,7 +14,7 @@ import java.security.Key
 import javax.crypto.KeyGenerator
 
 /**
- * The `KassaforteSymmetricServiceImpl` class allows to implement a symmetric service to perform the operations
+ * The `KassaforteSymmetricServiceImpl` class allows to implement a service to perform the operations
  * with symmetric keys
  *
  * @author Tecknobit - N7ghtm4r3

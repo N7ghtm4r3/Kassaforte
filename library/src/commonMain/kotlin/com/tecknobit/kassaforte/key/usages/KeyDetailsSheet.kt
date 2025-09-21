@@ -3,7 +3,7 @@ package com.tecknobit.kassaforte.key.usages
 import com.tecknobit.kassaforte.key.usages.KeyOperation.*
 
 /**
- * The `KeyDetailsSheet` interface allows to store a generated key with extra information related to it such as the
+ * The `KeyDetailsSheet` interface allows to store with the generated key extra information related to it such as the
  * usages the key can be used
  *
  * @param T the type of the key
