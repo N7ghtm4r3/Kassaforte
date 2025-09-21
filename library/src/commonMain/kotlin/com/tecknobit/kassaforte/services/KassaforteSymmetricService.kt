@@ -52,6 +52,8 @@ expect object KassaforteSymmetricService: KassaforteKeysService<SymmetricKeyGenS
      * @param blockMode The block mode to use to encrypt data
      * @param padding The padding to apply to encrypt data
      * @param data The data to encrypt
+     *
+     * @return the encrypted data as [String]
      */
     suspend fun encrypt(
         alias: String,

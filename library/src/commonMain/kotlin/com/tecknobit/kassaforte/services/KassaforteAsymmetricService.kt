@@ -36,6 +36,8 @@ expect object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
      * @param padding The padding to apply to encrypt data
      * @param digest The digest to apply to encrypt data
      * @param data The data to encrypt
+     *
+     * @return the encrypted data as [String]
      */
     suspend fun encrypt(
         alias: String,
