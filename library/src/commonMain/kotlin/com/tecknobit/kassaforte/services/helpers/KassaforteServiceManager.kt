@@ -3,7 +3,7 @@ package com.tecknobit.kassaforte.services.helpers
 /**
  * The `KassaforteServiceManager` interface allows to provide the basic operations a service manager can perform.
  *
- * The managers are particularly useful when the implementations of the symmetric and aservices sharing lot of
+ * The managers are particularly useful when the implementations of the symmetric and asymmetric services sharing lot of
  * common code that can be delegated to an external manager avoiding breaking the `expect/actual` implementation
  *
  * @param K The type of the key
