@@ -22,6 +22,16 @@ internal fun checkIfIsSupportedCipherAlgorithm(
     require(algorithm == RSA.value) { UNSUPPORTED_CIPHER_ALGORITHM.replace("%s", algorithm) }
 }
 
+/**
+ * Method used to decrypt the encrypted data with the key specified by the [alias] value
+ *
+ * @param alias The alias which identify the key to use
+ * @param padding The padding to apply to decrypt data
+ * @param digest The digest to apply to decrypt data
+ * @param data The data to decrypt
+ *
+ * @return the decrypted data as nullable [Int]
+ */
 // TODO TO ANNOTATE WITH @Returner
 suspend fun KassaforteAsymmetricService.decryptToInt(
     alias: String,
@@ -37,6 +47,16 @@ suspend fun KassaforteAsymmetricService.decryptToInt(
     ).toIntOrNull()
 }
 
+/**
+ * Method used to decrypt the encrypted data with the key specified by the [alias] value
+ *
+ * @param alias The alias which identify the key to use
+ * @param padding The padding to apply to decrypt data
+ * @param digest The digest to apply to decrypt data
+ * @param data The data to decrypt
+ *
+ * @return the decrypted data as nullable [UInt]
+ */
 // TODO TO ANNOTATE WITH @Returner
 suspend fun KassaforteAsymmetricService.decryptToUInt(
     alias: String,
@@ -52,6 +72,16 @@ suspend fun KassaforteAsymmetricService.decryptToUInt(
     ).toUIntOrNull()
 }
 
+/**
+ * Method used to decrypt the encrypted data with the key specified by the [alias] value
+ *
+ * @param alias The alias which identify the key to use
+ * @param padding The padding to apply to decrypt data
+ * @param digest The digest to apply to decrypt data
+ * @param data The data to decrypt
+ *
+ * @return the decrypted data as nullable [Long]
+ */
 // TODO TO ANNOTATE WITH @Returner
 suspend fun KassaforteAsymmetricService.decryptToLong(
     alias: String,
@@ -67,6 +97,16 @@ suspend fun KassaforteAsymmetricService.decryptToLong(
     ).toLongOrNull()
 }
 
+/**
+ * Method used to decrypt the encrypted data with the key specified by the [alias] value
+ *
+ * @param alias The alias which identify the key to use
+ * @param padding The padding to apply to decrypt data
+ * @param digest The digest to apply to decrypt data
+ * @param data The data to decrypt
+ *
+ * @return the decrypted data as nullable [ULong]
+ */
 // TODO TO ANNOTATE WITH @Returner
 suspend fun KassaforteAsymmetricService.decryptToULong(
     alias: String,
@@ -82,6 +122,16 @@ suspend fun KassaforteAsymmetricService.decryptToULong(
     ).toULongOrNull()
 }
 
+/**
+ * Method used to decrypt the encrypted data with the key specified by the [alias] value
+ *
+ * @param alias The alias which identify the key to use
+ * @param padding The padding to apply to decrypt data
+ * @param digest The digest to apply to decrypt data
+ * @param data The data to decrypt
+ *
+ * @return the decrypted data as nullable [Short]
+ */
 // TODO TO ANNOTATE WITH @Returner
 suspend fun KassaforteAsymmetricService.decryptToShort(
     alias: String,
@@ -97,6 +147,16 @@ suspend fun KassaforteAsymmetricService.decryptToShort(
     ).toShortOrNull()
 }
 
+/**
+ * Method used to decrypt the encrypted data with the key specified by the [alias] value
+ *
+ * @param alias The alias which identify the key to use
+ * @param padding The padding to apply to decrypt data
+ * @param digest The digest to apply to decrypt data
+ * @param data The data to decrypt
+ *
+ * @return the decrypted data as nullable [UShort]
+ */
 // TODO TO ANNOTATE WITH @Returner
 suspend fun KassaforteAsymmetricService.decryptToUShort(
     alias: String,
@@ -112,6 +172,16 @@ suspend fun KassaforteAsymmetricService.decryptToUShort(
     ).toUShortOrNull()
 }
 
+/**
+ * Method used to decrypt the encrypted data with the key specified by the [alias] value
+ *
+ * @param alias The alias which identify the key to use
+ * @param padding The padding to apply to decrypt data
+ * @param digest The digest to apply to decrypt data
+ * @param data The data to decrypt
+ *
+ * @return the decrypted data as nullable [Byte]
+ */
 // TODO TO ANNOTATE WITH @Returner
 suspend fun KassaforteAsymmetricService.decryptToByte(
     alias: String,
@@ -127,6 +197,16 @@ suspend fun KassaforteAsymmetricService.decryptToByte(
     ).toByteOrNull()
 }
 
+/**
+ * Method used to decrypt the encrypted data with the key specified by the [alias] value
+ *
+ * @param alias The alias which identify the key to use
+ * @param padding The padding to apply to decrypt data
+ * @param digest The digest to apply to decrypt data
+ * @param data The data to decrypt
+ *
+ * @return the decrypted data as nullable [UByte]
+ */
 // TODO TO ANNOTATE WITH @Returner
 suspend fun KassaforteAsymmetricService.decryptToUByte(
     alias: String,
@@ -142,6 +222,16 @@ suspend fun KassaforteAsymmetricService.decryptToUByte(
     ).toUByteOrNull()
 }
 
+/**
+ * Method used to decrypt the encrypted data with the key specified by the [alias] value
+ *
+ * @param alias The alias which identify the key to use
+ * @param padding The padding to apply to decrypt data
+ * @param digest The digest to apply to decrypt data
+ * @param data The data to decrypt
+ *
+ * @return the decrypted data as nullable [Float]
+ */
 // TODO TO ANNOTATE WITH @Returner
 suspend fun KassaforteAsymmetricService.decryptToFloat(
     alias: String,
@@ -157,6 +247,16 @@ suspend fun KassaforteAsymmetricService.decryptToFloat(
     ).toFloatOrNull()
 }
 
+/**
+ * Method used to decrypt the encrypted data with the key specified by the [alias] value
+ *
+ * @param alias The alias which identify the key to use
+ * @param padding The padding to apply to decrypt data
+ * @param digest The digest to apply to decrypt data
+ * @param data The data to decrypt
+ *
+ * @return the decrypted data as nullable [Double]
+ */
 // TODO TO ANNOTATE WITH @Returner
 suspend fun KassaforteAsymmetricService.decryptToDouble(
     alias: String,
@@ -172,6 +272,16 @@ suspend fun KassaforteAsymmetricService.decryptToDouble(
     ).toDoubleOrNull()
 }
 
+/**
+ * Method used to decrypt the encrypted data with the key specified by the [alias] value
+ *
+ * @param alias The alias which identify the key to use
+ * @param padding The padding to apply to decrypt data
+ * @param digest The digest to apply to decrypt data
+ * @param data The data to decrypt
+ *
+ * @return the decrypted data as nullable [Boolean]
+ */
 // TODO TO ANNOTATE WITH @Returner
 suspend fun KassaforteAsymmetricService.decryptToBoolean(
     alias: String,
@@ -187,6 +297,16 @@ suspend fun KassaforteAsymmetricService.decryptToBoolean(
     ).toBooleanStrictOrNull()
 }
 
+/**
+ * Method used to decrypt the encrypted data with the key specified by the [alias] value
+ *
+ * @param alias The alias which identify the key to use
+ * @param padding The padding to apply to decrypt data
+ * @param digest The digest to apply to decrypt data
+ * @param data The data to decrypt
+ *
+ * @return the decrypted data as nullable [Char]
+ */
 // TODO TO ANNOTATE WITH @Returner
 suspend fun KassaforteAsymmetricService.decryptToChar(
     alias: String,

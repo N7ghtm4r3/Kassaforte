@@ -8,7 +8,7 @@ import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 
 /**
- * The `KassaforteSymmetricService` object allows to generate and use symmetric keys and managing their persistence
+ * The `KassaforteSymmetricService` object allows to generate and to use symmetric keys and managing their persistence
  *
  * @author Tecknobit - N7ghtm4r3
  *
@@ -64,8 +64,8 @@ expect object KassaforteSymmetricService: KassaforteKeysService<SymmetricKeyGenS
      * Method used to decrypt encrypted data with the key specified by the [alias] value
      *
      * @param alias The alias which identify the key to use
-     * @param blockMode The block mode to use to encrypt data
-     * @param padding The padding to apply to encrypt data
+     * @param blockMode The block mode to use to decrypt data
+     * @param padding The padding to apply to decrypt data
      * @param data The data to decrypt
      *
      * @return the decrypted data as [String]

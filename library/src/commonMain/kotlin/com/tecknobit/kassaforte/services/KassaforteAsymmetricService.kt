@@ -1,14 +1,27 @@
 package com.tecknobit.kassaforte.services
 
-import com.tecknobit.kassaforte.key.genspec.Algorithm
-import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
-import com.tecknobit.kassaforte.key.genspec.Digest
-import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
+import com.tecknobit.kassaforte.key.genspec.*
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 
+/**
+ * The `KassaforteSymmetricService` object allows to generate and to use asymmetric keys and managing their persistence
+ *
+ * @author Tecknobit - N7ghtm4r3
+ *
+ * @see KassaforteKeysService
+ * @see SymmetricKeyGenSpec
+ */
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 expect object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyGenSpec> {
 
+    /**
+     * Method used to generate a new asymmetric key
+     *
+     * @param algorithm The algorithm the key will use
+     * @param alias The alias used to identify the key
+     * @param keyGenSpec The generation spec to use to generate the key
+     * @param purposes The purposes the key can be used
+     */
     override fun generateKey(
         algorithm: Algorithm,
         alias: String,
@@ -16,6 +29,14 @@ expect object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         purposes: KeyPurposes,
     )
 
+    /**
+     * Method used to encrypt data with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param padding The padding to apply to encrypt data
+     * @param digest The digest to apply to encrypt data
+     * @param data The data to encrypt
+     */
     suspend fun encrypt(
         alias: String,
         padding: EncryptionPadding? = null,
@@ -23,6 +44,16 @@ expect object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         data: Any,
     ): String
 
+    /**
+     * Method used to decrypt the encrypted data with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param padding The padding to apply to decrypt data
+     * @param digest The digest to apply to decrypt data
+     * @param data The data to decrypt
+     *
+     * @return the decrypted data as [String]
+     */
     suspend fun decrypt(
         alias: String,
         padding: EncryptionPadding? = null,
@@ -30,10 +61,22 @@ expect object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         data: String,
     ): String
 
+    /**
+     * Method used to check whether the alias has been already taken to identify other key
+     *
+     * @param alias The alias to check
+     *
+     * @return whether the alias has been already taken as [Boolean]
+     */
     override fun aliasExists(
         alias: String,
     ): Boolean
 
+    /**
+     * Method used to delete a generated key
+     *
+     * @param alias The alias of the key to delete
+     */
     override fun deleteKey(
         alias: String,
     )
