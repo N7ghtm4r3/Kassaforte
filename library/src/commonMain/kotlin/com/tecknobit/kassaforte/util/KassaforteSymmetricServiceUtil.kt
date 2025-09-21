@@ -169,3 +169,18 @@ suspend fun KassaforteSymmetricService.decryptToBoolean(
         data = data
     ).toBooleanStrictOrNull()
 }
+
+// TODO TO ANNOTATE WITH @Returner
+suspend fun KassaforteSymmetricService.decryptToChar(
+    alias: String,
+    blockModeType: BlockModeType,
+    paddingType: EncryptionPaddingType = NONE,
+    data: String,
+): Char? {
+    return decrypt(
+        alias = alias,
+        blockModeType = blockModeType,
+        paddingType = paddingType,
+        data = data
+    ).singleOrNull()
+}

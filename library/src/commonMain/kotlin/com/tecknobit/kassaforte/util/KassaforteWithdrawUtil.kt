@@ -2,6 +2,13 @@ package com.tecknobit.kassaforte.util
 
 import com.tecknobit.kassaforte.Kassaforte
 
+/**
+ * Method used to withdraw safeguarded data
+ *
+ * @param key The key of the safeguarded data to withdraw
+ *
+ * @return the safeguarded data specified by the [key] as nullable [Int]
+ */
 // TODO TO ANNOTATE WITH @Returner
 suspend fun Kassaforte.withdrawInt(
     key: String,
@@ -11,6 +18,13 @@ suspend fun Kassaforte.withdrawInt(
     )?.toIntOrNull()
 }
 
+/**
+ * Method used to withdraw safeguarded data
+ *
+ * @param key The key of the safeguarded data to withdraw
+ *
+ * @return the safeguarded data specified by the [key] as nullable [UInt]
+ */
 // TODO TO ANNOTATE WITH @Returner
 suspend fun Kassaforte.withdrawUInt(
     key: String,
@@ -20,6 +34,13 @@ suspend fun Kassaforte.withdrawUInt(
     )?.toUIntOrNull()
 }
 
+/**
+ * Method used to withdraw safeguarded data
+ *
+ * @param key The key of the safeguarded data to withdraw
+ *
+ * @return the safeguarded data specified by the [key] as nullable [Long]
+ */
 // TODO TO ANNOTATE WITH @Returner
 suspend fun Kassaforte.withdrawLong(
     key: String,
@@ -29,6 +50,13 @@ suspend fun Kassaforte.withdrawLong(
     )?.toLongOrNull()
 }
 
+/**
+ * Method used to withdraw safeguarded data
+ *
+ * @param key The key of the safeguarded data to withdraw
+ *
+ * @return the safeguarded data specified by the [key] as nullable [ULong]
+ */
 // TODO TO ANNOTATE WITH @Returner
 suspend fun Kassaforte.withdrawULong(
     key: String,
@@ -38,6 +66,13 @@ suspend fun Kassaforte.withdrawULong(
     )?.toULongOrNull()
 }
 
+/**
+ * Method used to withdraw safeguarded data
+ *
+ * @param key The key of the safeguarded data to withdraw
+ *
+ * @return the safeguarded data specified by the [key] as nullable [Short]
+ */
 // TODO TO ANNOTATE WITH @Returner
 suspend fun Kassaforte.withdrawShort(
     key: String,
@@ -47,6 +82,13 @@ suspend fun Kassaforte.withdrawShort(
     )?.toShortOrNull()
 }
 
+/**
+ * Method used to withdraw safeguarded data
+ *
+ * @param key The key of the safeguarded data to withdraw
+ *
+ * @return the safeguarded data specified by the [key] as nullable [UShort]
+ */
 // TODO TO ANNOTATE WITH @Returner
 suspend fun Kassaforte.withdrawUShort(
     key: String,
@@ -56,6 +98,13 @@ suspend fun Kassaforte.withdrawUShort(
     )?.toUShortOrNull()
 }
 
+/**
+ * Method used to withdraw safeguarded data
+ *
+ * @param key The key of the safeguarded data to withdraw
+ *
+ * @return the safeguarded data specified by the [key] as nullable [Byte]
+ */
 // TODO TO ANNOTATE WITH @Returner
 suspend fun Kassaforte.withdrawByte(
     key: String,
@@ -65,6 +114,13 @@ suspend fun Kassaforte.withdrawByte(
     )?.toByteOrNull()
 }
 
+/**
+ * Method used to withdraw safeguarded data
+ *
+ * @param key The key of the safeguarded data to withdraw
+ *
+ * @return the safeguarded data specified by the [key] as nullable [UByte]
+ */
 // TODO TO ANNOTATE WITH @Returner
 suspend fun Kassaforte.withdrawUByte(
     key: String,
@@ -74,6 +130,13 @@ suspend fun Kassaforte.withdrawUByte(
     )?.toUByteOrNull()
 }
 
+/**
+ * Method used to withdraw safeguarded data
+ *
+ * @param key The key of the safeguarded data to withdraw
+ *
+ * @return the safeguarded data specified by the [key] as nullable [Float]
+ */
 // TODO TO ANNOTATE WITH @Returner
 suspend fun Kassaforte.withdrawFloat(
     key: String,
@@ -83,6 +146,13 @@ suspend fun Kassaforte.withdrawFloat(
     )?.toFloatOrNull()
 }
 
+/**
+ * Method used to withdraw safeguarded data
+ *
+ * @param key The key of the safeguarded data to withdraw
+ *
+ * @return the safeguarded data specified by the [key] as nullable [Double]
+ */
 // TODO TO ANNOTATE WITH @Returner
 suspend fun Kassaforte.withdrawDouble(
     key: String,
@@ -92,6 +162,13 @@ suspend fun Kassaforte.withdrawDouble(
     )?.toDoubleOrNull()
 }
 
+/**
+ * Method used to withdraw safeguarded data
+ *
+ * @param key The key of the safeguarded data to withdraw
+ *
+ * @return the safeguarded data specified by the [key] as nullable [Boolean]
+ */
 // TODO TO ANNOTATE WITH @Returner
 suspend fun Kassaforte.withdrawBoolean(
     key: String,

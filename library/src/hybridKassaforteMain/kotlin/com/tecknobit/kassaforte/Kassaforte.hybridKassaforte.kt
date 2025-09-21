@@ -68,8 +68,8 @@ actual class Kassaforte actual constructor(
                 alias = SECRET_KEY,
                 keyGenSpec = SymmetricKeyGenSpec(
                     keySize = S256,
-                    blockMode = CBC,
-                    encryptionPadding = PKCS7
+                    encryptionPadding = PKCS7,
+                    blockMode = CBC
                 ),
                 purposes = KeyPurposes(
                     canEncrypt = true,
