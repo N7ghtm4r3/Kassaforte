@@ -16,12 +16,31 @@ import java.security.Key
 import java.security.KeyPairGenerator
 import java.security.PublicKey
 
+/**
+ * The `KassaforteAsymmetricServiceImpl` class allows to implement an asymmetric service to perform the operations
+ * with asymmetric keys
+ *
+ * @author Tecknobit - N7ghtm4r3
+ *
+ * @see KassaforteServiceImpl
+ */
 // TODO: TO WARN ABOUT SET allowBackup=false
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 internal actual class KassaforteAsymmetricServiceImpl actual constructor() : KassaforteServiceImpl() {
 
+    /**
+     * `serviceImplManager` instance of the manager which helps the service to perform the operations with the keys
+     */
     private val serviceImplManager = KassaforteServiceImplManager()
 
+    /**
+     * Method used to generate an asymmetric new key
+     *
+     * @param algorithm The algorithm the key will use
+     * @param alias The alias used to identify the key
+     * @param keyGenSpec The generation spec to use to generate the key
+     * @param purposes The purposes the key can be used
+     */
     actual fun generateKey(
         algorithm: Algorithm,
         alias: String,
@@ -57,6 +76,13 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
         keyPairGenerator.genKeyPair()
     }
 
+    /**
+     * Method used to check whether the alias has been already taken to identify other key
+     *
+     * @param alias The alias to check
+     *
+     * @return whether the alias has been already taken as [Boolean]
+     */
     actual override fun aliasExists(
         alias: String,
     ): Boolean {
@@ -65,6 +91,14 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
         )
     }
 
+    /**
+     * Method used to get a key to perform a [keyOperation]
+     *
+     * @param alias The alias of the key to get
+     * @param keyOperation The operation for what the key is being getting
+     *
+     * @return the specified key as [Key]
+     */
     actual override fun getKey(
         alias: String,
         keyOperation: KeyOperation,
@@ -81,6 +115,13 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
             storedKey
     }
 
+    /**
+     * Method used to retrieve a public from the specified alias
+     *
+     * @param alias The alias of the key to retrieve
+     *
+     * @return the specified key as [PublicKey]
+     */
     @Returner
     private fun retrievePublicKey(
         alias: String,
@@ -91,6 +132,11 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
         }
     }
 
+    /**
+     * Method used to delete a generated key
+     *
+     * @param alias The alias of the key to delete
+     */
     actual override fun deleteKey(
         alias: String,
     ) {

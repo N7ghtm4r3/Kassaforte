@@ -50,7 +50,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     )
 
     /**
-     * Method used to generate a new key
+     * Method used to generate an asymmetric new key
      *
      * @param algorithm The algorithm the key will use
      * @param alias The alias used to identify the key
