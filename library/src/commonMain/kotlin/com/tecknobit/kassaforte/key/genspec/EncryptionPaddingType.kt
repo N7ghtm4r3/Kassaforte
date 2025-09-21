@@ -29,7 +29,7 @@ enum class EncryptionPaddingType(
     RSA_PKCS1("PKCS1Padding"),
 
     /**
-     * `RSA_OAEP` Optimal Asymmetric Encryption Padding, recommended scheme for [AlgorithmType.RSA].
+     * `RSA_OAEP` **Optimal Asymmetric Encryption Padding**, recommended scheme for [AlgorithmType.RSA].
      *
      * Provides better security than [RSA_PKCS1] by incorporating randomness and a hash function.
      */
