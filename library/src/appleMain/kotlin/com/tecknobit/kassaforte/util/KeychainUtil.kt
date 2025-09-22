@@ -10,6 +10,13 @@ import platform.Security.SecItemCopyMatching
 import platform.Security.SecItemDelete
 import platform.Security.errSecSuccess
 
+/**
+ * Utility method used to retrieve an item from the [Keychain](https://developer.apple.com/documentation/security/keychain-services)
+ *
+ * @param query The query to retrieve the requested item
+ *
+ * @return the retrieved item as nullable [T]
+ */
 @Suppress("UNCHECKED_CAST")
 fun <T> retrieveFromKeychain(
     query: CFMutableDictionaryRef,
@@ -28,6 +35,11 @@ fun <T> retrieveFromKeychain(
     }
 }
 
+/**
+ * Utility method used to delete an item from the [Keychain](https://developer.apple.com/documentation/security/keychain-services)
+ *
+ * @param query The query to delete the requested item
+ */
 fun deleteFromKeychain(
     query: CFMutableDictionaryRef,
 ) {

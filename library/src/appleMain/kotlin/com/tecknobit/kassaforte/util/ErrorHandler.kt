@@ -6,6 +6,15 @@ import kotlinx.cinterop.*
 import platform.CoreFoundation.CFErrorCopyDescription
 import platform.CoreFoundation.CFErrorRefVar
 
+/**
+ * Scoped method to handle an error if necessary
+ *
+ * @param routine The routine to perform to obtain a result.
+ *
+ * If an error occurred during its execution will be automatically handled by the [handleError] method
+ *
+ * @return the result of the [routine] if no error occurred
+ */
 fun <T> errorScoped(
     routine: (CFErrorRefVar) -> T?,
 ): T {
@@ -21,6 +30,11 @@ fun <T> errorScoped(
     }
 }
 
+/**
+ * Method used to handle an occurred error
+ *
+ * @param errorVar The native error reference to handle
+ */
 private fun handleError(
     errorVar: CFErrorRefVar,
 ) {
