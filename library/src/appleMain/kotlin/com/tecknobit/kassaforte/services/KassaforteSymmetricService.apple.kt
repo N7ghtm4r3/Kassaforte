@@ -26,11 +26,34 @@ import platform.Security.SecRandomCopyBytes
 import platform.Security.kSecRandomDefault
 import kotlin.io.encoding.Base64
 
+/**
+ * The `KassaforteSymmetricService` class allows to generate and to use symmetric keys and managing their persistence.
+ *
+ * It is based on the [SecRandomCopyBytes](https://developer.apple.com/documentation/security/secrandomcopybytes(_:_:_:))
+ * method for the generation of the symmetric keys, and for their secure storage uses the
+ * [Keychain](https://developer.apple.com/documentation/security/keychain-services) APIs
+ *
+ * @author Tecknobit - N7ghtm4r3
+ *
+ * @see KassaforteKeysService
+ * @see SymmetricKeyGenSpec
+ */
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGenSpec>() {
 
+    /**
+     * `serviceManager` instance of the manager which helps the service to perform the operations with the keys
+     */
     private val serviceManager = KassaforteSymmetricServiceManager()
 
+    /**
+     * Method used to generate a new symmetric key
+     *
+     * @param algorithm The algorithm the key will use
+     * @param alias The alias used to identify the key
+     * @param keyGenSpec The generation spec to use to generate the key
+     * @param purposes The purposes the key can be used
+     */
     actual override fun generateKey(
         algorithm: Algorithm,
         alias: String,
@@ -59,6 +82,13 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         )
     }
 
+    /**
+     * Method used to check whether the alias has been already taken to identify other key
+     *
+     * @param alias The alias to check
+     *
+     * @return whether the alias has been already taken as [Boolean]
+     */
     actual override fun aliasExists(
         alias: String
     ): Boolean {
@@ -67,6 +97,12 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         )
     }
 
+    /**
+     * Method used to store the data of the generated key
+     *
+     * @param alias The alias which identify the key
+     * @param keyInfo The extra information of the generated key to store
+     */
     private fun storeKeyData(
         alias: String,
         keyInfo: KeyInfo,
@@ -81,6 +117,13 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         )
     }
 
+    /**
+     * Method used to format the data of the key
+     *
+     * @param keyInfo The extra information of the generated key
+     *
+     * @return the data of the key formatted as [String]
+     */
     // TODO: TO ANNOTATE WITH @Returner
     private inline fun formatKeyData(
         keyInfo: KeyInfo,
@@ -90,6 +133,16 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         return Base64.encode(encodedKeyInfo)
     }
 
+    /**
+     * Method used to encrypt data with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param blockMode The block mode to use to encrypt data
+     * @param padding The padding to apply to encrypt data
+     * @param data The data to encrypt
+     *
+     * @return the encrypted data as [String]
+     */
     actual suspend fun encrypt(
         alias: String,
         blockMode: BlockMode,
@@ -115,6 +168,16 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         return Base64.encode(iv + encryptedData)
     }
 
+    /**
+     * Method used to decrypt encrypted data with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param blockMode The block mode to use to decrypt data
+     * @param padding The padding to apply to decrypt data
+     * @param data The data to decrypt
+     *
+     * @return the decrypted data as [String]
+     */
     actual suspend fun decrypt(
         alias: String,
         blockMode: BlockMode,
@@ -134,6 +197,17 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         ).decodeToString()
     }
 
+    /**
+     * Method used to work and to use a key (private or public) to perform encryption or decryption of the data
+     *
+     * @param alias The alias which identify the key to use
+     * @param keyOperation The operation the key have to perform
+     * @param blockMode The block mode to use to ciphering data
+     * @param iv The initialization vector to use to perform the ciphering
+     * @param usage The routine the cipher have to perform
+     *
+     * @return the ciphered data as [ByteArray]
+     */
     private suspend inline fun useKey(
         alias: String,
         keyOperation: KeyOperation,
@@ -170,6 +244,11 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         return usage(cipher)
     }
 
+    /**
+     * Method used to delete a generated key
+     *
+     * @param alias The alias of the key to delete
+     */
     actual override fun deleteKey(
         alias: String
     ) {
@@ -178,13 +257,38 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         )
     }
 
+    /**
+     * The `KeyInfo` data class allows to store extra information related to a generated key such as the usages the key
+     * can be used
+     *
+     * @property keyPurposes The purposes the key can be used
+     * @property key The generated symmetric key
+     *
+     * @author Tecknobit - N7ghtm4r3
+     *
+     * @see KeyDetailsSheet
+     */
     @Serializable
     private data class KeyInfo(
         override val keyPurposes: KeyPurposes,
         override val key: ByteArray,
     ) : KeyDetailsSheet<ByteArray> {
 
-        override fun equals(other: Any?): Boolean {
+        /**
+         * Indicates whether some other object is "equal to" this one.
+         *
+         * Implementations must fulfil the following requirements:
+         * * Reflexive: for any non-null value `x`, `x.equals(x)` should return true.
+         * * Symmetric: for any non-null values `x` and `y`, `x.equals(y)` should return true if and only if `y.equals(x)` returns true.
+         * * Transitive: for any non-null values `x`, `y`, and `z`, if `x.equals(y)` returns true and `y.equals(z)` returns true, then `x.equals(z)` should return true.
+         * * Consistent: for any non-null values `x` and `y`, multiple invocations of `x.equals(y)` consistently return true or consistently return false, provided no information used in `equals` comparisons on the objects is modified.
+         * * Never equal to null: for any non-null value `x`, `x.equals(null)` should return false.
+         *
+         * Read more about [equality](https://kotlinlang.org/docs/reference/equality.html) in Kotlin.
+         */
+        override fun equals(
+            other: Any?,
+        ): Boolean {
             if (this === other) return true
             if (other !is KeyInfo) return false
 
@@ -194,6 +298,13 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             return true
         }
 
+        /**
+         * Returns a hash code value for the object.
+         *
+         * The general contract of `hashCode` is:
+         * * Whenever it is invoked on the same object more than once, the `hashCode` method must consistently return the same integer, provided no information used in `equals` comparisons on the object is modified.
+         * * If two objects are equal according to the `equals()` method, then calling the `hashCode` method on each of the two objects must produce the same integer result.
+         */
         override fun hashCode(): Int {
             var result = keyPurposes.hashCode()
             result = 31 * result + key.contentHashCode()
