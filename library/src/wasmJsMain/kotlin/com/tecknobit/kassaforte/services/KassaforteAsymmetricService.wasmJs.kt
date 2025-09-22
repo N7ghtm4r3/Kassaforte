@@ -2,6 +2,7 @@
 
 package com.tecknobit.kassaforte.services
 
+import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.enums.ExportFormat.PKCS8
 import com.tecknobit.kassaforte.enums.ExportFormat.SPKI
@@ -25,14 +26,40 @@ import com.tecknobit.kassaforte.wrappers.crypto.key.raw.RawCryptoKeyPair
 import com.tecknobit.kassaforte.wrappers.crypto.rsaOaepParams
 import kotlin.io.encoding.Base64
 
+/**
+ * The `KassaforteAsymmetricService` class allows to generate and to use asymmetric keys and managing their persistence.
+ *
+ * It is based on the [SubtleCrypto](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto)
+ * API for the generation of the key pairs, and for their secure storage uses the
+ * [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) APIs
+ *
+ * @author Tecknobit - N7ghtm4r3
+ *
+ * @see KassaforteKeysService
+ * @see AsymmetricKeyGenSpec
+ */
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyGenSpec>() {
 
+    /**
+     * `DEFAULT_EC_NAME` constant value to represent the [Algorithm.EC]'s `ECDSA` type
+     */
     // TODO: PROVIDE ALSO ECDH WHEN INTEGRATED THE AGREEMENT
     private const val DEFAULT_EC_NAME = "ECDSA"
 
+    /**
+     * `serviceManager` instance of the manager which helps the service to perform the operations with the keys
+     */
     private val serviceManager = KassaforteAsymmetricServiceManager()
 
+    /**
+     * Method used to generate a new asymmetric key
+     *
+     * @param algorithm The algorithm the key will use
+     * @param alias The alias used to identify the key
+     * @param keyGenSpec The generation spec to use to generate the key
+     * @param purposes The purposes the key can be used
+     */
     actual override fun generateKey(
         algorithm: Algorithm,
         alias: String,
@@ -51,6 +78,14 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         )
     }
 
+    /**
+     * Method used to resolve the spec to generate a new asymmetric key
+     *
+     * @param algorithm The algorithm the key will use
+     * @param keyGenSpec The generation spec to use to generate the key
+     *
+     * @return the gen spec as [KeyGenSpec]
+     */
     @Returner
     private fun resolveKeyGenSpec(
         algorithm: Algorithm,
@@ -81,10 +116,25 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         }
     }
 
+    /**
+     * Unused method.
+     *
+     * It is required to avoid breaking the `expect/actual` implementation
+     */
     actual override fun aliasExists(
         alias: String,
     ): Boolean = true
 
+    /**
+     * Method used to encrypt data with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param padding The padding to apply to encrypt data
+     * @param digest The digest to apply to encrypt data
+     * @param data The data to encrypt
+     *
+     * @return the encrypted data as [String]
+     */
     actual suspend fun encrypt(
         alias: String,
         padding: EncryptionPadding?,
@@ -114,6 +164,16 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         return encryptedData
     }
 
+    /**
+     * Method used to decrypt the encrypted data with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param padding The padding to apply to decrypt data
+     * @param digest The digest to apply to decrypt data
+     * @param data The data to decrypt
+     *
+     * @return the decrypted data as [String]
+     */
     actual suspend fun decrypt(
         alias: String,
         padding: EncryptionPadding?,
@@ -140,6 +200,11 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         return decryptedData
     }
 
+    /**
+     * Method used to delete a generated key
+     *
+     * @param alias The alias of the key to delete
+     */
     actual override fun deleteKey(
         alias: String,
     ) {
@@ -150,6 +215,15 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
 
 }
 
+/**
+ * Method used to assemble a native [RsaHashedKeyGenParams] object
+ *
+ * @param name The algorithm which the key will use
+ * @param modulusLength The length in bits of the RSA modulus
+ * @param hash The public exponent
+ *
+ * @return the key gen params as [RsaHashedKeyGenParams]
+ */
 @JsFun(
     """
     (name, modulusLength, hash) => ({
@@ -160,13 +234,21 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     })
     """
 )
-@Returner
+@Assembler
 private external fun resolveRsaHashedKeyGenParams(
     name: String,
     modulusLength: Int,
     hash: String,
 ): RsaHashedKeyGenParams
 
+/**
+ * Method used to assemble a native [EcKeyGenParams] object
+ *
+ * @param name The algorithm which the key will use
+ * @param namedCurve A string representing the name of the elliptic curve to use
+ *
+ * @return the key gen params as [EcKeyGenParams]
+ */
 @JsFun(
     """
     (name, namedCurve) => ({
@@ -175,7 +257,7 @@ private external fun resolveRsaHashedKeyGenParams(
     })
     """
 )
-@Returner
+@Assembler
 private external fun resolveEcKeyGenParams(
     name: String,
     namedCurve: String,
