@@ -434,7 +434,7 @@ fun App() {
 } 
 ```
 
-## Documentation
+## Documentation (coming soon!)
 
 Check out the library [documentation](https://n7ghtm4r3.github.io/Kassaforte/) for more information on how to generate
 and
