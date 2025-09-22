@@ -63,8 +63,8 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
     ) {
         IndexedDBManager.checkIfAliasExists(
             alias = alias,
-            onKeyExists = { return@checkIfAliasExists },
-            onKeyNotFound = {
+            onAliasExists = { return@checkIfAliasExists },
+            onAliasNotFound = {
                 managerScope.launch {
                     generateAndStore(
                         alias = alias,
