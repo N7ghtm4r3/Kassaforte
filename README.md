@@ -196,9 +196,237 @@ kassaforte = { module = "io.github.n7ghtm4r3:Kassaforte", version.ref = "kassafo
 
 ## Usage
 
+### Kassaforte
+
+#### Sync methods
+
+```kotlin
+@Composable
+fun App() {
+    // create an instance of Kassaforte
+    val kassaforte = Kassaforte(
+        name = "YourApplicationName" // suggested name
+    )
+
+    // safeguard sensitive data
+    kassaforte.safeguard(
+        key = "keyToRepresentData",
+        data = // sensitive data to safeguard
+    )
+
+    // refresh sensitive data previously safeguarded
+    kassaforte.refresh(
+        key = "keyToRepresentData",
+        data = // sensitive refreshed data to safeguard
+    )
+
+    // remove sensitive data previously safeguarded
+    kassaforte.remove(
+        key = "keyToRepresentData"
+    )
+} 
+```
+
+#### Async methods
+
+The following methods required to be executed inside a `Coroutine`
+
+```kotlin
+@Composable
+fun App() {
+    val scope = MainScope()
+
+    scope.launch {
+
+        // async withdraw a safeguarded data
+        val safeguardedData: String = kassaforte.withdraw(
+            key = "keyToRepresentData"
+        )
+
+        println(safeguardedData)
+    }
+}
+```
+
+### Services
+
+Using the services you can generate and then use symmetric and asymmetric keys
+
+#### Symmetric
+
+<h6>Generate key</h6>
+
+```kotlin
+@Composable
+fun App() {
+    // specify the generation spec of the key
+    val keyGenSpec = SymmetricKeyGenSpec(
+        blockMode = BlockMode.GCM,
+        keySize = S128,
+        encryptionPadding = EncryptionPadding.NONE
+    )
+
+    // specify the purposes where the key can be used
+    val purposes = KeyPurposes(
+        canEncrypt = true,
+        canDecrypt = true
+    )
+
+    // generate the key
+    KassaforteSymmetricService.generateKey(
+        algorithm = Algorithm.AES,
+        alias = "toIdentifyTheKey",
+        keyGenSpec = keyGenSpec,
+        purposes = purposes
+    )
+} 
+```
+
+<h6>Encrypt with the key</h6>
+
+```kotlin
+@Composable
+fun App() {
+    // data to encrypt
+    val dataToEncrypt = "PLAINTEXT"
+
+    // encrypt the data 
+    val encryptedData = KassaforteSymmetricService.encrypt(
+        alias = "toIdentifyTheKey",
+        // must match with the value used to create the key
+        blockMode = BlockMode.GCM,
+        // must match with the value used to create the key
+        padding = EncryptionPadding.NONE,
+        data = encryptedData
+    )
+
+    println(encryptedData)
+} 
+```
+
+<h6>Decrypt with the key</h6>
+
+```kotlin
+@Composable
+fun App() {
+    // data to decrypt
+    val dataToDecrypt = "...some encrypted data..."
+
+    // decrypt the data 
+    val decryptedData = KassaforteSymmetricService.decrypt(
+        alias = "toIdentifyTheKey",
+        // must match with the value used to create the key
+        blockMode = BlockMode.GCM,
+        // must match with the value used to create the key
+        padding = EncryptionPadding.NONE,
+        data = dataToDecrypt
+    )
+
+    println(decryptedData) // PLAINTEXT
+} 
+```
+
+<h6>Delete a key</h6>
+
+```kotlin
+@Composable
+fun App() {
+    KassaforteSymmetricService.deleteKey(
+        alias = "toIdentifyTheKey"
+    )
+} 
+```
+
+#### Asymmetric
+
+<h6>Generate key</h6>
+
+```kotlin
+@Composable
+fun App() {
+    // specify the generation spec of the key
+    val keyGenSpec = AsymmetricKeyGenSpec(
+        keySize = KeySize.S4096,
+        encryptionPadding = EncryptionPadding.RSA_OAEP, // or PKCS#1
+        digest = Digest.SHA256
+    )
+
+    // specify the purposes where the key can be used
+    val purposes = KeyPurposes(
+        canEncrypt = true,
+        canDecrypt = true
+    )
+
+    // generate the key
+    KassaforteAsymmetricService.generateKey(
+        algorithm = Algorithm.RSA, // or EC
+        alias = "toIdentifyTheKey",
+        keyGenSpec = keyGenSpec,
+        purposes = purposes
+    )
+} 
+```
+
+<h6>Encrypt with the key</h6>
+
+```kotlin
+@Composable
+fun App() {
+    // data to encrypt
+    val dataToEncrypt = "PLAINTEXT"
+
+    // encrypt the data 
+    val encryptedData = KassaforteAsymmetricService.encrypt(
+        alias = "toIdentifyTheKey",
+        // must match with the value used to create the key
+        padding = EncryptionPadding.RSA_OAEP,
+        // must match with the value used to create the key
+        digest = digest.SHA256,
+        data = dataToEncrypt
+    )
+
+    println(encryptedData)
+} 
+```
+
+<h6>Decrypt with the key</h6>
+
+```kotlin
+@Composable
+fun App() {
+    // data to decrypt
+    val dataToDecrypt = "...some encrypted data..."
+
+    // decrypt the data 
+    val decryptedData = KassaforteAsymmetricService.decrypt(
+        alias = "toIdentifyTheKey",
+        // must match with the value used to create the key
+        padding = EncryptionPadding.RSA_OAEP,
+        // must match with the value used to create the key
+        digest = digest.SHA256,
+        data = dataToEncrypt
+    )
+
+    println(decryptedData) // PLAINTEXT
+} 
+```
+
+<h6>Delete a key</h6>
+
+```kotlin
+@Composable
+fun App() {
+    KassaforteAsymmetricService.deleteKey(
+        alias = "toIdentifyTheKey"
+    )
+} 
+```
+
 ## Documentation
 
-Check out the library documentation [here!](https://n7ghtm4r3.github.io/Kassaforte/)
+Check out the library [documentation](https://n7ghtm4r3.github.io/Kassaforte/) for more information on how to generate
+and
+use keys, as well as how to correctly use the `Kassaforte` API.
 
 ## Credits
 

@@ -133,7 +133,7 @@ mavenPublishing {
     )
     coordinates(
         groupId = "io.github.n7ghtm4r3",
-        artifactId = "Kassaforte",
+        artifactId = "kassaforte",
         version = "1.0.0beta-01"
     )
     pom {
