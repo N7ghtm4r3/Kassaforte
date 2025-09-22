@@ -307,6 +307,6 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
      */
     override fun retrieveKey(
         alias: String,
-    ): K = TODO("UNUSED")
+    ): K = throw RuntimeException("Unused method, avoid to invoke it")
 
 }

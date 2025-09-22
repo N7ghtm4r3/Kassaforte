@@ -12,6 +12,7 @@ json = "1.9.0"
 kotlinx-coroutines = "1.10.2"
 krypto = "6.0.1"
 windpapi4j = "2.2.0"
+dokka = "2.0.0"
 
 [libraries]
 startup = { module = "androidx.startup:startup-runtime", version.ref = "startup" }
@@ -23,8 +24,10 @@ kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core",
 kotlinx-coroutines-swing = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
 krypto = { module = "com.soywiz:korlibs-crypto", version.ref = "krypto" }
 windpapi4j = { module = "com.github.peter-gergely-horvath:windpapi4j", version.ref = "windpapi4j" }
+dokka-base = { module = "org.jetbrains.dokka:dokka-base", version.ref = "dokka" }
 
 [plugins]
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 vanniktech-mavenPublish = { id = "com.vanniktech.maven.publish", version.ref = "vanniktechMavenPublish" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }

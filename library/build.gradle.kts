@@ -1,4 +1,8 @@
+import com.vanniktech.maven.publish.JavadocJar
 import com.vanniktech.maven.publish.KotlinMultiplatform
+import org.jetbrains.dokka.DokkaConfiguration.Visibility.*
+import org.jetbrains.dokka.base.DokkaBase
+import org.jetbrains.dokka.base.DokkaBaseConfiguration
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -6,6 +10,7 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.vanniktech.mavenPublish)
+    alias(libs.plugins.dokka)
     kotlin("plugin.serialization") version "2.2.0"
 }
 
@@ -122,20 +127,18 @@ kotlin {
 mavenPublishing {
     configure(
         platform = KotlinMultiplatform(
-            // TODO: TO SET 
-            //javadocJar = JavadocJar.Dokka("dokkaHtml"),
+            javadocJar = JavadocJar.Dokka("dokkaHtml"),
             sourcesJar = true
         )
     )
     coordinates(
         groupId = "io.github.n7ghtm4r3",
-        artifactId = "kassaforte",
+        artifactId = "Kassaforte",
         version = "1.0.0beta-01"
     )
     pom {
         name.set("Kassaforte")
-        // TODO: TO SET
-        // description.set("Utilities to handle the navigation in Compose Multiplatform applications")
+        description.set("Kassaforte enables secure storage of sensitive data in Compose Multiplatform applications and on the backend by leveraging each platform’s native security APIs. It further supports the generation and usage of symmetric and asymmetric keys to ensure data protection")
         inceptionYear.set("2025")
         url.set("https://github.com/N7ghtm4r3/Kassaforte")
 
@@ -170,5 +173,27 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_18
         targetCompatibility = JavaVersion.VERSION_18
+    }
+}
+
+buildscript {
+    dependencies {
+        classpath(libs.dokka.base)
+    }
+}
+
+subprojects {
+    apply(plugin = "org.jetbrains.dokka")
+}
+
+tasks.dokkaHtml {
+    outputDirectory.set(layout.projectDirectory.dir("../docs/dokka"))
+    dokkaSourceSets.configureEach {
+        moduleName = "Kassaforte"
+        includeNonPublic.set(true)
+        documentedVisibilities.set(setOf(PUBLIC, PROTECTED, PRIVATE, INTERNAL))
+    }
+    pluginConfiguration<DokkaBase, DokkaBaseConfiguration> {
+        footerMessage = "(c) 2025 Tecknobit"
     }
 }
