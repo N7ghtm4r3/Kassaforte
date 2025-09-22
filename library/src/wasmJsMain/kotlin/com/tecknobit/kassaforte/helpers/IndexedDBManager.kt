@@ -30,7 +30,7 @@ internal object IndexedDBManager {
     private const val DATABASE_NAME = "Kassaforte"
 
     /**
-     * `OBJECT_STORAGE_NAME` the name of the object storage where the keys will be stored
+     * `OBJECT_STORAGE_NAME` the name of the object store where the keys will be stored
      */
     private const val OBJECT_STORAGE_NAME = "keys"
 
