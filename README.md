@@ -53,9 +53,9 @@ The supported algorithm to generate and then use the keys is the **AES** algorit
   XORing them with the plaintext. Provides parallelizable encryption and decryption
 - `GCM` - _**Galois/Counter Mode**_ it is based on `CTR` mode for encryption, but also provides authentication (AEAD)
   using Galois field multiplication.
-  Requires a nonce, typically 12 bytes for efficiency
+  Requires a nonce, typically 12 bytes for efficiency (on Apple at the moment is not supported)
 
-<h6>Android<h6>
+<h6>Android</h6>
 
 The keys are generated with the [KeyGenerator](https://developer.android.com/reference/kotlin/javax/crypto/KeyGenerator)
 API
@@ -64,7 +64,7 @@ Android.
 The keys are used by the [Cipher](https://developer.android.com/reference/javax/crypto/Cipher) to encrypt or decrypt the
 data
 
-<h6>Apple<h6>
+<h6>Apple</h6>
 
 The keys are generated with
 the [SecRandomCopyBytes](https://developer.apple.com/documentation/security/secrandomcopybytes(_:_:_:))
@@ -73,7 +73,7 @@ provided
 by iOS and macOS operating systems.
 The keys are used by [korlibs-crypto](https://github.com/korlibs/korlibs-crypto) library to encrypt or decrypt the data
 
-<h6>JVM<h6>
+<h6>JVM</h6>
 
 Like on `Android` the keys are generated with
 the [KeyGenerator](https://docs.oracle.com/javase/8/docs/api/javax/crypto/KeyGenerator.html) API, but
@@ -81,7 +81,7 @@ the keys are securely stored using the [java-keyring](https://github.com/javakey
 The keys are used by the [Cipher](https://docs.oracle.com/javase/8/docs/api/javax/crypto/Cipher.html) to encrypt or
 decrypt the data
 
-<h6>Web<h6>
+<h6>Web</h6>
 
 The keys are generated with the [SubtleCrypto](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto) API and
 securely stored into application's [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API).
@@ -98,7 +98,7 @@ The supported asymmetric algorithms to generate and then use the keys are the fo
 - `EC` symmetric algorithm based on elliptic curve cryptography (ECC),
   commonly used for digital signatures (ECDSA) and key exchange (ECDH, unsupported at the moment)
 
-<h6>Android<h6>
+<h6>Android</h6>
 
 The keys are generated with
 the [KeyPairGenerator](https://developer.android.com/reference/java/security/KeyPairGenerator) API
@@ -107,7 +107,7 @@ Android.
 The keys are used by the [Cipher](https://developer.android.com/reference/javax/crypto/Cipher) to encrypt or decrypt the
 data
 
-<h6>Apple<h6>
+<h6>Apple</h6>
 
 The keys are generated with
 the [SecKeyCreateRandomKey](https://developer.apple.com/documentation/security/seckeycreaterandomkey(_:_:))
@@ -116,7 +116,7 @@ provided
 by iOS and macOS operating systems.
 The keys are used by security methods provided by Apple to encrypt or decrypt the data
 
-<h6>JVM<h6>
+<h6>JVM</h6>
 
 Like on `Android` the keys are generated with
 the [KeyPairGenerator](https://docs.oracle.com/javase/8/docs/api/java/security/KeyPairGenerator.html) API, but
@@ -124,11 +124,35 @@ the keys are securely stored using the [java-keyring](https://github.com/javakey
 The keys are used by the [Cipher](https://docs.oracle.com/javase/8/docs/api/javax/crypto/Cipher.html) to encrypt or
 decrypt the data
 
-<h6>Web<h6>
+<h6>Web</h6>
 
 The keys are generated with the [SubtleCrypto](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto) API and
 securely stored into application's [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API).
 The keys are used by the `SubtleCrypto` to encrypt or decrypt the data
+
+## Roadmap to 1.0.0
+
+### beta-01
+
+This release provides the `Kassaforte` API to securely store sensitive data.
+
+Provides also the services, symmetric and asymmetric, to generate keys and perform the `encryption` and `decryption` of
+the data
+
+### beta-02
+
+This release will provide:
+
+- `signing` and `verification` of the data
+- `GCM` block mode support also on `iOS`
+
+### beta-03
+
+This release will provide:
+
+- `wrap` and `unwrap` of the keys
+
+Should be the latest `beta` version before the `stable` one
 
 ## Integration
 
