@@ -287,20 +287,23 @@ fun App() {
 ```kotlin
 @Composable
 fun App() {
-    // data to encrypt
-    val dataToEncrypt = "PLAINTEXT"
+    val scope = MainScope()
+    scope.launch {
+        // data to encrypt
+        val dataToEncrypt = "PLAINTEXT"
 
-    // encrypt the data 
-    val encryptedData = KassaforteSymmetricService.encrypt(
-        alias = "toIdentifyTheKey",
-        // must match with the value used to create the key
-        blockMode = BlockMode.GCM,
-        // must match with the value used to create the key
-        padding = EncryptionPadding.NONE,
-        data = encryptedData
-    )
+        // encrypt the data 
+        val encryptedData = KassaforteSymmetricService.encrypt(
+            alias = "toIdentifyTheKey",
+            // must match with the value used to create the key
+            blockMode = BlockMode.GCM,
+            // must match with the value used to create the key
+            padding = EncryptionPadding.NONE,
+            data = encryptedData
+        )
 
-    println(encryptedData)
+        println(encryptedData)
+    }
 } 
 ```
 
@@ -309,20 +312,23 @@ fun App() {
 ```kotlin
 @Composable
 fun App() {
-    // data to decrypt
-    val dataToDecrypt = "...some encrypted data..."
+    val scope = MainScope()
+    scope.launch {
+        // data to decrypt
+        val dataToDecrypt = "...some encrypted data..."
 
-    // decrypt the data 
-    val decryptedData = KassaforteSymmetricService.decrypt(
-        alias = "toIdentifyTheKey",
-        // must match with the value used to create the key
-        blockMode = BlockMode.GCM,
-        // must match with the value used to create the key
-        padding = EncryptionPadding.NONE,
-        data = dataToDecrypt
-    )
+        // decrypt the data 
+        val decryptedData = KassaforteSymmetricService.decrypt(
+            alias = "toIdentifyTheKey",
+            // must match with the value used to create the key
+            blockMode = BlockMode.GCM,
+            // must match with the value used to create the key
+            padding = EncryptionPadding.NONE,
+            data = dataToDecrypt
+        )
 
-    println(decryptedData) // PLAINTEXT
+        println(decryptedData) // PLAINTEXT
+    }
 } 
 ```
 
@@ -372,20 +378,23 @@ fun App() {
 ```kotlin
 @Composable
 fun App() {
-    // data to encrypt
-    val dataToEncrypt = "PLAINTEXT"
+    val scope = MainScope()
+    scope.launch {
+        // data to encrypt
+        val dataToEncrypt = "PLAINTEXT"
 
-    // encrypt the data 
-    val encryptedData = KassaforteAsymmetricService.encrypt(
-        alias = "toIdentifyTheKey",
-        // must match with the value used to create the key
-        padding = EncryptionPadding.RSA_OAEP,
-        // must match with the value used to create the key
-        digest = digest.SHA256,
-        data = dataToEncrypt
-    )
+        // encrypt the data 
+        val encryptedData = KassaforteAsymmetricService.encrypt(
+            alias = "toIdentifyTheKey",
+            // must match with the value used to create the key
+            padding = EncryptionPadding.RSA_OAEP,
+            // must match with the value used to create the key
+            digest = digest.SHA256,
+            data = dataToDecrypt
+        )
 
-    println(encryptedData)
+        println(encryptedData)
+    }
 } 
 ```
 
@@ -394,20 +403,23 @@ fun App() {
 ```kotlin
 @Composable
 fun App() {
-    // data to decrypt
-    val dataToDecrypt = "...some encrypted data..."
+    val scope = MainScope()
+    scope.launch {
+        // data to decrypt
+        val dataToDecrypt = "...some encrypted data..."
 
-    // decrypt the data 
-    val decryptedData = KassaforteAsymmetricService.decrypt(
-        alias = "toIdentifyTheKey",
-        // must match with the value used to create the key
-        padding = EncryptionPadding.RSA_OAEP,
-        // must match with the value used to create the key
-        digest = digest.SHA256,
-        data = dataToEncrypt
-    )
+        // decrypt the data 
+        val decryptedData = KassaforteAsymmetricService.decrypt(
+            alias = "toIdentifyTheKey",
+            // must match with the value used to create the key
+            padding = EncryptionPadding.RSA_OAEP,
+            // must match with the value used to create the key
+            digest = digest.SHA256,
+            data = dataToEncrypt
+        )
 
-    println(decryptedData) // PLAINTEXT
+        println(decryptedData) // PLAINTEXT
+    }
 } 
 ```
 
