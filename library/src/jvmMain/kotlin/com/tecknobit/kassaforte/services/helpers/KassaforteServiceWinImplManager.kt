@@ -37,6 +37,7 @@ import kotlin.io.encoding.Base64
  * @author Tecknobit - N7ghtm4r3
  *
  * @see KassaforteServiceManager
+ * @see KassaforteServiceImplManager
  */
 internal class KassaforteServiceWinImplManager<KI : KeyDetailsSheet<*>>(
     serializer: KSerializer<KI>,

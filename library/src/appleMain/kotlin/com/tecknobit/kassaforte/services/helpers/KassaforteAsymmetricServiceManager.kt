@@ -16,8 +16,23 @@ import platform.CoreFoundation.*
 import platform.Foundation.CFBridgingRetain
 import platform.Security.*
 
+/**
+ * The `KassaforteAsymmetricServiceManager` class allows to perform keychain's operations on asymmetric keys
+ *
+ * @author Tecknobit - N7ghtm4r3
+ *
+ * @see KassaforteServiceManager
+ * @see KassaforteServiceImplManager
+ */
 internal class KassaforteAsymmetricServiceManager : KassaforteServiceImplManager<SecKeyRef>() {
 
+    /**
+     * Method used to check whether the alias has been already taken to identify other key
+     *
+     * @param alias The alias to check
+     *
+     * @return whether the alias has been already taken as [Boolean]
+     */
     override fun isAliasTaken(
         alias: String,
     ): Boolean {
@@ -35,6 +50,15 @@ internal class KassaforteAsymmetricServiceManager : KassaforteServiceImplManager
         }
     }
 
+    /**
+     * Method used to retrieve from the secure storage the specified key
+     *
+     * @param alias The alias used to store the key
+     *
+     * @return the key as [SecKeyRef]
+     *
+     * @throws RuntimeException when the alias does not indicate a private or public key
+     */
     override fun retrieveKey(
         alias: String,
     ): SecKeyRef {
@@ -51,6 +75,14 @@ internal class KassaforteAsymmetricServiceManager : KassaforteServiceImplManager
         ) ?: throw RuntimeException(IMPOSSIBLE_TO_RETRIEVE_KEY_ERROR)
     }
 
+    /**
+     * Method used to assemble the searching dictionary to allow the retrieval of the key stored in the keychain
+     *
+     * @param alias The alias which identify the key
+     * @param keyClass The class of the key to retrieve ([kSecAttrKeyClassPrivate] or [kSecAttrKeyClassPublic])
+     *
+     * @return the searching dictionary as [CFMutableDictionaryRef]
+     */
     // TODO TO ANNOTATE WITH @Assembler
     private fun searchingDictionary(
         alias: String,
@@ -83,6 +115,11 @@ internal class KassaforteAsymmetricServiceManager : KassaforteServiceImplManager
         )
     }
 
+    /**
+     * Method used to remove from the secure store the specified key
+     *
+     * @param alias The alias of the key to remove
+     */
     override fun removeKey(
         alias: String,
     ) {
@@ -94,6 +131,13 @@ internal class KassaforteAsymmetricServiceManager : KassaforteServiceImplManager
         )
     }
 
+    /**
+     * Method used to assemble the deleting dictionary to allow the deletion of the keypair stored in the keychain
+     *
+     * @param alias The alias which identify the key
+     *
+     * @return the deleting dictionary as [CFMutableDictionaryRef]
+     */
     // TODO TO ANNOTATE WITH @Assembler
     private fun deletingDictionary(
         alias: String,
