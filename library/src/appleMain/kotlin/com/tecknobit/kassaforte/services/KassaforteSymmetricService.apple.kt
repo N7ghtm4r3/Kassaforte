@@ -217,7 +217,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     ): ByteArray {
         // TODO: to remove when GCM integrated
         if (blockMode == GCM)
-            throw RuntimeException("GCM on iOs is currently missing, use CBC or CTR instead")
+            throw RuntimeException("GCM on iOS is currently missing, use CBC or CTR instead")
         val kassaforte = Kassaforte(alias)
         val encodedKeyData = kassaforte.withdraw(
             key = alias

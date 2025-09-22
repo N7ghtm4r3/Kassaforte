@@ -14,7 +14,7 @@ import kotlin.io.encoding.Base64
  * It is particularly useful to avoid to break the `expect/actual` implementation and clean implement shared code avoiding
  * duplication.
  *
- * This particular service manager is adopted when the OS where the application is running on is any distros `Linux` or `macOs`
+ * This particular service manager is adopted when the OS where the application is running on is any distros `Linux` or `macOS`
  * operating system
  *
  * @property serializer The serializer to use to correctly serialize a key info object from the stored data

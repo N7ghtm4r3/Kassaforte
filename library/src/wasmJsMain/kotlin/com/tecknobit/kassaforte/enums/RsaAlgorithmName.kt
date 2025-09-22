@@ -17,7 +17,6 @@ enum class RsaAlgorithmName(
     /**
      * `RSASSA_PKCS1_v1_5` RSA signature scheme with PKCS#1 v1.5 padding (signing and verifying only)
      */
-    // TODO: TO WARN ABOUT THAT ON THE WEB THIS IS USED TO VERIFY AND SIGN ONLY
     RSASSA_PKCS1_v1_5("RSASSA-PKCS1-v1_5"),
 
     /**
