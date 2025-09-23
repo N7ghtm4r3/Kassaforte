@@ -87,7 +87,6 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
      *
      * @throws IllegalStateException when the combination of the usages is not valid
      */
-    // TODO: TO DOCU ABOUT THE COMBINATION WITH USAGES AND KEYGEN 
     @Assembler
     private fun resolveUsages(
         purposes: KeyPurposes,
