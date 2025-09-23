@@ -1,0 +1,74 @@
+# yaml-language-server: $schema=https://squidfunk.github.io/mkdocs-material/schema.json
+
+site_name: Kassaforte
+site_description: Kassaforte library documentation
+site_url: https://io.github.n7ghtm4r3/Kassaforte/
+
+repo_name: Kassaforte
+repo_url: https://github.com/N7ghtm4r3/Kassaforte
+site_author: Manuel Maurizio
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: blue grey
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to dark mode
+    - scheme: slate
+      primary: blue grey
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to light mode
+  language: en
+
+  features:
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.footer
+
+markdown_extensions:
+  - pymdownx.tabbed:
+      alternate_style: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+
+plugins:
+  - search
+
+nav:
+  - Overview: index.md
+  - Secure Storage: secure_storage.md
+  - Services:
+      - Overview: services/index.md
+      - Symmetric: services/symmetric.md
+      - Asymmetric: services/asymmetric.md
+
+extra:
+  social:
+    - icon: material/email
+      link: mailto:infotecknobitcompany@gmail.com
+    - icon: material/bug
+      link: https://github.com/N7ghtm4r3/Kassaforte/issues/new
+
+copyright: |
+  &copy; 2025 <a href="https://github.com/N7ghtm4r3" target="new">N7ghtm4r3 - Tecknobit</a>

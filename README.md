@@ -154,11 +154,27 @@ This release will provide:
 
 Should be the latest `beta` version before the `stable` one
 
-## Integration
+## Implementation
 
-### Implementation
+### Gradle short
 
-#### Version catalog
+```groovy
+dependencies {
+    implementation 'io.github.n7ghtm4r3:Kassaforte:1.0.0beta-01'
+}
+```
+
+### Gradle (Kotlin)
+
+```kotlin
+dependencies {
+    implementation("io.github.n7ghtm4r3:Kassaforte:1.0.0beta-01")
+}
+```
+
+### Gradle (version catalog)
+
+#### libs.versions.toml
 
 ```toml
 [versions]
@@ -168,31 +184,13 @@ kassaforte = "1.0.0beta-01"
 kassaforte = { module = "io.github.n7ghtm4r3:Kassaforte", version.ref = "kassaforte" } 
 ```
 
-#### Gradle
+#### build.gradle.kts
 
-- Add the dependency
-
-    ```groovy
-    dependencies {
-        implementation 'io.github.n7ghtm4r3:Kassaforte:1.0.0beta-01'
-    }
-    ```
-
-  #### Gradle (Kotlin)
-
-    ```kotlin
-    dependencies {
-        implementation("io.github.n7ghtm4r3:Kassaforte:1.0.0beta-01")
-    }
-    ```
-
-  #### Gradle (version catalog)
-
-    ```kotlin
-    dependencies {
-        implementation(libs.kassaforte)
-    }
-    ```
+```kotlin
+dependencies {
+    implementation(libs.kassaforte)
+}
+```
 
 ## Usage
 
@@ -235,9 +233,7 @@ The following methods required to be executed inside a `Coroutine`
 @Composable
 fun App() {
     val scope = MainScope()
-
     scope.launch {
-
         // async withdraw a safeguarded data
         val safeguardedData: String = kassaforte.withdraw(
             key = "keyToRepresentData"
