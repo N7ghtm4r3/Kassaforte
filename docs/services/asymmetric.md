@@ -82,8 +82,8 @@ Following the below compatibility table you can assign the purposes to the gener
 
 !!! Warning
 
-    If your project targets the `Web`, keep in mind that `RSA_PKCS1` can only be used for `signing` and `verifying`.
-    For `encryption` and `decryption`, use `RSA_OAEP` instead without specify `canEncrypt` and `canDecrypt` purposes
+    If your project targets the `Web`, keep in mind that `RSA_PKCS1` can only be used for `signing` and `verifying`, 
+    without the `canEncrypt` and `canDecrypt` purposes. For `encryption` and `decryption`, use `RSA_OAEP` instead
 
 The generating key will be used just for the specified purposes, when a purpose had not been assigned will
 be thrown an exception
