@@ -160,7 +160,7 @@ Should be the latest `beta` version before the `stable` one
 
 ```groovy
 dependencies {
-    implementation 'io.github.n7ghtm4r3:Kassaforte:1.0.0beta-01'
+    implementation 'io.github.n7ghtm4r3:kassaforte:1.0.0beta-01'
 }
 ```
 
@@ -168,7 +168,7 @@ dependencies {
 
 ```kotlin
 dependencies {
-    implementation("io.github.n7ghtm4r3:Kassaforte:1.0.0beta-01")
+    implementation("io.github.n7ghtm4r3:kassaforte:1.0.0beta-01")
 }
 ```
 
@@ -181,7 +181,7 @@ dependencies {
 kassaforte = "1.0.0beta-01"
 
 [libraries]
-kassaforte = { module = "io.github.n7ghtm4r3:Kassaforte", version.ref = "kassaforte" } 
+kassaforte = { module = "io.github.n7ghtm4r3:kassaforte", version.ref = "kassaforte" } 
 ```
 
 #### build.gradle.kts
