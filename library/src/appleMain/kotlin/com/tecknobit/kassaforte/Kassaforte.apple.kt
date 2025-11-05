@@ -2,6 +2,8 @@
 
 package com.tecknobit.kassaforte
 
+import com.tecknobit.equinoxcore.annotations.Assembler
+import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.util.UNSUPPORTED_TYPE
 import com.tecknobit.kassaforte.util.deleteFromKeychain
 import com.tecknobit.kassaforte.util.kassaforteDictionary
@@ -58,7 +60,7 @@ actual class Kassaforte actual constructor(
      *
      * @return the dictionary with the data to add as [CFMutableDictionaryRef]
      */
-    // TODO TO ANNOTATE WITH @Assembler
+    @Assembler
     private fun addingDictionary(
         key: String,
         data: Any
@@ -109,7 +111,7 @@ actual class Kassaforte actual constructor(
      *
      * @return the query dictionary as [CFMutableDictionaryRef]
      */
-    // TODO TO ANNOTATE WITH @Assembler
+    @Assembler
     private fun refreshingQueryDictionary(
         key: String,
     ) : CFMutableDictionaryRef {
@@ -133,7 +135,7 @@ actual class Kassaforte actual constructor(
      *
      * @return the dictionary with the refreshed data as [CFMutableDictionaryRef]
      */
-    // TODO TO ANNOTATE WITH @Assembler
+    @Assembler
     private fun refreshingDictionary(
         key: String,
         data: Any
@@ -195,7 +197,7 @@ actual class Kassaforte actual constructor(
      *
      * @return the searching dictionary as [CFMutableDictionaryRef]
      */
-    // TODO TO ANNOTATE WITH @Assembler
+    @Assembler
     private fun searchingDictionary(
         key: String
     ) : CFMutableDictionaryRef {
@@ -244,7 +246,7 @@ actual class Kassaforte actual constructor(
      *
      * @return the deleting dictionary as [CFMutableDictionaryRef]
      */
-    // TODO TO ANNOTATE WITH @Assembler
+    @Assembler
     private fun deletingDictionary(
         key: String
     ) : CFMutableDictionaryRef {
@@ -322,7 +324,7 @@ actual class Kassaforte actual constructor(
      *
      * @return the converted data as [NSObject]
      */
-    // TODO TO ANNOTATE WITH @Returner
+    @Returner
     private fun Any.convert() : NSObject {
         return when(this) {
             is Number, Boolean, String -> this.toNSString()
@@ -335,7 +337,7 @@ actual class Kassaforte actual constructor(
      *
      * @return the converted data as [NSString]
      */
-    // TODO TO ANNOTATE WITH @Returner
+    @Returner
     private fun Any.toNSString(): NSString {
         val string = this.toString()
         return NSString.create(

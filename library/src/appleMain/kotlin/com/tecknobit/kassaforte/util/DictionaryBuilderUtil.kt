@@ -2,6 +2,7 @@
 
 package com.tecknobit.kassaforte.util
 
+import com.tecknobit.equinoxcore.annotations.Assembler
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ptr
 import platform.CoreFoundation.CFDictionaryCreateMutable
@@ -17,7 +18,7 @@ import platform.CoreFoundation.kCFTypeDictionaryValueCallBacks
  *
  * @return the native dictionary object as [CFMutableDictionaryRef]
  */
-// TODO TO ANNOTATE WITH @Assembler
+@Assembler
 fun kassaforteDictionary(
     capacity: Long,
     addEntries: CFMutableDictionaryRef.() -> Unit,

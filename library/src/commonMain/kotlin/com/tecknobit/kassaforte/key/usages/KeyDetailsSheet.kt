@@ -1,5 +1,6 @@
 package com.tecknobit.kassaforte.key.usages
 
+import com.tecknobit.equinoxcore.annotations.Validator
 import com.tecknobit.kassaforte.key.usages.KeyOperation.*
 
 /**
@@ -66,7 +67,7 @@ interface KeyDetailsSheet<T> {
      *
      * @return whether the operation can be performed by the [key] as [Boolean]
      */
-    // TODO: TO ANNOTATE WITH @Validator
+    @Validator
     fun canPerform(
         keyOperation: KeyOperation,
     ): Boolean {

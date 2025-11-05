@@ -2,6 +2,9 @@
 
 package com.tecknobit.kassaforte.services
 
+import com.tecknobit.equinoxcore.annotations.Assembler
+import com.tecknobit.equinoxcore.annotations.Returner
+import com.tecknobit.equinoxcore.annotations.Wrapper
 import com.tecknobit.kassaforte.enums.KeyType.Companion.toKeyType
 import com.tecknobit.kassaforte.enums.SecKeyAlgorithmType.Companion.toSecKeyAlgorithm
 import com.tecknobit.kassaforte.key.genspec.Algorithm
@@ -92,7 +95,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
      *
      * @return the usages for the private and public keys as [Pair] of [CFMutableDictionaryRef]
      */
-    // TODO: ANNOTATE WITH @Assembler
+    @Assembler
     private fun resolveUsages(
         alias: String,
         purposes: KeyPurposes,
@@ -155,7 +158,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
      *
      * @return the gen spec as [CFMutableDictionaryRef]
      */
-    // TODO: ANNOTATE WITH @Assembler
+    @Assembler
     private fun resolveKeyGenSpec(
         algorithm: Algorithm,
         keyGenSpec: AsymmetricKeyGenSpec,
@@ -201,7 +204,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
      *
      * @return the dictionary with the key information as [CFMutableDictionaryRef]
      */
-    // TODO: ANNOTATE WITH @Assembler
+    @Assembler
     private fun keyAttrsDictionary(
         tag: String,
         usages: CFMutableDictionaryRef.() -> Unit,
@@ -231,7 +234,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
      * @param key The key to assign the ciphering information
      * @param purposes The usages the key can be used
      */
-    // TODO: ANNOTATE WITH @Assembler
+    @Assembler
     private fun CFMutableDictionaryRef.keyAttrsCipheringDictionary(
         key: CValuesRef<*>?,
         purposes: KeyPurposes,
@@ -401,8 +404,8 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
      *
      * @return the resolved alias of the private key as [String]
      */
-    // TODO: TO ANNOTATE WITH @Wrapper
-    // TODO: TO ANNOTATE WITH @Returner
+    @Wrapper
+    @Returner
     private fun resolvePrivateKeyAlias(
         alias: String,
     ): String {
@@ -419,8 +422,8 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
      *
      * @return the resolved alias of the public key as [String]
      */
-    // TODO: TO ANNOTATE WITH @Wrapper
-    // TODO: TO ANNOTATE WITH @Returner
+    @Wrapper
+    @Returner
     private fun resolvePublicKeyAlias(
         alias: String,
     ): String {
@@ -438,7 +441,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
      *
      * @return the resolved alias of the asymmetric key as [String]
      */
-    // TODO: TO ANNOTATE WITH @Returner
+    @Returner
     private fun resolveAlias(
         alias: String,
         tag: String,

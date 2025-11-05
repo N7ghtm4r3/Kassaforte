@@ -1,4 +1,4 @@
-import com.vanniktech.maven.publish.JavadocJar
+
 import com.vanniktech.maven.publish.KotlinMultiplatform
 import org.jetbrains.dokka.DokkaConfiguration.Visibility.*
 import org.jetbrains.dokka.base.DokkaBase
@@ -57,8 +57,7 @@ kotlin {
 
         val commonMain by getting {
             dependencies {
-                // TODO: TO USE THIS INSTEAD
-                // implementation(libs.equinox.core)
+                implementation(libs.equinox.core)
                 implementation(libs.json)
                 implementation(libs.kotlinx.coroutines)
             }
@@ -83,10 +82,6 @@ kotlin {
 
         val cipherBasedMain by creating {
             dependsOn(commonMain)
-            // TODO: TO REMOVE AND USE IN THE CORE ONE
-            dependencies {
-                implementation(libs.equinox.core)
-            }
         }
 
         val jvmMain by getting {
@@ -100,10 +95,6 @@ kotlin {
 
         val hybridKassaforteMain by creating {
             dependsOn(commonMain)
-            // TODO: TO REMOVE AND USE IN THE CORE ONE
-            dependencies {
-                implementation(libs.equinox.core)
-            }
         }
 
         val androidMain by getting {
@@ -126,8 +117,9 @@ kotlin {
 
 mavenPublishing {
     configure(
+        // TODO: TO ENABLE WHEN PUBLISH
         platform = KotlinMultiplatform(
-            javadocJar = JavadocJar.Dokka("dokkaHtml"),
+            //javadocJar = JavadocJar.Dokka("dokkaHtml"),
             sourcesJar = true
         )
     )

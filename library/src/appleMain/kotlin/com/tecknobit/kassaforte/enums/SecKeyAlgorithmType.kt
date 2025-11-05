@@ -2,6 +2,7 @@
 
 package com.tecknobit.kassaforte.enums
 
+import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.key.genspec.Digest
 import com.tecknobit.kassaforte.key.genspec.Digest.*
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
@@ -63,7 +64,7 @@ enum class SecKeyAlgorithmType(
          * @throws IllegalArgumentException when the encryption padding is not valid or, when required, the digest value
          * is not valid
          */
-        // TODO: TO ANNOTATE WITH @Returner
+        @Returner
         fun EncryptionPadding?.toSecKeyAlgorithm(
             digest: Digest? = null,
         ): SecKeyAlgorithmType {

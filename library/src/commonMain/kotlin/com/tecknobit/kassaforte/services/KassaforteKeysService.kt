@@ -1,5 +1,6 @@
 package com.tecknobit.kassaforte.services
 
+import com.tecknobit.equinoxcore.annotations.Structure
 import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.KassaforteKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
@@ -11,7 +12,7 @@ import com.tecknobit.kassaforte.key.usages.KeyPurposes
  *
  * @author Tecknobit - N7ghtm4r3
  */
-// TODO: TO ANNOTATE WITH @Structure
+@Structure
 abstract class KassaforteKeysService<KS: KassaforteKeyGenSpec> {
 
     companion object {

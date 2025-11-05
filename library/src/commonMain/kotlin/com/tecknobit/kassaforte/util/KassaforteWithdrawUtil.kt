@@ -1,5 +1,6 @@
 package com.tecknobit.kassaforte.util
 
+import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.Kassaforte
 
 /**
@@ -9,7 +10,7 @@ import com.tecknobit.kassaforte.Kassaforte
  *
  * @return the safeguarded data specified by the [key] as nullable [Int]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun Kassaforte.withdrawInt(
     key: String,
 ) : Int? {
@@ -25,7 +26,7 @@ suspend fun Kassaforte.withdrawInt(
  *
  * @return the safeguarded data specified by the [key] as nullable [UInt]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun Kassaforte.withdrawUInt(
     key: String,
 ) : UInt? {
@@ -41,7 +42,7 @@ suspend fun Kassaforte.withdrawUInt(
  *
  * @return the safeguarded data specified by the [key] as nullable [Long]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun Kassaforte.withdrawLong(
     key: String,
 ) : Long? {
@@ -57,7 +58,7 @@ suspend fun Kassaforte.withdrawLong(
  *
  * @return the safeguarded data specified by the [key] as nullable [ULong]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun Kassaforte.withdrawULong(
     key: String,
 ) : ULong? {
@@ -73,7 +74,7 @@ suspend fun Kassaforte.withdrawULong(
  *
  * @return the safeguarded data specified by the [key] as nullable [Short]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun Kassaforte.withdrawShort(
     key: String,
 ) : Short? {
@@ -89,7 +90,7 @@ suspend fun Kassaforte.withdrawShort(
  *
  * @return the safeguarded data specified by the [key] as nullable [UShort]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun Kassaforte.withdrawUShort(
     key: String,
 ) : UShort? {
@@ -105,7 +106,7 @@ suspend fun Kassaforte.withdrawUShort(
  *
  * @return the safeguarded data specified by the [key] as nullable [Byte]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun Kassaforte.withdrawByte(
     key: String,
 ) : Byte? {
@@ -121,7 +122,7 @@ suspend fun Kassaforte.withdrawByte(
  *
  * @return the safeguarded data specified by the [key] as nullable [UByte]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun Kassaforte.withdrawUByte(
     key: String,
 ) : UByte? {
@@ -137,7 +138,7 @@ suspend fun Kassaforte.withdrawUByte(
  *
  * @return the safeguarded data specified by the [key] as nullable [Float]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun Kassaforte.withdrawFloat(
     key: String,
 ) : Float? {
@@ -153,7 +154,7 @@ suspend fun Kassaforte.withdrawFloat(
  *
  * @return the safeguarded data specified by the [key] as nullable [Double]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun Kassaforte.withdrawDouble(
     key: String,
 ) : Double? {
@@ -169,7 +170,7 @@ suspend fun Kassaforte.withdrawDouble(
  *
  * @return the safeguarded data specified by the [key] as nullable [Boolean]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun Kassaforte.withdrawBoolean(
     key: String,
 ) : Boolean? {

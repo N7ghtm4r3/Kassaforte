@@ -2,6 +2,7 @@
 
 package com.tecknobit.kassaforte.services
 
+import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.Kassaforte
 import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.BlockMode
@@ -124,7 +125,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
      *
      * @return the data of the key formatted as [String]
      */
-    // TODO: TO ANNOTATE WITH @Returner
+    @Returner
     private inline fun formatKeyData(
         keyInfo: KeyInfo,
     ): String {

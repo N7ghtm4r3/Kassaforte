@@ -1,5 +1,6 @@
 package com.tecknobit.kassaforte.util
 
+import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.key.genspec.BlockMode
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.NONE
@@ -15,7 +16,7 @@ import com.tecknobit.kassaforte.services.KassaforteSymmetricService
  *
  * @return the decrypted data as nullable [Int]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun KassaforteSymmetricService.decryptToInt(
     alias: String,
     blockMode: BlockMode,
@@ -40,7 +41,7 @@ suspend fun KassaforteSymmetricService.decryptToInt(
  *
  * @return the decrypted data as nullable [UInt]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun KassaforteSymmetricService.decryptToUInt(
     alias: String,
     blockMode: BlockMode,
@@ -65,7 +66,7 @@ suspend fun KassaforteSymmetricService.decryptToUInt(
  *
  * @return the decrypted data as nullable [Long]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun KassaforteSymmetricService.decryptToLong(
     alias: String,
     blockMode: BlockMode,
@@ -90,7 +91,7 @@ suspend fun KassaforteSymmetricService.decryptToLong(
  *
  * @return the decrypted data as nullable [ULong]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun KassaforteSymmetricService.decryptToULong(
     alias: String,
     blockMode: BlockMode,
@@ -115,7 +116,7 @@ suspend fun KassaforteSymmetricService.decryptToULong(
  *
  * @return the decrypted data as nullable [Short]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun KassaforteSymmetricService.decryptToShort(
     alias: String,
     blockMode: BlockMode,
@@ -140,7 +141,7 @@ suspend fun KassaforteSymmetricService.decryptToShort(
  *
  * @return the decrypted data as nullable [UShort]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun KassaforteSymmetricService.decryptToUShort(
     alias: String,
     blockMode: BlockMode,
@@ -165,7 +166,7 @@ suspend fun KassaforteSymmetricService.decryptToUShort(
  *
  * @return the decrypted data as nullable [Byte]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun KassaforteSymmetricService.decryptToByte(
     alias: String,
     blockMode: BlockMode,
@@ -190,7 +191,7 @@ suspend fun KassaforteSymmetricService.decryptToByte(
  *
  * @return the decrypted data as nullable [UByte]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun KassaforteSymmetricService.decryptToUByte(
     alias: String,
     blockMode: BlockMode,
@@ -215,7 +216,7 @@ suspend fun KassaforteSymmetricService.decryptToUByte(
  *
  * @return the decrypted data as nullable [Float]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun KassaforteSymmetricService.decryptToFloat(
     alias: String,
     blockMode: BlockMode,
@@ -240,7 +241,7 @@ suspend fun KassaforteSymmetricService.decryptToFloat(
  *
  * @return the decrypted data as nullable [Double]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun KassaforteSymmetricService.decryptToDouble(
     alias: String,
     blockMode: BlockMode,
@@ -265,7 +266,7 @@ suspend fun KassaforteSymmetricService.decryptToDouble(
  *
  * @return the decrypted data as nullable [Boolean]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun KassaforteSymmetricService.decryptToBoolean(
     alias: String,
     blockMode: BlockMode,
@@ -290,7 +291,7 @@ suspend fun KassaforteSymmetricService.decryptToBoolean(
  *
  * @return the decrypted data as nullable [Char]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun KassaforteSymmetricService.decryptToChar(
     alias: String,
     blockMode: BlockMode,

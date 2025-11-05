@@ -1,5 +1,7 @@
 package com.tecknobit.kassaforte.services.helpers
 
+import com.tecknobit.equinoxcore.annotations.Structure
+
 /**
  * The `KassaforteServiceManager` interface allows to provide the basic operations a service manager can perform.
  *
@@ -10,7 +12,7 @@ package com.tecknobit.kassaforte.services.helpers
  *
  * @author Tecknobit - N7ghtm4r3
  */
-// TODO: TO ANNOTATE WITH @Structure
+@Structure
 interface KassaforteServiceManager<K> {
 
     /**

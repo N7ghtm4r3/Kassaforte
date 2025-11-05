@@ -1,5 +1,7 @@
 package com.tecknobit.kassaforte.services.helpers
 
+import com.tecknobit.equinoxcore.annotations.Structure
+
 /**
  * The `KassaforteServiceImplManager` class allows to perform operations that [KassaforteAsymmetricServiceManager]
  * and [KassaforteSymmetricServiceManager] have in common
@@ -13,5 +15,5 @@ package com.tecknobit.kassaforte.services.helpers
  *
  * @see KassaforteServiceManager
  */
-// TODO: TO ANNOTATE WITH @Structure
+@Structure
 internal abstract class KassaforteServiceImplManager<K> : KassaforteServiceManager<K>
