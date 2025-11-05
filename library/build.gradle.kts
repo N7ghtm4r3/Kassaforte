@@ -15,7 +15,7 @@ plugins {
 }
 
 group = "com.tecknobit.kassaforte"
-version = "1.0.0beta-01"
+version = "1.0.0beta-02"
 
 kotlin {
     androidTarget {
@@ -134,7 +134,7 @@ mavenPublishing {
     coordinates(
         groupId = "io.github.n7ghtm4r3",
         artifactId = "kassaforte",
-        version = "1.0.0beta-01"
+        version = "1.0.0beta-02"
     )
     pom {
         name.set("Kassaforte")
