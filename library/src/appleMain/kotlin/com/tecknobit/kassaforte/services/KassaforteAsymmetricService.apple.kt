@@ -22,7 +22,6 @@ import platform.CoreFoundation.CFMutableDictionaryRef
 import platform.CoreFoundation.kCFBooleanTrue
 import platform.Foundation.CFBridgingRetain
 import platform.Security.*
-import kotlin.io.encoding.Base64
 
 /**
  * The `KassaforteAsymmetricService` class allows to generate and to use asymmetric keys and managing their persistence.
@@ -311,7 +310,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                 encryptedData.toByteArray()
             }
         )
-        return Base64.encode(encryptedData)
+        return encode(encryptedData)
     }
 
     /**
@@ -337,7 +336,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             padding = padding,
             digest = digest,
             usage = { privateKey, algorithm ->
-                val dataToDecrypt = Base64.decode(data).toCFData()
+                val dataToDecrypt = decode(data).toCFData()
                 val decryptedData = errorScoped { errorVar ->
                     SecKeyCreateDecryptedData(
                         key = privateKey,

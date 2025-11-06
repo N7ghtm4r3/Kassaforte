@@ -19,6 +19,8 @@ import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.helpers.KassaforteSymmetricServiceManager
 import com.tecknobit.kassaforte.util.checkIfIsSupportedType
+import com.tecknobit.kassaforte.util.decode
+import com.tecknobit.kassaforte.util.encode
 import com.tecknobit.kassaforte.wrappers.crypto.aesCbcParams
 import com.tecknobit.kassaforte.wrappers.crypto.aesCtrParams
 import com.tecknobit.kassaforte.wrappers.crypto.aesGcmParams
@@ -29,7 +31,6 @@ import com.tecknobit.kassaforte.wrappers.crypto.params.AesCtrParams
 import com.tecknobit.kassaforte.wrappers.crypto.params.AesGcmParams
 import com.tecknobit.kassaforte.wrappers.crypto.params.EncryptionParams
 import org.khronos.webgl.ArrayBuffer
-import kotlin.io.encoding.Base64
 
 /**
  * The `KassaforteSymmetricService` class allows to generate and to use symmetric keys and managing their persistence.
@@ -123,7 +124,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
                 )
                 val iv = aesParams.second.toByteArray()
                 val encryptedDataBytes = encryptedData.toByteArray()
-                Base64.encode(iv + encryptedDataBytes)
+                encode(iv + encryptedDataBytes)
             }
         )
         return encryptedData
@@ -154,7 +155,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             format = RAW,
             usage = { key ->
                 val blockSize = blockMode.blockSize
-                val dataToDecrypt = Base64.decode(data)
+                val dataToDecrypt = decode(data)
                 val iv = dataToDecrypt.copyOfRange(0, blockSize)
                 val cipherText = dataToDecrypt.copyOfRange(blockSize, dataToDecrypt.size)
                 val aesParams = key.resolveAesParams(

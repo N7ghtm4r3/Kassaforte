@@ -11,6 +11,7 @@ import com.tecknobit.kassaforte.helpers.prepareToDecrypt
 import com.tecknobit.kassaforte.helpers.prepareToEncrypt
 import com.tecknobit.kassaforte.key.genspec.BlockMode
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
+import com.tecknobit.kassaforte.util.decode
 import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.KeyGenSpec
 import com.tecknobit.kassaforte.wrappers.crypto.params.EncryptionParams
@@ -225,7 +226,7 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
      */
     @Returner
     private fun String.toDecodedKeyData(): ArrayBuffer {
-        val encodedKeyData = Base64.decode(this)
+        val encodedKeyData = decode(this)
         val uint8Array = Uint8Array(encodedKeyData.size)
         val mappedSourceArray = encodedKeyData
             .map { (it.toInt() and 0xFF).toJsNumber() }

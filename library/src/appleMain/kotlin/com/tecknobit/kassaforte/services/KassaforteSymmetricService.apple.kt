@@ -18,6 +18,8 @@ import com.tecknobit.kassaforte.key.usages.KeyOperation.ENCRYPT
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.helpers.KassaforteSymmetricServiceManager
 import com.tecknobit.kassaforte.util.checkIfIsSupportedType
+import com.tecknobit.kassaforte.util.decode
+import com.tecknobit.kassaforte.util.encode
 import korlibs.crypto.*
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
@@ -26,7 +28,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import platform.Security.SecRandomCopyBytes
 import platform.Security.kSecRandomDefault
-import kotlin.io.encoding.Base64
 
 /**
  * The `KassaforteSymmetricService` class allows to generate and to use symmetric keys and managing their persistence.
@@ -131,8 +132,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         keyInfo: KeyInfo,
     ): String {
         val encodedKeyInfo = Json.encodeToString(keyInfo)
-            .encodeToByteArray()
-        return Base64.encode(encodedKeyInfo)
+        return encode(encodedKeyInfo)
     }
 
     /**
@@ -167,7 +167,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
                 cipher.encrypt(dataToEncrypt)
             }
         )
-        return Base64.encode(iv + encryptedData)
+        return encode(iv + encryptedData)
     }
 
     /**
@@ -186,7 +186,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         padding: EncryptionPadding,
         data: String,
     ): String {
-        val dataToDecrypt = Base64.decode(data)
+        val dataToDecrypt = decode(data)
         val blockSize = blockMode.blockSize
         val iv = dataToDecrypt.copyOfRange(0, blockSize)
         val cipherText = dataToDecrypt.copyOfRange(blockSize, dataToDecrypt.size)
@@ -236,7 +236,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         )
         if (encodedKeyData == null)
             throw RuntimeException(IMPOSSIBLE_TO_RETRIEVE_KEY_ERROR)
-        val decodedKeyData = Base64.decode(encodedKeyData)
+        val decodedKeyData = decode(encodedKeyData)
             .decodeToString()
         val keyInfo: KeyInfo = Json.decodeFromString(decodedKeyData)
         if (!keyInfo.canPerform(keyOperation))

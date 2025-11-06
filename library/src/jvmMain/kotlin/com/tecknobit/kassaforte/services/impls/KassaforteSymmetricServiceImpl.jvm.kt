@@ -13,11 +13,11 @@ import com.tecknobit.kassaforte.services.KassaforteKeysService
 import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.KEY_CANNOT_PERFORM_OPERATION_ERROR
 import com.tecknobit.kassaforte.services.helpers.KassaforteServiceImplManager
 import com.tecknobit.kassaforte.services.helpers.KassaforteServiceImplManager.Companion.encode64
+import com.tecknobit.kassaforte.util.decode
 import kotlinx.serialization.Serializable
 import java.security.Key
 import javax.crypto.KeyGenerator
 import javax.crypto.spec.SecretKeySpec
-import kotlin.io.encoding.Base64
 
 /**
  * The `KassaforteSymmetricServiceImpl` class allows to implement a service to perform the operations
@@ -207,7 +207,7 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() : Kass
          */
         @Returner
         fun resolveKey(): Key = SecretKeySpec(
-            Base64.decode(key.encodeToByteArray()),
+            decode(key.encodeToByteArray()),
             algorithm
         )
 

@@ -19,12 +19,13 @@ import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.helpers.KassaforteAsymmetricServiceManager
 import com.tecknobit.kassaforte.util.checkIfIsSupportedType
+import com.tecknobit.kassaforte.util.decode
+import com.tecknobit.kassaforte.util.encode
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.EcKeyGenParams
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.KeyGenSpec
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.RsaHashedKeyGenParams
 import com.tecknobit.kassaforte.wrappers.crypto.key.raw.RawCryptoKeyPair
 import com.tecknobit.kassaforte.wrappers.crypto.rsaOaepParams
-import kotlin.io.encoding.Base64
 
 /**
  * The `KassaforteAsymmetricService` class allows to generate and to use asymmetric keys and managing their persistence.
@@ -158,7 +159,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                     key = key,
                     data = data
                 )
-                Base64.encode(encryptedData.toByteArray())
+                encode(encryptedData.toByteArray())
             }
         )
         return encryptedData
@@ -188,7 +189,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             rawKeyData = rawCryptoKeyPair,
             format = PKCS8,
             usage = { key ->
-                val dataToDecrypt = Base64.decode(data)
+                val dataToDecrypt = decode(data)
                 val decryptedData = serviceManager.decrypt(
                     algorithm = rsaOaepParams(),
                     key = key,

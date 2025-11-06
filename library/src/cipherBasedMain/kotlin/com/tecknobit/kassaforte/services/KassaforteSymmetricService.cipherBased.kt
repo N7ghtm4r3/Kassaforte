@@ -12,13 +12,14 @@ import com.tecknobit.kassaforte.key.usages.KeyOperation.*
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.impls.KassaforteSymmetricServiceImpl
 import com.tecknobit.kassaforte.util.checkIfIsSupportedType
+import com.tecknobit.kassaforte.util.decode
+import com.tecknobit.kassaforte.util.encode
 import java.security.Key
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.Mac
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.IvParameterSpec
-import kotlin.io.encoding.Base64
 
 /**
  * The `KassaforteKeysService` object allows to generate and to use symmetric keys and managing their persistence.
@@ -108,7 +109,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             cipher.doFinal(dataToEncrypt)
         }
         encryptedData = cipherIv + encryptedData
-        return Base64.encode(encryptedData)
+        return encode(encryptedData)
     }
 
     /**
@@ -133,7 +134,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             padding = padding,
             keyOperation = DECRYPT
         ) { cipher, key ->
-            val dataToDecrypt = Base64.decode(data)
+            val dataToDecrypt = decode(data)
             val blockSize = blockMode.blockSize
             val ivSeed = dataToDecrypt.copyOfRange(0, blockSize)
             val algorithmParameterSpec = when (blockMode) {
@@ -214,7 +215,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
                 mac.doFinal(message.toString().encodeToByteArray())
             }
         )
-        return Base64.encode(signedData)
+        return encode(signedData)
     }
 
     /**

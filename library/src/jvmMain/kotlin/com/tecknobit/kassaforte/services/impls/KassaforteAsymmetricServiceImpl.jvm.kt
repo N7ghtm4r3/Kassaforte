@@ -11,12 +11,12 @@ import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.ALIAS_A
 import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.KEY_CANNOT_PERFORM_OPERATION_ERROR
 import com.tecknobit.kassaforte.services.helpers.KassaforteServiceImplManager
 import com.tecknobit.kassaforte.services.helpers.KassaforteServiceImplManager.Companion.encode64
+import com.tecknobit.kassaforte.util.decode
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import java.security.*
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
-import kotlin.io.encoding.Base64
 
 /**
  * The `KassaforteAsymmetricServiceImpl` class allows to implement a service to perform the operations
@@ -199,7 +199,7 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
         private fun decodeKey(
             encodedKey: String,
         ): ByteArray {
-            return Base64.decode(encodedKey)
+            return decode(encodedKey)
         }
 
     }

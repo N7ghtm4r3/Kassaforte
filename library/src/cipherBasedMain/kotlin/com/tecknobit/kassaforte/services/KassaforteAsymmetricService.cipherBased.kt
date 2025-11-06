@@ -15,13 +15,14 @@ import com.tecknobit.kassaforte.services.OAEPWith.Companion.oaepWithValue
 import com.tecknobit.kassaforte.services.impls.KassaforteAsymmetricServiceImpl
 import com.tecknobit.kassaforte.util.checkIfIsSupportedCipherAlgorithm
 import com.tecknobit.kassaforte.util.checkIfIsSupportedType
+import com.tecknobit.kassaforte.util.decode
+import com.tecknobit.kassaforte.util.encode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.security.Key
 import java.security.KeyPairGenerator
 import javax.crypto.Cipher
-import kotlin.io.encoding.Base64
 
 /**
  * The `KassaforteAsymmetricService` object allows to generate and to use asymmetric keys and managing their persistence.
@@ -118,7 +119,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                 cipher.doFinal(plainText)
             }
         )
-        return Base64.encode(cipherText)
+        return encode(cipherText)
     }
 
     /**
@@ -144,7 +145,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             digest = digest,
             usage = { cipher, key ->
                 cipher.init(Cipher.DECRYPT_MODE, key)
-                val cipherText = Base64.decode(data)
+                val cipherText = decode(data)
                 cipher.doFinal(cipherText)
             }
         )

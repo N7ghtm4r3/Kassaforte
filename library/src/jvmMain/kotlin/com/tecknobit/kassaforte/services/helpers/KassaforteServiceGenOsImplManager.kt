@@ -3,9 +3,9 @@ package com.tecknobit.kassaforte.services.helpers
 import com.tecknobit.kassaforte.Kassaforte
 import com.tecknobit.kassaforte.key.usages.KeyDetailsSheet
 import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.IMPOSSIBLE_TO_RETRIEVE_KEY_ERROR
+import com.tecknobit.kassaforte.util.decode
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
-import kotlin.io.encoding.Base64
 
 /**
  * The `KassaforteServiceGenOsImplManager` class allows to perform operations that [com.tecknobit.kassaforte.services.impls.KassaforteSymmetricServiceImpl]
@@ -84,7 +84,7 @@ internal class KassaforteServiceGenOsImplManager<KI : KeyDetailsSheet<*>>(
         )
         if (encodedKeyData == null)
             throw IllegalAccessException(IMPOSSIBLE_TO_RETRIEVE_KEY_ERROR)
-        val storedData = Base64.decode(encodedKeyData).decodeToString()
+        val storedData = decode(encodedKeyData).decodeToString()
         return Json.decodeFromString(
             deserializer = serializer,
             string = storedData
