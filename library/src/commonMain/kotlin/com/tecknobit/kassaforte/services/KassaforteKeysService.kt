@@ -56,8 +56,8 @@ abstract class KassaforteKeysService<KS: KassaforteKeyGenSpec> {
      * @param purposes The purposes the key can be used
      */
     abstract fun generateKey(
-        algorithm: Algorithm,
         alias: String,
+        algorithm: Algorithm,
         keyGenSpec: KS,
         purposes: KeyPurposes,
     )

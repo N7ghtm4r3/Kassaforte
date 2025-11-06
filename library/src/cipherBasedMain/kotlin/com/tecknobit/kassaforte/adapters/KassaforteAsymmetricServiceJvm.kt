@@ -45,8 +45,8 @@ object KassaforteAsymmetricServiceJvm {
         keyGenSpec: AsymmetricKeyGenSpec,
         purposes: KeyPurposes,
     ) = KassaforteAsymmetricService.generateKey(
-        algorithm = algorithm,
         alias = alias,
+        algorithm = algorithm,
         keyGenSpec = keyGenSpec,
         purposes = purposes
     )

@@ -55,14 +55,14 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     /**
      * Method used to generate a new asymmetric key
      *
-     * @param algorithm The algorithm the key will use
      * @param alias The alias used to identify the key
+     * @param algorithm The algorithm the key will use
      * @param keyGenSpec The generation spec to use to generate the key
      * @param purposes The purposes the key can be used
      */
     actual override fun generateKey(
-        algorithm: Algorithm,
         alias: String,
+        algorithm: Algorithm,
         keyGenSpec: AsymmetricKeyGenSpec,
         purposes: KeyPurposes,
     ) {

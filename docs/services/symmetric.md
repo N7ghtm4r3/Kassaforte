@@ -84,8 +84,8 @@ val purposes = KeyPurposes(
 
 ```kotlin
 KassaforteSymmetricService.generateKey(
-    algorithm = Algorithm.AES,
     alias = "toIdentifyTheKey",
+    algorithm = Algorithm.AES,
     keyGenSpec = keyGenSpec,
     purposes = purposes
 )

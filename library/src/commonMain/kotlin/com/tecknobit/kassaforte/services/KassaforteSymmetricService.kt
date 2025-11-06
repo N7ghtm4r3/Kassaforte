@@ -21,15 +21,15 @@ expect object KassaforteSymmetricService: KassaforteKeysService<SymmetricKeyGenS
     /**
      * Method used to generate a new symmetric key
      *
+     * @param alias The alias used to identify the key
      * @param algorithm The algorithm the key will use, at the moment will be overridden by default with
      * [Algorithm.AES] value
-     * @param alias The alias used to identify the key
      * @param keyGenSpec The generation spec to use to generate the key
      * @param purposes The purposes the key can be used
      */
     override fun generateKey(
-        algorithm: Algorithm,
         alias: String,
+        algorithm: Algorithm,
         keyGenSpec: SymmetricKeyGenSpec,
         purposes: KeyPurposes,
     )

@@ -99,8 +99,8 @@ val purposes = KeyPurposes(
 
 ```kotlin
 KassaforteAsymmetricService.generateKey(
-    algorithm = Algorithm.RSA,
     alias = "toIdentifyTheKey",
+    algorithm = Algorithm.RSA,
     keyGenSpec = keyGenSpec,
     purposes = purposes
 )
