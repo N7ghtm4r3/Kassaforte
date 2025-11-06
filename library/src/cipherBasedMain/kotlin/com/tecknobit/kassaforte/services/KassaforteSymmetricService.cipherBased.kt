@@ -20,7 +20,7 @@ import javax.crypto.spec.IvParameterSpec
 import kotlin.io.encoding.Base64
 
 /**
- * The `KassaforteKeysService` class allows to generate and to use symmetric keys and managing their persistence.
+ * The `KassaforteKeysService` object allows to generate and to use symmetric keys and managing their persistence.
  *
  * It is based on the [Cipher] API to handling the encryption and decryption of the data and on the [KeyGenerator] API
  * to generate the keys

@@ -24,7 +24,7 @@ import javax.crypto.Cipher
 import kotlin.io.encoding.Base64
 
 /**
- * The `KassaforteAsymmetricService` class allows to generate and to use asymmetric keys and managing their persistence.
+ * The `KassaforteAsymmetricService` object allows to generate and to use asymmetric keys and managing their persistence.
  *
  * It is based on the [Cipher] API to handling the encryption and decryption of the data and on the [KeyPairGenerator]
  * API to generate the pairs of keys
