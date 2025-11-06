@@ -116,6 +116,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
                 val aesParams = key.resolveAesParams()
                 val encryptedData = serviceManager.encrypt(
                     algorithm = aesParams.first,
+                    blockMode = blockMode,
                     key = key,
                     data = data
                 )

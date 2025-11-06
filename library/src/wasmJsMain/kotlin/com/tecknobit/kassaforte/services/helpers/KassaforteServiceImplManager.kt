@@ -9,6 +9,7 @@ import com.tecknobit.kassaforte.enums.ExportFormat
 import com.tecknobit.kassaforte.helpers.IndexedDBManager
 import com.tecknobit.kassaforte.helpers.prepareToDecrypt
 import com.tecknobit.kassaforte.helpers.prepareToEncrypt
+import com.tecknobit.kassaforte.key.genspec.BlockMode
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.KeyGenSpec
@@ -239,6 +240,7 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
      * Method used to encrypt data with the specified key
      *
      * @param algorithm The algorithm to use to encrypt the data
+     * @param blockMode The block mode to use to prepare the data
      * @param key The key to use to encrypt the data
      * @param data The data to encrypt
      *
@@ -246,13 +248,16 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
      */
     suspend fun encrypt(
         algorithm: EncryptionParams,
+        blockMode: BlockMode? = null,
         key: CryptoKey,
         data: Any,
     ): ArrayBuffer {
         return subtleCrypto.encrypt(
             algorithm = algorithm,
             key = key,
-            data = data.prepareToEncrypt()
+            data = data.prepareToEncrypt(
+                blockMode = blockMode
+            )
         ).await()
     }
 
