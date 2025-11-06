@@ -1,5 +1,6 @@
 package com.tecknobit.kassaforte.services
 
+import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.BlockMode
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
@@ -77,6 +78,14 @@ expect object KassaforteSymmetricService: KassaforteKeysService<SymmetricKeyGenS
         blockMode: BlockMode,
         padding: EncryptionPadding = NONE,
         data: String,
+    ): String
+
+    @RequiresDocumentation(
+        additionalNotes = "TO INSERT SINCE Revision Two"
+    )
+    fun sign(
+        alias: String,
+        message: Any,
     ): String
 
     /**

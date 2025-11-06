@@ -1,7 +1,5 @@
 package com.tecknobit.kassaforte.key.genspec
 
-import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
-
 /**
  * These are the supported algorithms used during ciphering and keys creation
  *
@@ -23,28 +21,40 @@ enum class Algorithm(
     EC("EC"),
 
     /**
-     * `AES` symmetric block cipher algorithm widely used for secure data encryption.
+     * `AES` symmetric block cipher algorithm widely used for secure data encryption
      */
     AES("AES"),
 
-    @RequiresDocumentation(
-        additionalNotes = "TO INSERT SINCE Revision Two"
-    )
+    /**
+     * `HMAC_SHA1` algorithm used to ensure message integrity and authentication,
+     * implemented using the [Digest.SHA1] function
+     *
+     * @since Revision Two
+     */
     HMAC_SHA1("HmacSHA1"),
 
-    @RequiresDocumentation(
-        additionalNotes = "TO INSERT SINCE Revision Two"
-    )
+    /**
+     * `HMAC_SHA256` algorithm used to ensure message integrity and authentication,
+     * implemented using the [Digest.SHA256] function
+     *
+     * @since Revision Two
+     */
     HMAC_SHA256("HmacSHA256"),
 
-    @RequiresDocumentation(
-        additionalNotes = "TO INSERT SINCE Revision Two"
-    )
+    /**
+     * `HMAC_SHA384` algorithm used to ensure message integrity and authentication,
+     * implemented using the [Digest.SHA384] function
+     *
+     * @since Revision Two
+     */
     HMAC_SHA384("HmacSHA384"),
 
-    @RequiresDocumentation(
-        additionalNotes = "TO INSERT SINCE Revision Two"
-    )
+    /**
+     * `HmacSHA512` algorithm used to ensure message integrity and authentication,
+     * implemented using the [Digest.SHA512] function
+     *
+     * @since Revision Two
+     */
     HMAC_SHA512("HmacSHA512")
 
 }

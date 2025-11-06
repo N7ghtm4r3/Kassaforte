@@ -3,6 +3,7 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
+import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.enums.ExportFormat.RAW
 import com.tecknobit.kassaforte.helpers.asPlainText
@@ -202,6 +203,16 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
                 Pair(aesGcmParams, aesGcmParams.iv)
             }
         }
+    }
+
+    @RequiresDocumentation(
+        additionalNotes = "TO INSERT SINCE Revision Two"
+    )
+    actual fun sign(
+        alias: String,
+        message: Any,
+    ): String {
+        return ""
     }
 
     /**

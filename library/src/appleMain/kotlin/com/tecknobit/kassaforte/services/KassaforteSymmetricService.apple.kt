@@ -2,6 +2,7 @@
 
 package com.tecknobit.kassaforte.services
 
+import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.Kassaforte
 import com.tecknobit.kassaforte.key.genspec.Algorithm
@@ -196,6 +197,16 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             iv = iv,
             usage = { cipher -> cipher.decrypt(cipherText) }
         ).decodeToString()
+    }
+
+    @RequiresDocumentation(
+        additionalNotes = "TO INSERT SINCE Revision Two"
+    )
+    actual fun sign(
+        alias: String,
+        message: Any,
+    ): String {
+        return ""
     }
 
     /**

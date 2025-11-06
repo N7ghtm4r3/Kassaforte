@@ -51,24 +51,26 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() : Kass
      * Method used to generate an asymmetric new key
      *
      * @param alias The alias used to identify the key
+     * @param algorithm The algorithm the key will use
      * @param keyGenSpec The generation spec to use to generate the key
      * @param purposes The purposes the key can be used
      */
     actual fun generateKey(
         alias: String,
+        algorithm: Algorithm,
         keyGenSpec: SymmetricKeyGenSpec,
         purposes: KeyPurposes,
     ) {
         if (aliasExists(alias))
             throw IllegalAccessException(KassaforteKeysService.ALIAS_ALREADY_TAKEN_ERROR)
-        val algorithm = Algorithm.AES.value
-        val keyGenerator = KeyGenerator.getInstance(algorithm)
+        val algorithmValue = algorithm.value
+        val keyGenerator = KeyGenerator.getInstance(algorithmValue)
         keyGenerator.init(keyGenSpec.keySize.bitCount)
         val key = keyGenerator.generateKey()
         serviceImplManager.storeKeyData(
             alias = alias,
             keyInfo = KeyInfo(
-                algorithm = algorithm,
+                algorithm = algorithmValue,
                 keyPurposes = purposes,
                 key = key
             )

@@ -1,6 +1,7 @@
 package com.tecknobit.kassaforte.services.impls
 
 import com.tecknobit.equinoxcore.annotations.Assembler
+import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.BlockMode
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
@@ -23,11 +24,13 @@ internal expect class KassaforteSymmetricServiceImpl() : KassaforteServiceImpl {
      * Method used to generate a new symmetric key
      *
      * @param alias The alias used to identify the key
+     * @param algorithm The algorithm the key will use
      * @param keyGenSpec The generation spec to use to generate the key
      * @param purposes The purposes the key can be used
      */
     fun generateKey(
         alias: String,
+        algorithm: Algorithm,
         keyGenSpec: SymmetricKeyGenSpec,
         purposes: KeyPurposes,
     )

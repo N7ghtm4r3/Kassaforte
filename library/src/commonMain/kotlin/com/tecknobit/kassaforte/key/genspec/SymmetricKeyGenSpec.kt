@@ -5,7 +5,7 @@ package com.tecknobit.kassaforte.key.genspec
  *
  * @property keySize The size of the key
  * @property encryptionPadding The encryption padding the keys can use
- * @property blockMode The mode of the block the key supports (`CBC`, `CTR` or `GCM`)
+ * @property blockMode The mode of the block the key supports (`CBC`, `CTR`, `GCM` or `NONE`)
  *
  * @author Tecknobit - N7ghtm4r3
  *
@@ -13,7 +13,7 @@ package com.tecknobit.kassaforte.key.genspec
  */
 data class SymmetricKeyGenSpec(
     override val keySize: KeySize = KeySize.S128,
-    override val encryptionPadding: EncryptionPadding,
-    val blockMode: BlockMode,
+    override val encryptionPadding: EncryptionPadding = EncryptionPadding.NONE,
+    val blockMode: BlockMode = BlockMode.NONE,
 ) : KassaforteKeyGenSpec
 
