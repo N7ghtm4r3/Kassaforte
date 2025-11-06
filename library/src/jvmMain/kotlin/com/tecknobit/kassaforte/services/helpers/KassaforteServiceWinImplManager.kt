@@ -9,6 +9,7 @@ import com.tecknobit.equinoxcore.util.getApplicationLocalDataDirectoryPath
 import com.tecknobit.kassaforte.Kassaforte
 import com.tecknobit.kassaforte.key.usages.KeyDetailsSheet
 import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.IMPOSSIBLE_TO_RETRIEVE_KEY_ERROR
+import com.tecknobit.kassaforte.util.decode
 import com.tecknobit.kassaforte.util.encode
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
@@ -227,7 +228,7 @@ internal class KassaforteServiceWinImplManager<KI : KeyDetailsSheet<*>>(
                 alias = alias
             )
             val registryData = Files.readAllBytes(keyRegistry.toPath())
-            return Base64.decode(registryData)
+            return decode(registryData)
         }
 
         /**

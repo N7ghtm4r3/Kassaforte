@@ -124,7 +124,7 @@ scope.launch {
     val encryptedData = KassaforteAsymmetricService.encrypt(
         alias = "toIdentifyTheKey",
         padding = EncryptionPadding.RSA_OAEP,
-        digest = digest.SHA256,
+        digest = Digest.SHA256,
         data = dataToDecrypt
     )
 
@@ -149,7 +149,7 @@ scope.launch {
     val decryptedData = KassaforteAsymmetricService.decrypt(
         alias = "toIdentifyTheKey",
         padding = EncryptionPadding.RSA_OAEP,
-        digest = digest.SHA256,
+        digest = Digest.SHA256,
         data = dataToEncrypt
     )
 
