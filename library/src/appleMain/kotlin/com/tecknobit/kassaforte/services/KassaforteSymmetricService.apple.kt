@@ -210,7 +210,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
      *
      * @return the ciphered data as [ByteArray]
      */
-    private suspend inline fun useCipher(
+    private inline fun useCipher(
         alias: String,
         keyOperation: KeyOperation,
         blockMode: BlockMode,
@@ -251,20 +251,54 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             keyOperation = SIGN
         )
         val key = keyInfo.key
-//        CCHmac(
-//            algorithm = keyInfo.algorithm
-//                .resolveHMACAlgorithm(),
-//            key = CFBridgingRetain(key),
-//            keyLength = key.size.toULong(),
-//            data = CFBridgingRetain(message),
-//            message
-//        )
-        return ""
+        val algorithm = keyInfo.algorithm
+        val macOutRef = algorithm.resolveHMACOutRef()
+        macOutRef.usePinned { pinnedRef ->
+            val messageData = message.encodeForKeyOperation()
+            key.usePinned { pinnedKey ->
+                messageData.usePinned { pinnedMessage ->
+                    CCHmac(
+                        algorithm = keyInfo.algorithm
+                            .resolveHMACAlgorithm(),
+                        key = pinnedKey.addressOf(0),
+                        keyLength = key.size.toULong(),
+                        data = pinnedMessage.addressOf(0),
+                        dataLength = messageData.size.toULong(),
+                        macOut = pinnedRef.addressOf(0)
+                    )
+                }
+            }
+        }
+        return encode(macOutRef)
     }
 
-    @RequiresDocumentation(
-        additionalNotes = "TO INSERT SINCE Revision Two"
-    )
+    /**
+     * Method used to resolve the out reference where the output of the [sign] method could be written
+     *
+     * @return the instance where the result of the `HMAC` can be written as [ByteArray]
+     *
+     * @since Revision Two
+     */
+    @Returner
+    private fun Algorithm.resolveHMACOutRef(): ByteArray {
+        return ByteArray(
+            when (this) {
+                HMAC_SHA1 -> 20
+                HMAC_SHA256 -> 32
+                HMAC_SHA384 -> 48
+                HMAC_SHA512 -> 64
+                else -> throw IllegalArgumentException("Invalid algorithm to perform the sign")
+            }
+        )
+    }
+
+    /**
+     * Method used to resolve which `SHA` function is requested to perform the singing
+     *
+     * @return the hash function algorithm as [CCHmacAlgorithm]
+     *
+     * @since Revision Two
+     */
     @Returner
     private fun Algorithm.resolveHMACAlgorithm(): CCHmacAlgorithm {
         return when (this) {
@@ -276,9 +310,16 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         }
     }
 
-    @RequiresDocumentation(
-        additionalNotes = "TO INSERT SINCE Revision Two"
-    )
+    /**
+     * Method used to get the key and the related information from the secure storage
+     *
+     * @param alias The alias which identify the key to use
+     * @param keyOperation The operation the key have to perform
+     *
+     * @return the key and related information as [KeyInfo]
+     *
+     * @since Revision Two
+     */
     private fun getKeyInfo(
         alias: String,
         keyOperation: KeyOperation,
