@@ -6,6 +6,7 @@ import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.enums.ExportFormat.RAW
+import com.tecknobit.kassaforte.enums.Hash.Companion.resolveHash
 import com.tecknobit.kassaforte.helpers.asPlainText
 import com.tecknobit.kassaforte.helpers.toArrayBuffer
 import com.tecknobit.kassaforte.helpers.toByteArray
@@ -25,6 +26,7 @@ import com.tecknobit.kassaforte.wrappers.crypto.aesCtrParams
 import com.tecknobit.kassaforte.wrappers.crypto.aesGcmParams
 import com.tecknobit.kassaforte.wrappers.crypto.hmacParams
 import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
+import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.HmacKeyGenParams
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.KeyGenSpec
 import com.tecknobit.kassaforte.wrappers.crypto.key.raw.RawCryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.params.AesCbcParams
@@ -96,30 +98,11 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
                 )
             }
 
-            HMAC_SHA1 -> {
+            HMAC_SHA1, HMAC_SHA256, HMAC_SHA384, HMAC_SHA512 -> {
                 resolveHMACKeyGenSpec(
-                    hash = "SHA-1"
+                    hash = algorithm.resolveHash().value
                 )
             }
-
-            HMAC_SHA256 -> {
-                resolveHMACKeyGenSpec(
-                    hash = "SHA-256"
-                )
-            }
-
-            HMAC_SHA384 -> {
-                resolveHMACKeyGenSpec(
-                    hash = "SHA-384"
-                )
-            }
-
-            HMAC_SHA512 -> {
-                resolveHMACKeyGenSpec(
-                    hash = "SHA-512"
-                )
-            }
-
             else -> throw IllegalArgumentException("Invalid symmetric algorithm to generate a symmetric key")
         }
     }
@@ -258,19 +241,21 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         val rawKey: RawCryptoKey = serviceManager.retrieveKeyData(
             alias = alias
         )
-        val signedData = serviceManager.useKey(
+        return serviceManager.useKey(
             rawKey = rawKey.key,
             rawKeyData = rawKey,
             format = RAW,
             usage = { key ->
-                serviceManager.sign(
-                    algorithm = hmacParams("SHA-512"),
+                val signedData = serviceManager.sign(
+                    algorithm = hmacParams(
+                        hash = key.algorithm.unsafeCast<HmacKeyGenParams>().hash
+                    ),
                     key = key,
                     data = message
-                ).asPlainText()
+                ).toByteArray()
+                encode(signedData)
             }
         )
-        return encode(signedData)
     }
 
     /**
@@ -326,4 +311,4 @@ private external fun resolveAESKeyGenSpec(
 @Assembler
 private external fun resolveHMACKeyGenSpec(
     hash: String,
-): com.tecknobit.kassaforte.wrappers.crypto.key.genspec.HmacKeyGenParams
+): HmacKeyGenParams
