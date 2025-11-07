@@ -14,8 +14,7 @@ import com.tecknobit.kassaforte.key.genspec.Digest
 import com.tecknobit.kassaforte.key.genspec.Digest.SHA1
 import com.tecknobit.kassaforte.key.genspec.Digest.SHA256
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
-import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.NONE
-import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.RSA_OAEP
+import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.*
 import com.tecknobit.kassaforte.key.usages.KeyOperation
 import com.tecknobit.kassaforte.key.usages.KeyOperation.Companion.checkIfRequiresPublicKey
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
@@ -98,16 +97,26 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
             RSA -> {
                 if (encryptionPadding == NONE)
                     throw IllegalArgumentException("For RSA must be used PKCS1Padding or OAEPPadding padding type")
-                if (encryptionPadding == RSA_OAEP) {
-                    if (digest == null)
-                        throw IllegalArgumentException("For RSA with OAEP algorithm the digest value is required")
-                    if (digest != SHA1 && digest != SHA256)
-                        throw IllegalArgumentException("Android supports only SHA-1 and in some devices SHA-256")
-                    if (SDK_INT >= P && digest == SHA256 && isStrongBoxAvailable()) {
-                        setIsStrongBoxBacked(true)
-                        setDigests(SHA256.value)
-                    } else
-                        setDigests(SHA1.value)
+                when (encryptionPadding) {
+                    RSA_PKCS1 -> {
+                        digest?.let {
+                            setDigests(digest.value)
+                        }
+                    }
+
+                    RSA_OAEP -> {
+                        if (digest == null)
+                            throw IllegalArgumentException("For RSA with OAEP algorithm the digest value is required")
+                        if (digest != SHA1 && digest != SHA256)
+                            throw IllegalArgumentException("Android supports only SHA-1 and in some devices SHA-256")
+                        if (SDK_INT >= P && digest == SHA256 && isStrongBoxAvailable()) {
+                            setIsStrongBoxBacked(true)
+                            setDigests(SHA256.value)
+                        } else
+                            setDigests(SHA1.value)
+                    }
+
+                    else -> throw IllegalArgumentException("Invalid padding to apply with the RSA algorithm")
                 }
                 setEncryptionPaddings(encryptionPadding.value)
             }
