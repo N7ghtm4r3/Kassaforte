@@ -4,7 +4,6 @@ import android.os.Build.VERSION.SDK_INT
 import android.os.Build.VERSION_CODES.P
 import android.security.keystore.KeyGenParameterSpec
 import com.tecknobit.equinoxcore.annotations.Assembler
-import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.Algorithm.EC
@@ -70,22 +69,30 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
         ).run {
             setupGenSpec(
                 algorithm = algorithm,
-                digest = keyGenSpec.digest,
-                encryptionPadding = keyGenSpec.encryptionPadding
+                padding = keyGenSpec.encryptionPadding,
+                digest = keyGenSpec.digest
             )
         }
         keyPairGenerator.initialize(genSpec)
         keyPairGenerator.genKeyPair()
     }
 
-    @RequiresDocumentation(
-        additionalNotes = "TO INSERT SINCE Revision Two"
-    )
+    /**
+     * Method used to set up the key generation spec
+     *
+     * @param algorithm The algorithm the key will use
+     * @param padding The padding to apply to encrypt data
+     * @param digest The digest to apply to encrypt data
+     *
+     * @return the key generation spec as [KeyGenParameterSpec]
+     *
+     * @since Revision Two
+     */
     @Assembler
     private fun KeyGenParameterSpec.Builder.setupGenSpec(
         algorithm: Algorithm,
+        padding: EncryptionPadding,
         digest: Digest?,
-        encryptionPadding: EncryptionPadding,
     ): KeyGenParameterSpec {
         return when (algorithm) {
             EC -> {
@@ -95,9 +102,9 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
             }
 
             RSA -> {
-                if (encryptionPadding == NONE)
+                if (padding == NONE)
                     throw IllegalArgumentException("For RSA must be used PKCS1Padding or OAEPPadding padding type")
-                when (encryptionPadding) {
+                when (padding) {
                     RSA_PKCS1 -> {
                         digest?.let {
                             setDigests(digest.value)
@@ -118,7 +125,7 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
 
                     else -> throw IllegalArgumentException("Invalid padding to apply with the RSA algorithm")
                 }
-                setEncryptionPaddings(encryptionPadding.value)
+                setEncryptionPaddings(padding.value)
             }
 
             else -> throw IllegalArgumentException("Invalid asymmetric algorithm")
