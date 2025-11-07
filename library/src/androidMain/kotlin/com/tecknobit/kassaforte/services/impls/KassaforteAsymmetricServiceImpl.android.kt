@@ -1,17 +1,28 @@
 package com.tecknobit.kassaforte.services.impls
 
+import android.os.Build.VERSION.SDK_INT
+import android.os.Build.VERSION_CODES.P
+import android.security.keystore.KeyGenParameterSpec
+import com.tecknobit.equinoxcore.annotations.Assembler
+import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.Algorithm.EC
 import com.tecknobit.kassaforte.key.genspec.Algorithm.RSA
 import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
+import com.tecknobit.kassaforte.key.genspec.Digest
+import com.tecknobit.kassaforte.key.genspec.Digest.SHA1
+import com.tecknobit.kassaforte.key.genspec.Digest.SHA256
+import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.NONE
+import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.RSA_OAEP
 import com.tecknobit.kassaforte.key.usages.KeyOperation
 import com.tecknobit.kassaforte.key.usages.KeyOperation.Companion.checkIfRequiresPublicKey
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.ALIAS_ALREADY_TAKEN_ERROR
 import com.tecknobit.kassaforte.services.helpers.KassaforteServiceImplManager
 import com.tecknobit.kassaforte.services.helpers.KassaforteServiceImplManager.Companion.ANDROID_KEYSTORE
+import com.tecknobit.kassaforte.services.helpers.isStrongBoxAvailable
 import java.security.Key
 import java.security.KeyPairGenerator
 import java.security.PublicKey
@@ -58,22 +69,51 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
             keyGenSpec = keyGenSpec,
             purposes = purposes
         ).run {
-            val digest = keyGenSpec.digest
-            val encryptionPadding = keyGenSpec.encryptionPadding
-            if (algorithm == EC && digest == null)
-                throw IllegalArgumentException("For Elliptic Curve algorithm a digest value is required")
-            if (algorithm != EC) {
-                if (algorithm == RSA && encryptionPadding == NONE)
-                    throw IllegalArgumentException("For RSA must be used PKCS1Padding or OAEPPadding padding type")
-                setEncryptionPaddings(keyGenSpec.encryptionPadding.value)
-            }
-            digest?.let {
-                setDigests(digest.value)
-            }
-            build()
+            setupGenSpec(
+                algorithm = algorithm,
+                digest = keyGenSpec.digest,
+                encryptionPadding = keyGenSpec.encryptionPadding
+            )
         }
         keyPairGenerator.initialize(genSpec)
         keyPairGenerator.genKeyPair()
+    }
+
+    @RequiresDocumentation(
+        additionalNotes = "TO INSERT SINCE Revision Two"
+    )
+    @Assembler
+    private fun KeyGenParameterSpec.Builder.setupGenSpec(
+        algorithm: Algorithm,
+        digest: Digest?,
+        encryptionPadding: EncryptionPadding,
+    ): KeyGenParameterSpec {
+        return when (algorithm) {
+            EC -> {
+                if (digest == null)
+                    throw IllegalArgumentException("For Elliptic Curve algorithm the digest value is required")
+                setDigests(digest.value)
+            }
+
+            RSA -> {
+                if (encryptionPadding == NONE)
+                    throw IllegalArgumentException("For RSA must be used PKCS1Padding or OAEPPadding padding type")
+                if (encryptionPadding == RSA_OAEP) {
+                    if (digest == null)
+                        throw IllegalArgumentException("For RSA with OAEP algorithm the digest value is required")
+                    if (digest != SHA1 && digest != SHA256)
+                        throw IllegalArgumentException("Android supports only SHA-1 and in some devices SHA-256")
+                    if (SDK_INT >= P && digest == SHA256 && isStrongBoxAvailable()) {
+                        setIsStrongBoxBacked(true)
+                        setDigests(SHA256.value)
+                    } else
+                        setDigests(SHA1.value)
+                }
+                setEncryptionPaddings(encryptionPadding.value)
+            }
+
+            else -> throw IllegalArgumentException("Invalid asymmetric algorithm")
+        }.build()
     }
 
     /**
