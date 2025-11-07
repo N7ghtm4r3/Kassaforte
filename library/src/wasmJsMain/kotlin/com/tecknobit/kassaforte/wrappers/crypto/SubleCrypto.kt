@@ -3,7 +3,6 @@
 package com.tecknobit.kassaforte.wrappers.crypto
 
 import com.tecknobit.equinoxcore.annotations.Assembler
-import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.KeyGenSpec
@@ -101,10 +100,17 @@ external interface SubtleCrypto : JsAny {
         data: Uint8Array,
     ): Promise<ArrayBuffer>
 
-
-    @RequiresDocumentation(
-        additionalNotes = "TO INSERT SINCE Revision Two"
-    )
+    /**
+     * Method used to sign message
+     *
+     * @param algorithm The algorithm to use to sign the message
+     * @param key The key to use to sign the message
+     * @param data The data of the message to sign
+     *
+     * @return the signed message as [Promise] of [ArrayBuffer]
+     *
+     * @since Revision Two
+     */
     fun sign(
         algorithm: JsAny,
         key: CryptoKey,
@@ -239,9 +245,11 @@ external fun aesGcmParams(
 @Assembler
 external fun rsaOaepParams(): EncryptionParams
 
-@RequiresDocumentation(
-    additionalNotes = "TO INSERT SINCE Revision Two"
-)
+/**
+ * Method used to assemble the parameters to use with `HMAC` algorithm and associated hash function
+ *
+ * @return the `HMAC` params as [HmacParams]
+ */
 @JsFun(
     """
     (name, hash) => (

@@ -3,7 +3,6 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
-import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.enums.ExportFormat.RAW
 import com.tecknobit.kassaforte.enums.Hash.Companion.resolveHash
@@ -72,7 +71,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         serviceManager.generateKey(
             alias = alias,
             genSpec = {
-                resolveAESGenSpec(
+                resolveGenSpec(
                     algorithm = algorithm,
                     keyGenSpec = keyGenSpec
                 )
@@ -81,11 +80,19 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         )
     }
 
-    @RequiresDocumentation(
-        additionalNotes = "TO INSERT SINCE Revision Two"
-    )
+    /**
+     * Method used to resolve the generation spec to generate the key with the [generateKey] method based on the specified
+     * [algorithm]
+     *
+     * @param algorithm The algorithm the key will use
+     * @param keyGenSpec The generation spec to use to generate the key
+     *
+     * @return the generation spec as [KeyGenSpec]
+     *
+     * @since Revision Two
+     */
     @Returner
-    private fun resolveAESGenSpec(
+    private fun resolveGenSpec(
         algorithm: Algorithm,
         keyGenSpec: SymmetricKeyGenSpec,
     ): KeyGenSpec {
@@ -231,9 +238,16 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         }
     }
 
-    @RequiresDocumentation(
-        additionalNotes = "TO INSERT SINCE Revision Two"
-    )
+    /**
+     * Method used to sign message with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param message The message to sign
+     *
+     * @return the signed message as [String]
+     *
+     * @since Revision Two
+     */
     actual suspend fun sign(
         alias: String,
         message: Any,
@@ -246,12 +260,13 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             rawKeyData = rawKey,
             format = RAW,
             usage = { key ->
+                val hash = key.algorithm.unsafeCast<HmacKeyGenParams>().hash
                 val signedData = serviceManager.sign(
                     algorithm = hmacParams(
-                        hash = key.algorithm.unsafeCast<HmacKeyGenParams>().hash
+                        hash = hash
                     ),
                     key = key,
-                    data = message
+                    message = message
                 ).toByteArray()
                 encode(signedData)
             }
@@ -297,9 +312,15 @@ private external fun resolveAESKeyGenSpec(
     size: Int,
 ): com.tecknobit.kassaforte.wrappers.crypto.key.genspec.SymmetricKeyGenSpec
 
-@RequiresDocumentation(
-    additionalNotes = "TO INSERT SINCE Revision Two"
-)
+/**
+ * Method used to assemble a native [com.tecknobit.kassaforte.wrappers.crypto.key.genspec.HmacKeyGenParams] object
+ *
+ * @param hash The hash function the generating key will be allowed to use
+ *
+ * @return the key gen params as [com.tecknobit.kassaforte.wrappers.crypto.key.genspec.HmacKeyGenParams]
+ *
+ * @since Revision Two
+ */
 @JsFun(
     """
     (hash) => ({

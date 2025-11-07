@@ -2,7 +2,6 @@
 
 package com.tecknobit.kassaforte.services
 
-import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.Kassaforte
 import com.tecknobit.kassaforte.key.genspec.Algorithm
@@ -239,9 +238,16 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         return usage(cipher)
     }
 
-    @RequiresDocumentation(
-        additionalNotes = "TO INSERT SINCE Revision Two"
-    )
+    /**
+     * Method used to sign data with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param message The message to sign
+     *
+     * @return the signed message as [String]
+     *
+     * @since Revision Two
+     */
     actual suspend fun sign(
         alias: String,
         message: Any,

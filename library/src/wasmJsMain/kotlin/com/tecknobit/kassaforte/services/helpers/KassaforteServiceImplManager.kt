@@ -3,7 +3,6 @@
 package com.tecknobit.kassaforte.services.helpers
 
 import com.tecknobit.equinoxcore.annotations.Assembler
-import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.equinoxcore.annotations.Structure
 import com.tecknobit.kassaforte.enums.ExportFormat
@@ -284,18 +283,26 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
         ).await()
     }
 
-    @RequiresDocumentation(
-        additionalNotes = "TO INSERT SINCE Revision Two"
-    )
+    /**
+     * Method used to sign message
+     *
+     * @param algorithm The algorithm to use to sign the message
+     * @param key The key to use to sign the message
+     * @param message The message to sign
+     *
+     * @return the signed message as [ArrayBuffer]
+     *
+     * @since Revision Two
+     */
     suspend fun sign(
         algorithm: EncryptionParams,
         key: CryptoKey,
-        data: Any,
+        message: Any,
     ): ArrayBuffer {
         return subtleCrypto.sign(
             algorithm = algorithm,
             key = key,
-            data = data.toUint8Array()
+            data = message.toUint8Array()
         ).await()
     }
 
