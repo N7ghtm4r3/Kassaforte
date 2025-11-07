@@ -43,19 +43,6 @@ private fun ByteArray.pad(
 }
 
 /**
- * Method used to prepare the data to be decrypted
- *
- * @return the data prepared to be decrypted as [Uint8Array]
- */
-@Returner
-fun Any.prepareToDecrypt(): Uint8Array {
-    return if (this is ByteArray)
-        this.toUint8Array()
-    else
-        encodeForKeyOperation().toUint8Array()
-}
-
-/**
  * Method used to convert an [ArrayBuffer] into the decrypted plaintext
  *
  * @param blockMode The block mode used to pad the data before encrypting it
@@ -90,3 +77,17 @@ fun ByteArray.unPad(
         throw IllegalArgumentException("Invalid padding")
     return this.copyOfRange(0, this.size - padding)
 }
+
+/**
+ * Method used to prepare the data to be decrypted
+ *
+ * @return the data prepared to be decrypted as [Uint8Array]
+ */
+@Returner
+fun Any.toUint8Array(): Uint8Array {
+    return if (this is ByteArray)
+        this.toUint8Array()
+    else
+        encodeForKeyOperation().toUint8Array()
+}
+

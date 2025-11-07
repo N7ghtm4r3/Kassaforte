@@ -201,7 +201,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     @RequiresDocumentation(
         additionalNotes = "TO INSERT SINCE Revision Two"
     )
-    actual fun sign(
+    actual suspend fun sign(
         alias: String,
         message: Any,
     ): String {

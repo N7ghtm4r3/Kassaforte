@@ -3,12 +3,13 @@
 package com.tecknobit.kassaforte.services.helpers
 
 import com.tecknobit.equinoxcore.annotations.Assembler
+import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.equinoxcore.annotations.Structure
 import com.tecknobit.kassaforte.enums.ExportFormat
 import com.tecknobit.kassaforte.helpers.IndexedDBManager
-import com.tecknobit.kassaforte.helpers.prepareToDecrypt
 import com.tecknobit.kassaforte.helpers.prepareToEncrypt
+import com.tecknobit.kassaforte.helpers.toUint8Array
 import com.tecknobit.kassaforte.key.genspec.BlockMode
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.util.decode
@@ -279,7 +280,22 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
         return subtleCrypto.decrypt(
             algorithm = algorithm,
             key = key,
-            data = data.prepareToDecrypt()
+            data = data.toUint8Array()
+        ).await()
+    }
+
+    @RequiresDocumentation(
+        additionalNotes = "TO INSERT SINCE Revision Two"
+    )
+    suspend fun sign(
+        algorithm: EncryptionParams,
+        key: CryptoKey,
+        data: Any,
+    ): ArrayBuffer {
+        return subtleCrypto.sign(
+            algorithm = algorithm,
+            key = key,
+            data = data.toUint8Array()
         ).await()
     }
 

@@ -83,7 +83,7 @@ expect object KassaforteSymmetricService: KassaforteKeysService<SymmetricKeyGenS
     @RequiresDocumentation(
         additionalNotes = "TO INSERT SINCE Revision Two"
     )
-    fun sign(
+    suspend fun sign(
         alias: String,
         message: Any,
     ): String

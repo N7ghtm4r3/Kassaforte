@@ -3,13 +3,11 @@
 package com.tecknobit.kassaforte.wrappers.crypto
 
 import com.tecknobit.equinoxcore.annotations.Assembler
+import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.KeyGenSpec
-import com.tecknobit.kassaforte.wrappers.crypto.params.AesCbcParams
-import com.tecknobit.kassaforte.wrappers.crypto.params.AesCtrParams
-import com.tecknobit.kassaforte.wrappers.crypto.params.AesGcmParams
-import com.tecknobit.kassaforte.wrappers.crypto.params.EncryptionParams
+import com.tecknobit.kassaforte.wrappers.crypto.params.*
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
 import kotlin.js.Promise
@@ -98,6 +96,16 @@ external interface SubtleCrypto : JsAny {
      * @return the decrypted data as [Promise] of [ArrayBuffer]
      */
     fun decrypt(
+        algorithm: JsAny,
+        key: CryptoKey,
+        data: Uint8Array,
+    ): Promise<ArrayBuffer>
+
+
+    @RequiresDocumentation(
+        additionalNotes = "TO INSERT SINCE Revision Two"
+    )
+    fun sign(
         algorithm: JsAny,
         key: CryptoKey,
         data: Uint8Array,
@@ -230,3 +238,21 @@ external fun aesGcmParams(
 )
 @Assembler
 external fun rsaOaepParams(): EncryptionParams
+
+@RequiresDocumentation(
+    additionalNotes = "TO INSERT SINCE Revision Two"
+)
+@JsFun(
+    """
+    (name, hash) => (
+       {
+          name: "HMAC",
+          hash: hash
+       }
+    )   
+    """
+)
+@Assembler
+external fun hmacParams(
+    hash: String,
+): HmacParams

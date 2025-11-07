@@ -10,7 +10,7 @@ import com.tecknobit.kassaforte.helpers.asPlainText
 import com.tecknobit.kassaforte.helpers.toArrayBuffer
 import com.tecknobit.kassaforte.helpers.toByteArray
 import com.tecknobit.kassaforte.key.genspec.Algorithm
-import com.tecknobit.kassaforte.key.genspec.Algorithm.AES
+import com.tecknobit.kassaforte.key.genspec.Algorithm.*
 import com.tecknobit.kassaforte.key.genspec.BlockMode
 import com.tecknobit.kassaforte.key.genspec.BlockMode.CBC
 import com.tecknobit.kassaforte.key.genspec.BlockMode.CTR
@@ -23,7 +23,9 @@ import com.tecknobit.kassaforte.util.encode
 import com.tecknobit.kassaforte.wrappers.crypto.aesCbcParams
 import com.tecknobit.kassaforte.wrappers.crypto.aesCtrParams
 import com.tecknobit.kassaforte.wrappers.crypto.aesGcmParams
+import com.tecknobit.kassaforte.wrappers.crypto.hmacParams
 import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
+import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.KeyGenSpec
 import com.tecknobit.kassaforte.wrappers.crypto.key.raw.RawCryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.params.AesCbcParams
 import com.tecknobit.kassaforte.wrappers.crypto.params.AesCtrParams
@@ -68,14 +70,58 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         serviceManager.generateKey(
             alias = alias,
             genSpec = {
-                resolveKeyGenSpec(
-                    algorithm = AES.value,
-                    blockType = keyGenSpec.blockMode.value,
-                    size = keyGenSpec.keySize.bitCount
+                resolveAESGenSpec(
+                    algorithm = algorithm,
+                    keyGenSpec = keyGenSpec
                 )
             },
             purposes = purposes
         )
+    }
+
+    @RequiresDocumentation(
+        additionalNotes = "TO INSERT SINCE Revision Two"
+    )
+    @Returner
+    private fun resolveAESGenSpec(
+        algorithm: Algorithm,
+        keyGenSpec: SymmetricKeyGenSpec,
+    ): KeyGenSpec {
+        return when (algorithm) {
+            AES -> {
+                resolveAESKeyGenSpec(
+                    algorithm = algorithm.value,
+                    blockType = keyGenSpec.blockMode.value,
+                    size = keyGenSpec.keySize.bitCount
+                )
+            }
+
+            HMAC_SHA1 -> {
+                resolveHMACKeyGenSpec(
+                    hash = "SHA-1"
+                )
+            }
+
+            HMAC_SHA256 -> {
+                resolveHMACKeyGenSpec(
+                    hash = "SHA-256"
+                )
+            }
+
+            HMAC_SHA384 -> {
+                resolveHMACKeyGenSpec(
+                    hash = "SHA-384"
+                )
+            }
+
+            HMAC_SHA512 -> {
+                resolveHMACKeyGenSpec(
+                    hash = "SHA-512"
+                )
+            }
+
+            else -> throw IllegalArgumentException("Invalid symmetric algorithm to generate a symmetric key")
+        }
     }
 
     /**
@@ -205,11 +251,26 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     @RequiresDocumentation(
         additionalNotes = "TO INSERT SINCE Revision Two"
     )
-    actual fun sign(
+    actual suspend fun sign(
         alias: String,
         message: Any,
     ): String {
-        return ""
+        val rawKey: RawCryptoKey = serviceManager.retrieveKeyData(
+            alias = alias
+        )
+        val signedData = serviceManager.useKey(
+            rawKey = rawKey.key,
+            rawKeyData = rawKey,
+            format = RAW,
+            usage = { key ->
+                serviceManager.sign(
+                    algorithm = hmacParams("SHA-512"),
+                    key = key,
+                    data = message
+                ).asPlainText()
+            }
+        )
+        return encode(signedData)
     }
 
     /**
@@ -245,8 +306,24 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     """
 )
 @Assembler
-private external fun resolveKeyGenSpec(
+private external fun resolveAESKeyGenSpec(
     algorithm: String,
     blockType: String,
     size: Int,
 ): com.tecknobit.kassaforte.wrappers.crypto.key.genspec.SymmetricKeyGenSpec
+
+@RequiresDocumentation(
+    additionalNotes = "TO INSERT SINCE Revision Two"
+)
+@JsFun(
+    """
+    (hash) => ({
+        name: `HMAC`,
+        hash: hash
+    })
+    """
+)
+@Assembler
+private external fun resolveHMACKeyGenSpec(
+    hash: String,
+): com.tecknobit.kassaforte.wrappers.crypto.key.genspec.HmacKeyGenParams
