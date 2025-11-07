@@ -13,7 +13,6 @@ import com.tecknobit.kassaforte.services.helpers.isStrongBoxAvailable
  * @return the related OAEP-with value as [OAEPWith]
  */
 @Returner
-// FIXME: TO REMOVE WHEN ANDROID WILL SUPPORT OTHER OAEP ENTRY AND NOT JUST OAEPWithSHA1AndMGF1Padding OR OAEPWithSHA256AndMGF1Padding
 actual fun Digest.oaepWithValue(): OAEPWith {
     return if (isStrongBoxAvailable() && this == SHA256)
         OAEPWithSHA256AndMGF1Padding

@@ -46,6 +46,4 @@ enum class OAEPWith(
  * @return the related OAEP-with value as [OAEPWith]
  */
 @Returner
-// FIXME: TO REINTEGRATE INTO OAEPWith ENUM AS COMPANION METHOD WHEN ANDROID WILL SUPPORT OTHER OAEP ENTRY AND NOT JUST
-// OAEPWithSHA1AndMGF1Padding OR OAEPWithSHA256AndMGF1Padding
 expect fun Digest.oaepWithValue(): OAEPWith
