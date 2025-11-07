@@ -13,9 +13,9 @@ import com.tecknobit.kassaforte.key.usages.KeyOperation.ENCRYPT
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.impls.KassaforteAsymmetricServiceImpl
 import com.tecknobit.kassaforte.util.checkIfIsSupportedCipherAlgorithm
-import com.tecknobit.kassaforte.util.checkIfIsSupportedType
 import com.tecknobit.kassaforte.util.decode
 import com.tecknobit.kassaforte.util.encode
+import com.tecknobit.kassaforte.util.encodeForKeyOperation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -104,9 +104,6 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         digest: Digest?,
         data: Any,
     ): String {
-        checkIfIsSupportedType(
-            data = data
-        )
         val cipherText = useCipher(
             alias = alias,
             keyOperation = ENCRYPT,
@@ -114,7 +111,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             digest = digest,
             usage = { cipher, key ->
                 cipher.init(Cipher.ENCRYPT_MODE, key)
-                val plainText = data.toString().encodeToByteArray()
+                val plainText = data.encodeForKeyOperation()
                 cipher.doFinal(plainText)
             }
         )

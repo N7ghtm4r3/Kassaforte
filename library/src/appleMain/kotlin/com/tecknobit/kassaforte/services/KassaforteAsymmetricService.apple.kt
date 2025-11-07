@@ -288,9 +288,6 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         digest: Digest?,
         data: Any,
     ): String {
-        checkIfIsSupportedType(
-            data = data
-        )
         val encryptedData = useKey(
             alias = resolvePublicKeyAlias(
                 alias = alias
@@ -298,7 +295,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             padding = padding,
             digest = digest,
             usage = { publicKey, algorithm ->
-                val dataToEncrypt = data.toString().toCFData()
+                val dataToEncrypt = data.convertToCFData()
                 val encryptedData = errorScoped { errorVar ->
                     SecKeyCreateEncryptedData(
                         key = publicKey,

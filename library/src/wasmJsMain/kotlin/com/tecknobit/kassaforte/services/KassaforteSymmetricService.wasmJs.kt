@@ -18,7 +18,6 @@ import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.helpers.KassaforteSymmetricServiceManager
-import com.tecknobit.kassaforte.util.checkIfIsSupportedType
 import com.tecknobit.kassaforte.util.decode
 import com.tecknobit.kassaforte.util.encode
 import com.tecknobit.kassaforte.wrappers.crypto.aesCbcParams
@@ -104,9 +103,6 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         padding: EncryptionPadding,
         data: Any,
     ): String {
-        checkIfIsSupportedType(
-            data = data
-        )
         val rawKey: RawCryptoKey = serviceManager.retrieveKeyData(
             alias = alias
         )

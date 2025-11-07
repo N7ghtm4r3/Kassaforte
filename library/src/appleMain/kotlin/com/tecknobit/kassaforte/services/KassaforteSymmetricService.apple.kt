@@ -6,6 +6,7 @@ import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.Kassaforte
 import com.tecknobit.kassaforte.key.genspec.Algorithm
+import com.tecknobit.kassaforte.key.genspec.Algorithm.*
 import com.tecknobit.kassaforte.key.genspec.BlockMode
 import com.tecknobit.kassaforte.key.genspec.BlockMode.CTR
 import com.tecknobit.kassaforte.key.genspec.BlockMode.GCM
@@ -13,19 +14,20 @@ import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyDetailsSheet
 import com.tecknobit.kassaforte.key.usages.KeyOperation
-import com.tecknobit.kassaforte.key.usages.KeyOperation.DECRYPT
-import com.tecknobit.kassaforte.key.usages.KeyOperation.ENCRYPT
+import com.tecknobit.kassaforte.key.usages.KeyOperation.*
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.helpers.KassaforteSymmetricServiceManager
-import com.tecknobit.kassaforte.util.checkIfIsSupportedType
 import com.tecknobit.kassaforte.util.decode
 import com.tecknobit.kassaforte.util.encode
+import com.tecknobit.kassaforte.util.encodeForKeyOperation
 import korlibs.crypto.*
+import korlibs.crypto.AES
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.usePinned
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import platform.CoreCrypto.*
 import platform.Security.SecRandomCopyBytes
 import platform.Security.kSecRandomDefault
 
@@ -79,6 +81,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         storeKeyData(
             alias = alias,
             keyInfo = KeyInfo(
+                algorithm = algorithm,
                 keyPurposes = purposes,
                 key = keyBytes
             )
@@ -151,19 +154,16 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         padding: EncryptionPadding,
         data: Any,
     ): String {
-        checkIfIsSupportedType(
-            data = data
-        )
         val iv = ByteArray(blockMode.blockSize).apply {
             SecureRandom.nextBytes(this)
         }
-        val encryptedData = useKey(
+        val encryptedData = useCipher(
             alias = alias,
             keyOperation = ENCRYPT,
             blockMode = blockMode,
             iv = iv,
             usage = { cipher ->
-                val dataToEncrypt = data.toString().encodeToByteArray()
+                val dataToEncrypt = data.encodeForKeyOperation()
                 cipher.encrypt(dataToEncrypt)
             }
         )
@@ -190,23 +190,13 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         val blockSize = blockMode.blockSize
         val iv = dataToDecrypt.copyOfRange(0, blockSize)
         val cipherText = dataToDecrypt.copyOfRange(blockSize, dataToDecrypt.size)
-        return useKey(
+        return useCipher(
             alias = alias,
             keyOperation = DECRYPT,
             blockMode = blockMode,
             iv = iv,
             usage = { cipher -> cipher.decrypt(cipherText) }
         ).decodeToString()
-    }
-
-    @RequiresDocumentation(
-        additionalNotes = "TO INSERT SINCE Revision Two"
-    )
-    actual fun sign(
-        alias: String,
-        message: Any,
-    ): String {
-        return ""
     }
 
     /**
@@ -220,7 +210,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
      *
      * @return the ciphered data as [ByteArray]
      */
-    private suspend inline fun useKey(
+    private suspend inline fun useCipher(
         alias: String,
         keyOperation: KeyOperation,
         blockMode: BlockMode,
@@ -230,17 +220,10 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         // TODO: to remove when GCM integrated
         if (blockMode == GCM)
             throw RuntimeException("GCM on iOS is currently missing, use CBC or CTR instead")
-        val kassaforte = Kassaforte(alias)
-        val encodedKeyData = kassaforte.withdraw(
-            key = alias
+        val keyInfo = getKeyInfo(
+            alias = alias,
+            keyOperation = keyOperation
         )
-        if (encodedKeyData == null)
-            throw RuntimeException(IMPOSSIBLE_TO_RETRIEVE_KEY_ERROR)
-        val decodedKeyData = decode(encodedKeyData)
-            .decodeToString()
-        val keyInfo: KeyInfo = Json.decodeFromString(decodedKeyData)
-        if (!keyInfo.canPerform(keyOperation))
-            throw RuntimeException(KEY_CANNOT_PERFORM_OPERATION_ERROR.replace("%s", keyOperation.name))
         // TODO: WHEN GCM AVAILABLE INTEGRATE IT
         val cipher = AES(keyInfo.key).get(
             mode = when (blockMode) {
@@ -254,6 +237,63 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             iv = iv
         )
         return usage(cipher)
+    }
+
+    @RequiresDocumentation(
+        additionalNotes = "TO INSERT SINCE Revision Two"
+    )
+    actual fun sign(
+        alias: String,
+        message: Any,
+    ): String {
+        val keyInfo = getKeyInfo(
+            alias = alias,
+            keyOperation = SIGN
+        )
+        val key = keyInfo.key
+//        CCHmac(
+//            algorithm = keyInfo.algorithm
+//                .resolveHMACAlgorithm(),
+//            key = CFBridgingRetain(key),
+//            keyLength = key.size.toULong(),
+//            data = CFBridgingRetain(message),
+//            message
+//        )
+        return ""
+    }
+
+    @RequiresDocumentation(
+        additionalNotes = "TO INSERT SINCE Revision Two"
+    )
+    @Returner
+    private fun Algorithm.resolveHMACAlgorithm(): CCHmacAlgorithm {
+        return when (this) {
+            HMAC_SHA1 -> kCCHmacAlgSHA1
+            HMAC_SHA256 -> kCCHmacAlgSHA256
+            HMAC_SHA384 -> kCCHmacAlgSHA384
+            HMAC_SHA512 -> kCCHmacAlgSHA512
+            else -> throw IllegalArgumentException("Invalid algorithm to perform the sign")
+        }
+    }
+
+    @RequiresDocumentation(
+        additionalNotes = "TO INSERT SINCE Revision Two"
+    )
+    private fun getKeyInfo(
+        alias: String,
+        keyOperation: KeyOperation,
+    ): KeyInfo {
+        val kassaforte = Kassaforte(alias)
+        val encodedKeyData = kassaforte.unsuspendedWithdraw(
+            key = alias
+        )
+        if (encodedKeyData == null)
+            throw RuntimeException(IMPOSSIBLE_TO_RETRIEVE_KEY_ERROR)
+        val decodedKeyData = decode(encodedKeyData).decodeToString()
+        val keyInfo: KeyInfo = Json.decodeFromString(decodedKeyData)
+        if (!keyInfo.canPerform(keyOperation))
+            throw RuntimeException(KEY_CANNOT_PERFORM_OPERATION_ERROR.replace("%s", keyOperation.name))
+        return keyInfo
     }
 
     /**
@@ -275,6 +315,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
      *
      * @property keyPurposes The purposes the key can be used
      * @property key The generated symmetric key
+     * @property algorithm The algorithm the key will use
      *
      * @author Tecknobit - N7ghtm4r3
      *
@@ -282,6 +323,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
      */
     @Serializable
     private data class KeyInfo(
+        val algorithm: Algorithm,
         override val keyPurposes: KeyPurposes,
         override val key: ByteArray,
     ) : KeyDetailsSheet<ByteArray> {
@@ -298,12 +340,11 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
          *
          * Read more about [equality](https://kotlinlang.org/docs/reference/equality.html) in Kotlin.
          */
-        override fun equals(
-            other: Any?,
-        ): Boolean {
+        override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (other !is KeyInfo) return false
 
+            if (algorithm != other.algorithm) return false
             if (keyPurposes != other.keyPurposes) return false
             if (!key.contentEquals(other.key)) return false
 
@@ -318,7 +359,8 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
          * * If two objects are equal according to the `equals()` method, then calling the `hashCode` method on each of the two objects must produce the same integer result.
          */
         override fun hashCode(): Int {
-            var result = keyPurposes.hashCode()
+            var result = algorithm.hashCode()
+            result = 31 * result + keyPurposes.hashCode()
             result = 31 * result + key.contentHashCode()
             return result
         }

@@ -11,9 +11,9 @@ import com.tecknobit.kassaforte.key.usages.KeyOperation
 import com.tecknobit.kassaforte.key.usages.KeyOperation.*
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.impls.KassaforteSymmetricServiceImpl
-import com.tecknobit.kassaforte.util.checkIfIsSupportedType
 import com.tecknobit.kassaforte.util.decode
 import com.tecknobit.kassaforte.util.encode
+import com.tecknobit.kassaforte.util.encodeForKeyOperation
 import java.security.Key
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -93,9 +93,6 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         padding: EncryptionPadding,
         data: Any,
     ): String {
-        checkIfIsSupportedType(
-            data = data
-        )
         var cipherIv: ByteArray = byteArrayOf()
         var encryptedData = useCipher(
             alias = alias,
@@ -105,7 +102,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         ) { cipher, key ->
             cipher.init(Cipher.ENCRYPT_MODE, key)
             cipherIv = cipher.iv
-            val dataToEncrypt = data.toString().encodeToByteArray()
+            val dataToEncrypt = data.encodeForKeyOperation()
             cipher.doFinal(dataToEncrypt)
         }
         encryptedData = cipherIv + encryptedData
@@ -211,9 +208,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         val signedData = useMac(
             alias = alias,
             keyOperation = SIGN,
-            usage = { mac ->
-                mac.doFinal(message.toString().encodeToByteArray())
-            }
+            usage = { mac -> mac.doFinal(message.encodeForKeyOperation()) }
         )
         return encode(signedData)
     }

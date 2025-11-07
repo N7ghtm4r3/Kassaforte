@@ -79,3 +79,17 @@ fun decode(
         source = source
     )
 }
+
+/**
+ * Method used to encode the data to perform a key operation checking also whether the type
+ * is currently supported using the [checkIfIsSupportedType] validator
+ *
+ * @return the encoded data as [ByteArray]
+ *
+ * @since Revision Two
+ */
+@Returner
+fun Any.encodeForKeyOperation(): ByteArray {
+    checkIfIsSupportedType(this)
+    return this.toString().encodeToByteArray()
+}

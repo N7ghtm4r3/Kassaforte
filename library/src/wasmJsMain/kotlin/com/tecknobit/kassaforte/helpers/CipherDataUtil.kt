@@ -3,6 +3,7 @@ package com.tecknobit.kassaforte.helpers
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.key.genspec.BlockMode
 import com.tecknobit.kassaforte.key.genspec.BlockMode.CBC
+import com.tecknobit.kassaforte.util.encodeForKeyOperation
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
 
@@ -16,7 +17,7 @@ import org.khronos.webgl.Uint8Array
 fun Any.prepareToEncrypt(
     blockMode: BlockMode? = null,
 ): Uint8Array {
-    val plainText = this.toString().encodeToByteArray()
+    val plainText = encodeForKeyOperation()
     return if (blockMode == CBC) {
         plainText.pad(
             blockMode = blockMode
@@ -51,7 +52,7 @@ fun Any.prepareToDecrypt(): Uint8Array {
     return if (this is ByteArray)
         this.toUint8Array()
     else
-        toString().encodeToByteArray().toUint8Array()
+        encodeForKeyOperation().toUint8Array()
 }
 
 /**

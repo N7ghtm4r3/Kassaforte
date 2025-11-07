@@ -34,8 +34,8 @@ fun ByteArray?.toCFData(): CFDataRef? {
  * @return the converted string as nullable [CFDataRef]
  */
 @Returner
-fun String.toCFData(): CFDataRef? {
-    val dataToConvert = this.encodeToByteArray()
+fun Any.convertToCFData(): CFDataRef? {
+    val dataToConvert = encodeForKeyOperation()
     return dataToConvert.toCFData()
 }
 

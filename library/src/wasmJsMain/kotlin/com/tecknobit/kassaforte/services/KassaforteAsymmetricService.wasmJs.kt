@@ -18,7 +18,6 @@ import com.tecknobit.kassaforte.key.genspec.Digest
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.helpers.KassaforteAsymmetricServiceManager
-import com.tecknobit.kassaforte.util.checkIfIsSupportedType
 import com.tecknobit.kassaforte.util.decode
 import com.tecknobit.kassaforte.util.encode
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.EcKeyGenParams
@@ -142,9 +141,6 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         digest: Digest?,
         data: Any,
     ): String {
-        checkIfIsSupportedType(
-            data = data
-        )
         val rawCryptoKeyPair: RawCryptoKeyPair = serviceManager.retrieveKeyData(
             alias = alias
         )
