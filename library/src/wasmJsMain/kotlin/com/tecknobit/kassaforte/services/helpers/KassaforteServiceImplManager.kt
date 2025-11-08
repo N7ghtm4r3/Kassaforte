@@ -199,15 +199,17 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
      * @param format The format which the key has been previously exported
      * @param usage The ciphering routine to perform
      *
-     * @return the ciphered data as [ByteArray]
+     * @param T The type of the result from the [usage] execution
+     *
+     * @return the ciphered data as [T]
      */
-    suspend inline fun useKey(
+    suspend inline fun <reified T> useKey(
         rawKey: String,
         rawKeyData: CryptoKey,
         usages: JsArray<JsString> = rawKeyData.usages,
         format: ExportFormat,
-        usage: (CryptoKey) -> String,
-    ): String {
+        usage: (CryptoKey) -> T,
+    ): T {
         val keyData = rawKey.toDecodedKeyData()
         val key: CryptoKey = subtleCrypto.importKey(
             format = format.value,
@@ -304,6 +306,33 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
             key = key,
             data = message.toUint8Array()
         ).await()
+    }
+
+    /**
+     * Method used to verify the validity of a message
+     *
+     * @param algorithm The algorithm to use to verify the message
+     * @param key The key to use to verify the message
+     * @param signature The signature previously computed
+     * @param data The data of the message to verify
+     *
+     * @return whether the message matches to [signature] as [Boolean]
+     *
+     * @since Revision Two
+     */
+    suspend fun verify(
+        algorithm: JsAny,
+        key: CryptoKey,
+        signature: ByteArray,
+        data: ByteArray,
+    ): Boolean {
+        val result: JsBoolean = subtleCrypto.verify(
+            algorithm = algorithm,
+            key = key,
+            signature = signature.toUint8Array(),
+            data = data.toUint8Array()
+        ).await()
+        return result.toBoolean()
     }
 
     /**

@@ -117,6 +117,25 @@ external interface SubtleCrypto : JsAny {
         data: Uint8Array,
     ): Promise<ArrayBuffer>
 
+    /**
+     * Method used to verify the validity of a message
+     *
+     * @param algorithm The algorithm to use to verify the message
+     * @param key The key to use to verify the message
+     * @param signature The signature previously computed
+     * @param data The data of the message to verify
+     *
+     * @return whether the message matches to [signature] as [Promise] of [JsBoolean]
+     *
+     * @since Revision Two
+     */
+    fun verify(
+        algorithm: JsAny,
+        key: CryptoKey,
+        signature: Uint8Array,
+        data: Uint8Array,
+    ): Promise<JsBoolean>
+
 }
 
 /**

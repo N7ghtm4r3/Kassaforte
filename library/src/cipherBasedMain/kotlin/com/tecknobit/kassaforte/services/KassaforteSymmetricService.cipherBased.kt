@@ -1,7 +1,6 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
-import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.BlockMode
 import com.tecknobit.kassaforte.key.genspec.BlockMode.GCM
@@ -200,7 +199,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     }
 
     /**
-     * Method used to sign data with the key specified by the [alias] value
+     * Method used to sign messages with the key specified by the [alias] value
      *
      * @param alias The alias which identify the key to use
      * @param message The message to sign
@@ -220,19 +219,27 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         return encode(signedMessage)
     }
 
-    @RequiresDocumentation(
-        additionalNotes = "TO INSERT SINCE Revision Two"
-    )
+    /**
+     * Method used to verify the validity of the messages previously signed with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param message The message to verify
+     * @param signature The signature previously computed
+     *
+     * @return whether the message matches to [signature] as [Boolean]
+     *
+     * @since Revision Two
+     */
     actual suspend fun verify(
         alias: String,
         message: Any,
-        hmac: String,
+        signature: String,
     ): Boolean {
         val verification = sign(
             alias = alias,
             message = message
         )
-        return MessageDigest.isEqual(decode(hmac), decode(verification))
+        return MessageDigest.isEqual(decode(signature), decode(verification))
     }
 
     /**

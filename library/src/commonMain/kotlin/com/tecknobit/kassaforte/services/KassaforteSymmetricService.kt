@@ -1,6 +1,5 @@
 package com.tecknobit.kassaforte.services
 
-import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.BlockMode
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
@@ -81,7 +80,7 @@ expect object KassaforteSymmetricService: KassaforteKeysService<SymmetricKeyGenS
     ): String
 
     /**
-     * Method used to sign data with the key specified by the [alias] value
+     * Method used to sign messages with the key specified by the [alias] value
      *
      * @param alias The alias which identify the key to use
      * @param message The message to sign
@@ -95,13 +94,21 @@ expect object KassaforteSymmetricService: KassaforteKeysService<SymmetricKeyGenS
         message: Any,
     ): String
 
-    @RequiresDocumentation(
-        additionalNotes = "TO INSERT SINCE Revision Two"
-    )
+    /**
+     * Method used to verify the validity of the messages previously signed with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param message The message to verify
+     * @param signature The signature previously computed
+     *
+     * @return whether the message matches to [signature] as [Boolean]
+     *
+     * @since Revision Two
+     */
     suspend fun verify(
         alias: String,
         message: Any,
-        hmac: String,
+        signature: String,
     ): Boolean
 
     /**

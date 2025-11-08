@@ -3,7 +3,6 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
-import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.enums.ExportFormat.RAW
 import com.tecknobit.kassaforte.enums.Hash.Companion.resolveHash
@@ -21,6 +20,7 @@ import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.helpers.KassaforteSymmetricServiceManager
 import com.tecknobit.kassaforte.util.decode
 import com.tecknobit.kassaforte.util.encode
+import com.tecknobit.kassaforte.util.encodeForKeyOperation
 import com.tecknobit.kassaforte.wrappers.crypto.aesCbcParams
 import com.tecknobit.kassaforte.wrappers.crypto.aesCtrParams
 import com.tecknobit.kassaforte.wrappers.crypto.aesGcmParams
@@ -261,10 +261,9 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             rawKeyData = rawKey,
             format = RAW,
             usage = { key ->
-                val hash = key.algorithm.unsafeCast<HmacKeyGenParams>().hash
                 val signedMessage = serviceManager.sign(
                     algorithm = hmacParams(
-                        hash = hash
+                        hash = key.extractHash()
                     ),
                     key = key,
                     message = message
@@ -274,15 +273,51 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         )
     }
 
-    @RequiresDocumentation(
-        additionalNotes = "TO INSERT SINCE Revision Two"
-    )
+    /**
+     * Method used to verify the validity of the messages previously signed with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param message The message to verify
+     * @param signature The signature previously computed
+     *
+     * @return whether the message matches to [signature] as [Boolean]
+     *
+     * @since Revision Two
+     */
     actual suspend fun verify(
         alias: String,
         message: Any,
-        hmac: String,
+        signature: String,
     ): Boolean {
-        TODO("Not yet implemented")
+        val rawKey: RawCryptoKey = serviceManager.retrieveKeyData(
+            alias = alias
+        )
+        return serviceManager.useKey(
+            rawKey = rawKey.key,
+            rawKeyData = rawKey,
+            format = RAW,
+            usage = { key ->
+                serviceManager.verify(
+                    algorithm = hmacParams(
+                        hash = key.extractHash()
+                    ),
+                    key = key,
+                    signature = decode(signature),
+                    data = message.encodeForKeyOperation()
+                )
+            }
+        )
+    }
+
+    /**
+     * Method used to extract from the [CryptoKey] the `hash` function value. If the key were not generated to be used
+     * with hashing functions will throw an exception due the cast failure
+     *
+     * @return the hashing function attached to the key as [String]
+     */
+    @Returner
+    private fun CryptoKey.extractHash(): String {
+        return algorithm.unsafeCast<HmacKeyGenParams>().hash
     }
 
     /**

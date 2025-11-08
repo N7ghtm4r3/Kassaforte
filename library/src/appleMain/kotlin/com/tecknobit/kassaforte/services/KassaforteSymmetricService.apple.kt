@@ -2,7 +2,6 @@
 
 package com.tecknobit.kassaforte.services
 
-import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.equinoxcore.annotations.Validator
 import com.tecknobit.kassaforte.Kassaforte
@@ -242,7 +241,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     }
 
     /**
-     * Method used to sign data with the key specified by the [alias] value
+     * Method used to sign messages with the key specified by the [alias] value
      *
      * @param alias The alias which identify the key to use
      * @param message The message to sign
@@ -319,31 +318,39 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         }
     }
 
-    @RequiresDocumentation(
-        additionalNotes = "TO INSERT SINCE Revision Two"
-    )
+    /**
+     * Method used to verify the validity of the messages previously signed with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param message The message to verify
+     * @param signature The signature previously computed
+     *
+     * @return whether the message matches to [signature] as [Boolean]
+     *
+     * @since Revision Two
+     */
     actual suspend fun verify(
         alias: String,
         message: Any,
-        hmac: String,
+        signature: String,
     ): Boolean {
         val verification = sign(
             alias = alias,
             message = message
         )
         return verification.isEqual(
-            hmac = hmac
+            signature = signature
         )
     }
 
     /**
-     * Method used to compare the verification computed by the [verify] method with the specified [hmac].
+     * Method used to compare the verification computed by the [verify] method with the specified [signature].
      * This implementation follows the original adopted by the [MessageDigest.isEqual](https://docs.oracle.com/javase/8/docs/api/java/security/MessageDigest.html)
      * method, performing the comparison in constant time, avoiding early exits or
      * variable-time comparisons based on the number of matching bytes, ensuring the execution time
      * is independent of the message size
      *
-     * @param hmac The specified `HMAC` value to compare
+     * @param signature The specified signature value to compare
      *
      * @return whether the verification and the `HMAC` matches as [Boolean]
      *
@@ -351,11 +358,11 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
      */
     @Validator
     private fun String.isEqual(
-        hmac: String,
+        signature: String,
     ): Boolean {
         val digesta = decode(this)
         val lenA = digesta.size
-        val digestb = decode(hmac)
+        val digestb = decode(signature)
         val lenB = digestb.size
         if (lenB == 0)
             return lenA == 0
