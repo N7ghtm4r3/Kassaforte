@@ -1,6 +1,7 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
+import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.BlockMode
 import com.tecknobit.kassaforte.key.genspec.BlockMode.GCM
@@ -14,6 +15,7 @@ import com.tecknobit.kassaforte.util.decode
 import com.tecknobit.kassaforte.util.encode
 import com.tecknobit.kassaforte.util.encodeForKeyOperation
 import java.security.Key
+import java.security.MessageDigest
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.Mac
@@ -211,12 +213,43 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         alias: String,
         message: Any,
     ): String {
-        val signedData = useMac(
+        return signImpl(
             alias = alias,
             keyOperation = SIGN,
+            message = message
+        )
+    }
+
+    @RequiresDocumentation(
+        additionalNotes = "TO INSERT SINCE Revision Two"
+    )
+    actual suspend fun verify(
+        alias: String,
+        message: Any,
+        hmac: String,
+    ): Boolean {
+        val verification = signImpl(
+            alias = alias,
+            keyOperation = VERIFY,
+            message = message
+        )
+        return MessageDigest.isEqual(decode(hmac), decode(verification))
+    }
+
+    @RequiresDocumentation(
+        additionalNotes = "TO INSERT SINCE Revision Two"
+    )
+    private fun signImpl(
+        alias: String,
+        keyOperation: KeyOperation,
+        message: Any,
+    ): String {
+        val signedMessage = useMac(
+            alias = alias,
+            keyOperation = keyOperation,
             usage = { mac -> mac.doFinal(message.encodeForKeyOperation()) }
         )
-        return encode(signedData)
+        return encode(signedMessage)
     }
 
     /**

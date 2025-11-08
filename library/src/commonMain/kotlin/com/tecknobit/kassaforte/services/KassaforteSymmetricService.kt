@@ -1,5 +1,6 @@
 package com.tecknobit.kassaforte.services
 
+import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.BlockMode
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
@@ -93,6 +94,15 @@ expect object KassaforteSymmetricService: KassaforteKeysService<SymmetricKeyGenS
         alias: String,
         message: Any,
     ): String
+
+    @RequiresDocumentation(
+        additionalNotes = "TO INSERT SINCE Revision Two"
+    )
+    suspend fun verify(
+        alias: String,
+        message: Any,
+        hmac: String,
+    ): Boolean
 
     /**
      * Method used to delete a generated key

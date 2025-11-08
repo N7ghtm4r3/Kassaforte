@@ -3,6 +3,7 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
+import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.enums.ExportFormat.RAW
 import com.tecknobit.kassaforte.enums.Hash.Companion.resolveHash
@@ -261,16 +262,27 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             format = RAW,
             usage = { key ->
                 val hash = key.algorithm.unsafeCast<HmacKeyGenParams>().hash
-                val signedData = serviceManager.sign(
+                val signedMessage = serviceManager.sign(
                     algorithm = hmacParams(
                         hash = hash
                     ),
                     key = key,
                     message = message
                 ).toByteArray()
-                encode(signedData)
+                encode(signedMessage)
             }
         )
+    }
+
+    @RequiresDocumentation(
+        additionalNotes = "TO INSERT SINCE Revision Two"
+    )
+    actual suspend fun verify(
+        alias: String,
+        message: Any,
+        hmac: String,
+    ): Boolean {
+        TODO("Not yet implemented")
     }
 
     /**

@@ -2,6 +2,7 @@
 
 package com.tecknobit.kassaforte.services
 
+import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.Kassaforte
 import com.tecknobit.kassaforte.key.genspec.Algorithm
@@ -258,8 +259,8 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         )
         val key = keyInfo.key
         val algorithm = keyInfo.algorithm
-        val macOutRef = algorithm.resolveHMACOutRef()
-        macOutRef.usePinned { pinnedRef ->
+        val signedMessage = algorithm.resolveHMACOutRef()
+        signedMessage.usePinned { messageRef ->
             val messageData = message.encodeForKeyOperation()
             key.usePinned { pinnedKey ->
                 messageData.usePinned { pinnedMessage ->
@@ -270,12 +271,23 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
                         keyLength = key.size.toULong(),
                         data = pinnedMessage.addressOf(0),
                         dataLength = messageData.size.toULong(),
-                        macOut = pinnedRef.addressOf(0)
+                        macOut = messageRef.addressOf(0)
                     )
                 }
             }
         }
-        return encode(macOutRef)
+        return encode(signedMessage)
+    }
+
+    @RequiresDocumentation(
+        additionalNotes = "TO INSERT SINCE Revision Two"
+    )
+    actual suspend fun verify(
+        alias: String,
+        message: Any,
+        hmac: String,
+    ): Boolean {
+        TODO("Not yet implemented")
     }
 
     /**
