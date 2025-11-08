@@ -4,6 +4,7 @@ package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.equinoxcore.annotations.Returner
+import com.tecknobit.equinoxcore.annotations.Validator
 import com.tecknobit.kassaforte.Kassaforte
 import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.Algorithm.*
@@ -30,6 +31,7 @@ import kotlinx.serialization.json.Json
 import platform.CoreCrypto.*
 import platform.Security.SecRandomCopyBytes
 import platform.Security.kSecRandomDefault
+import kotlin.experimental.xor
 
 /**
  * The `KassaforteSymmetricService` class allows to generate and to use symmetric keys and managing their persistence.
@@ -279,17 +281,6 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         return encode(signedMessage)
     }
 
-    @RequiresDocumentation(
-        additionalNotes = "TO INSERT SINCE Revision Two"
-    )
-    actual suspend fun verify(
-        alias: String,
-        message: Any,
-        hmac: String,
-    ): Boolean {
-        TODO("Not yet implemented")
-    }
-
     /**
      * Method used to resolve the out reference where the output of the [sign] method could be written
      *
@@ -326,6 +317,55 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             HMAC_SHA512 -> kCCHmacAlgSHA512
             else -> throw IllegalArgumentException("Invalid algorithm to perform the sign")
         }
+    }
+
+    @RequiresDocumentation(
+        additionalNotes = "TO INSERT SINCE Revision Two"
+    )
+    actual suspend fun verify(
+        alias: String,
+        message: Any,
+        hmac: String,
+    ): Boolean {
+        val verification = sign(
+            alias = alias,
+            message = message
+        )
+        return verification.isEqual(
+            hmac = hmac
+        )
+    }
+
+    /**
+     * Method used to compare the verification computed by the [verify] method with the specified [hmac].
+     * This implementation follows the original adopted by the [MessageDigest.isEqual](https://docs.oracle.com/javase/8/docs/api/java/security/MessageDigest.html)
+     * method, performing the comparison in constant time, avoiding early exits or
+     * variable-time comparisons based on the number of matching bytes, ensuring the execution time
+     * is independent of the message size
+     *
+     * @param hmac The specified `HMAC` value to compare
+     *
+     * @return whether the verification and the `HMAC` matches as [Boolean]
+     *
+     * @since Revision Two
+     */
+    @Validator
+    private fun String.isEqual(
+        hmac: String,
+    ): Boolean {
+        val digesta = decode(this)
+        val lenA = digesta.size
+        val digestb = decode(hmac)
+        val lenB = digestb.size
+        if (lenB == 0)
+            return lenA == 0
+        var result = 0
+        result = result or (lenA - lenB)
+        for (j in digesta.indices) {
+            val indexB = ((j - lenB) ushr 31) * j
+            result = result or (digesta[j] xor digestb[indexB]).toInt()
+        }
+        return result == 0
     }
 
     /**
