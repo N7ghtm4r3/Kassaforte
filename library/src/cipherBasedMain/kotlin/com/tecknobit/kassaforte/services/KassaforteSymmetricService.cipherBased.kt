@@ -213,11 +213,11 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         alias: String,
         message: Any,
     ): String {
-        return signImpl(
+        val signedMessage = useMac(
             alias = alias,
-            keyOperation = SIGN,
-            message = message
+            usage = { mac -> mac.doFinal(message.encodeForKeyOperation()) }
         )
+        return encode(signedMessage)
     }
 
     @RequiresDocumentation(
@@ -228,35 +228,17 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         message: Any,
         hmac: String,
     ): Boolean {
-        val verification = signImpl(
+        val verification = sign(
             alias = alias,
-            keyOperation = VERIFY,
             message = message
         )
         return MessageDigest.isEqual(decode(hmac), decode(verification))
-    }
-
-    @RequiresDocumentation(
-        additionalNotes = "TO INSERT SINCE Revision Two"
-    )
-    private fun signImpl(
-        alias: String,
-        keyOperation: KeyOperation,
-        message: Any,
-    ): String {
-        val signedMessage = useMac(
-            alias = alias,
-            keyOperation = keyOperation,
-            usage = { mac -> mac.doFinal(message.encodeForKeyOperation()) }
-        )
-        return encode(signedMessage)
     }
 
     /**
      * Method used to work and to use a [Mac] instance to perform signing or verifying of the data
      *
      * @param alias The alias which identify the key to use
-     * @param keyOperation The operation the key have to perform
      * @param usage The routine the mac instance have to perform
      *
      * @return the message processed by the [Mac] instance as [ByteArray]
@@ -265,12 +247,11 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
      */
     private inline fun useMac(
         alias: String,
-        keyOperation: KeyOperation,
         crossinline usage: (Mac) -> ByteArray,
     ): ByteArray {
         val key = serviceImpl.getKey(
             alias = alias,
-            keyOperation = keyOperation
+            keyOperation = SIGN
         )
         val mac = Mac.getInstance(key.algorithm)
         mac.init(key)
