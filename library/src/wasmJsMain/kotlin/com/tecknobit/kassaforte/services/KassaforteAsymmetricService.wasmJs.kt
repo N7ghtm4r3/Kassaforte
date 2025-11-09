@@ -22,6 +22,7 @@ import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.helpers.KassaforteAsymmetricServiceManager
 import com.tecknobit.kassaforte.util.decode
 import com.tecknobit.kassaforte.util.encode
+import com.tecknobit.kassaforte.util.encodeForKeyOperation
 import com.tecknobit.kassaforte.wrappers.crypto.ecdsaParams
 import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.EcKeyGenParams
@@ -248,7 +249,25 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         signature: String,
         message: Any,
     ): Boolean {
-        TODO("Not yet implemented")
+        val rawCryptoKeyPair: RawCryptoKeyPair = serviceManager.retrieveKeyData(
+            alias = alias
+        )
+        return serviceManager.useKey(
+            rawKey = rawCryptoKeyPair.publicKey,
+            rawKeyData = rawCryptoKeyPair,
+            format = SPKI,
+            usages = rawCryptoKeyPair.publicKeyUsages,
+            usage = { key ->
+                serviceManager.verify(
+                    algorithm = key.resolveSignatureParams(
+                        digest = digest
+                    ),
+                    key = key,
+                    signature = decode(signature),
+                    data = message.encodeForKeyOperation()
+                )
+            }
+        )
     }
 
     /**
