@@ -397,7 +397,24 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         signature: String,
         message: Any,
     ): Boolean {
-        TODO("Not yet implemented")
+        return useKey(
+            alias = alias,
+            padding = RSA_PKCS1,
+            digest = digest,
+            usage = { key, algorithm ->
+                val signedData = message.encodeForKeyOperation()
+                val result = errorScoped { error ->
+                    SecKeyVerifySignature(
+                        key = key,
+                        algorithm = algorithm,
+                        signedData = signedData.toCFData(),
+                        signature = decode(signature).toCFData(),
+                        error = error.ptr
+                    )
+                }
+                result
+            }
+        )
     }
 
     /**
@@ -409,13 +426,15 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
      * @param usage The ciphering routine to perform
      *
      * @return the ciphered data as [ByteArray]
+     *
+     * @param T The type of the result obtained using the key
      */
-    private inline fun useKey(
+    private inline fun <reified T> useKey(
         alias: String,
         padding: EncryptionPadding?,
         digest: Digest?,
-        usage: (SecKeyRef, SecKeyAlgorithm) -> ByteArray,
-    ): ByteArray {
+        usage: (SecKeyRef, SecKeyAlgorithm) -> T,
+    ): T {
         val key = serviceManager.retrieveKey(
             alias = alias
         )
