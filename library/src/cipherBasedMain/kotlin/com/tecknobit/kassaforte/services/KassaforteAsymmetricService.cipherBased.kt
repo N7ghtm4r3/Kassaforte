@@ -228,7 +228,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         digest: Digest,
         message: Any,
     ): String {
-        return useSignature(
+        val signedMessage = useSignature(
             alias = alias,
             keyOperation = SIGN,
             digest = digest,
@@ -238,6 +238,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                 encode(sign())
             }
         )
+        return signedMessage
     }
 
     /**
@@ -258,7 +259,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         message: Any,
         signature: String,
     ): Boolean {
-        return useSignature(
+        val result = useSignature(
             alias = alias,
             keyOperation = VERIFY,
             digest = digest,
@@ -268,6 +269,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                 verify(decode(signature))
             }
         )
+        return result
     }
 
     /**

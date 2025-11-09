@@ -222,21 +222,22 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         val rawCryptoKeyPair: RawCryptoKeyPair = serviceManager.retrieveKeyData(
             alias = alias
         )
-        return serviceManager.useKey(
+        val signedMessage = serviceManager.useKey(
             rawKey = rawCryptoKeyPair.privateKey,
             rawKeyData = rawCryptoKeyPair,
             format = PKCS8,
             usage = { key ->
-                val signedMessage = serviceManager.sign(
+                val signature = serviceManager.sign(
                     algorithm = key.resolveSignatureParams(
                         digest = digest
                     ),
                     key = key,
                     message = message
                 ).toByteArray()
-                encode(signedMessage)
+                encode(signature)
             }
         )
+        return signedMessage
     }
 
     /**
@@ -260,7 +261,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         val rawCryptoKeyPair: RawCryptoKeyPair = serviceManager.retrieveKeyData(
             alias = alias
         )
-        return serviceManager.useKey(
+        val result = serviceManager.useKey(
             rawKey = rawCryptoKeyPair.publicKey,
             rawKeyData = rawCryptoKeyPair,
             format = SPKI,
@@ -276,6 +277,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                 )
             }
         )
+        return result
     }
 
     /**

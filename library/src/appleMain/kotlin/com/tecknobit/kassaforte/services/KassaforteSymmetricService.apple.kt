@@ -191,13 +191,14 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         val blockSize = blockMode.blockSize
         val iv = dataToDecrypt.copyOfRange(0, blockSize)
         val cipherText = dataToDecrypt.copyOfRange(blockSize, dataToDecrypt.size)
-        return useCipher(
+        val plainText = useCipher(
             alias = alias,
             keyOperation = DECRYPT,
             blockMode = blockMode,
             iv = iv,
             usage = { cipher -> cipher.decrypt(cipherText) }
-        ).decodeToString()
+        )
+        return plainText.decodeToString()
     }
 
     /**

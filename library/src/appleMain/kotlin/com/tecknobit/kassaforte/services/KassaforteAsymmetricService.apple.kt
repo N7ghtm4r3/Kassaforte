@@ -367,13 +367,13 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         digest: Digest,
         message: Any,
     ): String {
-        val signature = useKey(
+        val signedMessage = useKey(
             alias = alias,
             padding = RSA_PKCS1,
             digest = digest,
             usage = { key, algorithm ->
                 val dataToSign = message.encodeForKeyOperation()
-                val signedMessage = errorScoped { error ->
+                val signature = errorScoped { error ->
                     SecKeyCreateSignature(
                         key = key,
                         algorithm = algorithm,
@@ -381,10 +381,10 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                         error = error.ptr
                     )
                 }
-                signedMessage.toByteArray()
+                signature.toByteArray()
             }
         )
-        return encode(signature)
+        return encode(signedMessage)
     }
 
     /**
@@ -405,13 +405,13 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         message: Any,
         signature: String,
     ): Boolean {
-        return useKey(
+        val result = useKey(
             alias = alias,
             padding = RSA_PKCS1,
             digest = digest,
             usage = { key, algorithm ->
                 val signedData = message.encodeForKeyOperation()
-                val result = errorScoped { error ->
+                errorScoped { error ->
                     SecKeyVerifySignature(
                         key = key,
                         algorithm = algorithm,
@@ -420,9 +420,9 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                         error = error.ptr
                     )
                 }
-                result
             }
         )
+        return result
     }
 
     /**

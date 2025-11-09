@@ -256,21 +256,22 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         val rawKey: RawCryptoKey = serviceManager.retrieveKeyData(
             alias = alias
         )
-        return serviceManager.useKey(
+        val signedMessage = serviceManager.useKey(
             rawKey = rawKey.key,
             rawKeyData = rawKey,
             format = RAW,
             usage = { key ->
-                val signedMessage = serviceManager.sign(
+                val signature = serviceManager.sign(
                     algorithm = hmacParams(
                         hash = key.extractHash()
                     ),
                     key = key,
                     message = message
                 ).toByteArray()
-                encode(signedMessage)
+                encode(signature)
             }
         )
+        return signedMessage
     }
 
     /**
@@ -292,7 +293,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         val rawKey: RawCryptoKey = serviceManager.retrieveKeyData(
             alias = alias
         )
-        return serviceManager.useKey(
+        val result = serviceManager.useKey(
             rawKey = rawKey.key,
             rawKeyData = rawKey,
             format = RAW,
@@ -307,6 +308,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
                 )
             }
         )
+        return result
     }
 
     /**
