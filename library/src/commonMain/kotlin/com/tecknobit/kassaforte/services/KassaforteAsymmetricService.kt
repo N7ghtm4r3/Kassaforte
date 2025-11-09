@@ -1,5 +1,6 @@
 package com.tecknobit.kassaforte.services
 
+import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.kassaforte.key.genspec.*
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 
@@ -28,6 +29,17 @@ expect object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         keyGenSpec: AsymmetricKeyGenSpec,
         purposes: KeyPurposes,
     )
+
+    /**
+     * Method used to check whether the alias has been already taken to identify other key
+     *
+     * @param alias The alias to check
+     *
+     * @return whether the alias has been already taken as [Boolean]
+     */
+    override fun aliasExists(
+        alias: String,
+    ): Boolean
 
     /**
      * Method used to encrypt data with the key specified by the [alias] value
@@ -63,16 +75,14 @@ expect object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         data: String,
     ): String
 
-    /**
-     * Method used to check whether the alias has been already taken to identify other key
-     *
-     * @param alias The alias to check
-     *
-     * @return whether the alias has been already taken as [Boolean]
-     */
-    override fun aliasExists(
+    @RequiresDocumentation(
+        additionalNotes = "INSERT SINCE Revision Two"
+    )
+    suspend fun sign(
         alias: String,
-    ): Boolean
+        digest: Digest,
+        message: Any,
+    ): String
 
     /**
      * Method used to delete a generated key

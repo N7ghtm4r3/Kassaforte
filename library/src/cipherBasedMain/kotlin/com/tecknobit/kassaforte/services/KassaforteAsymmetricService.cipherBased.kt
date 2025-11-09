@@ -1,6 +1,7 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
+import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.genspec.Digest
@@ -8,8 +9,7 @@ import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.RSA_OAEP
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.RSA_PKCS1
 import com.tecknobit.kassaforte.key.usages.KeyOperation
-import com.tecknobit.kassaforte.key.usages.KeyOperation.DECRYPT
-import com.tecknobit.kassaforte.key.usages.KeyOperation.ENCRYPT
+import com.tecknobit.kassaforte.key.usages.KeyOperation.*
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.impls.KassaforteAsymmetricServiceImpl
 import com.tecknobit.kassaforte.util.checkIfIsSupportedCipherAlgorithm
@@ -21,6 +21,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.security.Key
 import java.security.KeyPairGenerator
+import java.security.PrivateKey
+import java.security.Signature
 import javax.crypto.Cipher
 
 /**
@@ -211,6 +213,38 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             else -> throw IllegalArgumentException("Invalid padding value")
         }
         return transformation
+    }
+
+    @RequiresDocumentation(
+        additionalNotes = "INSERT SINCE Revision Two"
+    )
+    actual suspend fun sign(
+        alias: String,
+        digest: Digest,
+        message: Any,
+    ): String {
+        val key = serviceImpl.getKey(
+            alias = alias,
+            keyOperation = SIGN
+        )
+        val signature = Signature.getInstance(key.algorithm).run {
+            initSign(key as PrivateKey)
+            update(message.encodeForKeyOperation())
+            sign()
+        }
+        return encode(signature)
+    }
+
+    @RequiresDocumentation(
+        additionalNotes = "INSERT SINCE Revision Two"
+    )
+    @Assembler
+    private fun resolveSignatureAlgorithm(
+        digest: Digest,
+        keyAlgorithm: String,
+    ): String {
+        val digest = digest.value
+        return digest + "with" + keyAlgorithm
     }
 
     /**

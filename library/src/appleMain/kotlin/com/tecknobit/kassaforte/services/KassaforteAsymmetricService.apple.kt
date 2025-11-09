@@ -3,6 +3,7 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
+import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.equinoxcore.annotations.Wrapper
 import com.tecknobit.kassaforte.enums.KeyType.Companion.toKeyType
@@ -371,6 +372,17 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             digest = digest
         ).algorithm!!
         return usage(key, algorithmType)
+    }
+
+    @RequiresDocumentation(
+        additionalNotes = "INSERT SINCE Revision Two"
+    )
+    actual suspend fun sign(
+        alias: String,
+        digest: Digest,
+        message: Any,
+    ): String {
+        TODO("Not yet implemented")
     }
 
     /**

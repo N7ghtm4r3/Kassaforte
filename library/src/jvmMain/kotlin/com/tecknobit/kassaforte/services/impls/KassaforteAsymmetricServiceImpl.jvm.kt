@@ -82,7 +82,9 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
     }
 
     /**
-     * Method used to get a key to perform a [keyOperation]
+     * Method used to get a key to perform a [keyOperation].
+     *
+     * Will be automatically returned the `private` or the `public` key based on the [keyOperation] to perform
      *
      * @param alias The alias of the key to get
      * @param keyOperation The operation for what the key is being getting

@@ -1,5 +1,8 @@
 package com.tecknobit.kassaforte.key.genspec
 
+import com.tecknobit.equinoxcore.annotations.Returner
+import com.tecknobit.kassaforte.key.genspec.Algorithm.*
+
 /**
  * These are the supported digests to use with generated keys
  *
@@ -46,6 +49,28 @@ enum class Digest(
     /**
      * `SHA512` the SHA-512 digest algorithm
      */
-    SHA512("SHA-512")
+    SHA512("SHA-512");
+
+    companion object {
+
+        /**
+         * Method used as mapper from [Algorithm] to corresponding [Digest] instance
+         *
+         * @return the digest digest value as [Digest]
+         *
+         * @since Revision Two
+         */
+        @Returner
+        fun Algorithm.resolveHash(): Digest {
+            return when (this) {
+                HMAC_SHA1 -> SHA1
+                HMAC_SHA256 -> SHA256
+                HMAC_SHA384 -> SHA384
+                HMAC_SHA512 -> SHA512
+                else -> throw IllegalArgumentException("No corresponding digest value with the provided algorithm")
+            }
+        }
+
+    }
 
 }

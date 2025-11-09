@@ -3,6 +3,7 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
+import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.enums.ExportFormat.PKCS8
 import com.tecknobit.kassaforte.enums.ExportFormat.SPKI
@@ -195,6 +196,17 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             }
         )
         return decryptedData
+    }
+
+    @RequiresDocumentation(
+        additionalNotes = "INSERT SINCE Revision Two"
+    )
+    actual suspend fun sign(
+        alias: String,
+        digest: Digest,
+        message: Any,
+    ): String {
+        TODO("Not yet implemented")
     }
 
     /**
