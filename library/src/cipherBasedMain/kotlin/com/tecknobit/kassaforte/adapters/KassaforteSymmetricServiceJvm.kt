@@ -104,6 +104,49 @@ object KassaforteSymmetricServiceJvm {
     }
 
     /**
+     * Method used to sign messages with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param message The message to sign
+     *
+     * @return the signed message as [String]
+     */
+    @Wrapper
+    @JvmStatic
+    fun sign(
+        alias: String,
+        message: Any,
+    ) = runBlocking {
+        KassaforteSymmetricService.sign(
+            alias = alias,
+            message = message
+        )
+    }
+
+    /**
+     * Method used to verify the validity of the messages previously signed with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param message The message to verify
+     * @param signature The signature previously computed
+     *
+     * @return whether the message matches to [signature] as [Boolean]
+     */
+    @Wrapper
+    @JvmStatic
+    fun verify(
+        alias: String,
+        message: Any,
+        signature: String,
+    ) = runBlocking {
+        KassaforteSymmetricService.verify(
+            alias = alias,
+            message = message,
+            signature = signature
+        )
+    }
+
+    /**
      * Method used to delete a generated key
      *
      * @param alias The alias of the key to delete
