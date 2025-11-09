@@ -2,6 +2,7 @@
 
 package com.tecknobit.kassaforte.enums
 
+import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.key.genspec.Digest
 import com.tecknobit.kassaforte.key.genspec.Digest.*
@@ -50,7 +51,32 @@ enum class SecKeyAlgorithmType(
     /**
      * `rsaEncryptionOAEPSHA512` RSA encryption using OAEP with SHA-512
      */
-    rsaEncryptionOAEPSHA512(kSecKeyAlgorithmRSAEncryptionOAEPSHA512);
+    rsaEncryptionOAEPSHA512(kSecKeyAlgorithmRSAEncryptionOAEPSHA512),
+
+    @RequiresDocumentation(
+        additionalNotes = "TO INSERT SINCE Revision Two"
+    )
+    rsaSignatureDigestPKCS1v15SHA1(kSecKeyAlgorithmRSASignatureDigestPKCS1v15SHA1),
+
+    @RequiresDocumentation(
+        additionalNotes = "TO INSERT SINCE Revision Two"
+    )
+    rsaSignatureDigestPKCS1v15SHA224(kSecKeyAlgorithmRSASignatureDigestPKCS1v15SHA224),
+
+    @RequiresDocumentation(
+        additionalNotes = "TO INSERT SINCE Revision Two"
+    )
+    rsaSignatureDigestPKCS1v15SHA256(kSecKeyAlgorithmRSASignatureDigestPKCS1v15SHA256),
+
+    @RequiresDocumentation(
+        additionalNotes = "TO INSERT SINCE Revision Two"
+    )
+    rsaSignatureDigestPKCS1v15SHA384(kSecKeyAlgorithmRSASignatureDigestPKCS1v15SHA384),
+
+    @RequiresDocumentation(
+        additionalNotes = "TO INSERT SINCE Revision Two"
+    )
+    rsaSignatureDigestPKCS1v15SHA512(kSecKeyAlgorithmRSASignatureDigestPKCS1v15SHA512);
 
     companion object {
 
@@ -69,7 +95,16 @@ enum class SecKeyAlgorithmType(
             digest: Digest? = null,
         ): SecKeyAlgorithmType {
             return when (this) {
-                RSA_PKCS1 -> rsaEncryptionPKCS1
+                RSA_PKCS1 -> {
+                    when (digest) {
+                        SHA1 -> rsaSignatureDigestPKCS1v15SHA1
+                        SHA224 -> rsaSignatureDigestPKCS1v15SHA224
+                        SHA256 -> rsaSignatureDigestPKCS1v15SHA256
+                        SHA384 -> rsaSignatureDigestPKCS1v15SHA384
+                        SHA512 -> rsaSignatureDigestPKCS1v15SHA512
+                        else -> rsaEncryptionPKCS1
+                    }
+                }
                 RSA_OAEP -> {
                     when (digest) {
                         SHA1 -> rsaEncryptionOAEPSHA1

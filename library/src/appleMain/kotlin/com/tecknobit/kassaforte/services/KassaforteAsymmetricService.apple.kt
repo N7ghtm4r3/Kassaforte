@@ -12,6 +12,7 @@ import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.genspec.Digest
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
+import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.RSA_PKCS1
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.helpers.KassaforteAsymmetricServiceManager
 import com.tecknobit.kassaforte.util.*
@@ -349,6 +350,34 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         return decryptedData.decodeToString()
     }
 
+    @RequiresDocumentation(
+        additionalNotes = "INSERT SINCE Revision Two"
+    )
+    actual suspend fun sign(
+        alias: String,
+        digest: Digest,
+        message: Any,
+    ): String {
+        val signature = useKey(
+            alias = alias,
+            padding = RSA_PKCS1,
+            digest = digest,
+            usage = { key, algorithm ->
+                val dataToSign = message.encodeForKeyOperation()
+                val signedData = errorScoped { error ->
+                    SecKeyCreateSignature(
+                        key = key,
+                        algorithm = algorithm,
+                        dataToSign = dataToSign.toCFData(),
+                        error = error.ptr
+                    )
+                }
+                signedData.toByteArray()
+            }
+        )
+        return encode(signature)
+    }
+
     /**
      * Method used to work and to use a key (private or public) to perform encryption or decryption of the data
      *
@@ -372,17 +401,6 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             digest = digest
         ).algorithm!!
         return usage(key, algorithmType)
-    }
-
-    @RequiresDocumentation(
-        additionalNotes = "INSERT SINCE Revision Two"
-    )
-    actual suspend fun sign(
-        alias: String,
-        digest: Digest,
-        message: Any,
-    ): String {
-        TODO("Not yet implemented")
     }
 
     /**
