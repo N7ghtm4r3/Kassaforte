@@ -3,6 +3,7 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
+import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.equinoxcore.annotations.Wrapper
 import com.tecknobit.kassaforte.enums.KeyType.Companion.toKeyType
@@ -385,6 +386,18 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             }
         )
         return encode(signature)
+    }
+
+    @RequiresDocumentation(
+        additionalNotes = "INSERT SINCE Revision Two"
+    )
+    actual suspend fun verify(
+        alias: String,
+        digest: Digest,
+        signature: String,
+        message: Any,
+    ): Boolean {
+        TODO("Not yet implemented")
     }
 
     /**

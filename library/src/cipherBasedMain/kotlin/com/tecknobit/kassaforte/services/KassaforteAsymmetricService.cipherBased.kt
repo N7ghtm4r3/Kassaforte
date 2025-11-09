@@ -1,6 +1,7 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
+import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.kassaforte.ECDSA
 import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
@@ -19,10 +20,7 @@ import com.tecknobit.kassaforte.util.encodeForKeyOperation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.security.Key
-import java.security.KeyPairGenerator
-import java.security.PrivateKey
-import java.security.Signature
+import java.security.*
 import javax.crypto.Cipher
 
 /**
@@ -231,20 +229,58 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         digest: Digest,
         message: Any,
     ): String {
+        return useSignature(
+            alias = alias,
+            keyOperation = SIGN,
+            digest = digest,
+            usage = { key ->
+                initSign(key as PrivateKey)
+                update(message.encodeForKeyOperation())
+                encode(sign())
+            }
+        )
+    }
+
+    @RequiresDocumentation(
+        additionalNotes = "INSERT SINCE Revision Two"
+    )
+    actual suspend fun verify(
+        alias: String,
+        digest: Digest,
+        signature: String,
+        message: Any,
+    ): Boolean {
+        return useSignature(
+            alias = alias,
+            keyOperation = VERIFY,
+            digest = digest,
+            usage = { key ->
+                initVerify(key as PublicKey)
+                update(message.encodeForKeyOperation())
+                verify(decode(signature))
+            }
+        )
+    }
+
+    @RequiresDocumentation(
+        additionalNotes = "INSERT SINCE Revision Two"
+    )
+    private inline fun <reified T> useSignature(
+        alias: String,
+        keyOperation: KeyOperation,
+        digest: Digest,
+        usage: Signature.(Key) -> T,
+    ): T {
         val key = serviceImpl.getKey(
             alias = alias,
-            keyOperation = SIGN
+            keyOperation = keyOperation
         )
         val signatureAlgorithm = resolveSignatureAlgorithm(
             digest = digest,
             keyAlgorithm = key.algorithm
         )
-        val signature = Signature.getInstance(signatureAlgorithm).run {
-            initSign(key as PrivateKey)
-            update(message.encodeForKeyOperation())
-            sign()
-        }
-        return encode(signature)
+        val signature = Signature.getInstance(signatureAlgorithm)
+        return usage(signature, key)
     }
 
     /**
