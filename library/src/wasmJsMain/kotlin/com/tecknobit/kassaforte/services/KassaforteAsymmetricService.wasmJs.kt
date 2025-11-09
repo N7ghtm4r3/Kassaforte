@@ -9,6 +9,7 @@ import com.tecknobit.kassaforte.enums.ExportFormat.PKCS8
 import com.tecknobit.kassaforte.enums.ExportFormat.SPKI
 import com.tecknobit.kassaforte.enums.NamedCurve.Companion.toNamedCurve
 import com.tecknobit.kassaforte.enums.RsaAlgorithmName.Companion.toRsaAlgorithmName
+import com.tecknobit.kassaforte.enums.RsaAlgorithmName.RSASSA_PKCS1_v1_5
 import com.tecknobit.kassaforte.helpers.asPlainText
 import com.tecknobit.kassaforte.helpers.toByteArray
 import com.tecknobit.kassaforte.key.genspec.Algorithm
@@ -21,11 +22,15 @@ import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.helpers.KassaforteAsymmetricServiceManager
 import com.tecknobit.kassaforte.util.decode
 import com.tecknobit.kassaforte.util.encode
+import com.tecknobit.kassaforte.wrappers.crypto.ecdsaParams
+import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.EcKeyGenParams
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.KeyGenSpec
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.RsaHashedKeyGenParams
 import com.tecknobit.kassaforte.wrappers.crypto.key.raw.RawCryptoKeyPair
+import com.tecknobit.kassaforte.wrappers.crypto.params.EncryptionParams
 import com.tecknobit.kassaforte.wrappers.crypto.rsaOaepParams
+import com.tecknobit.kassaforte.wrappers.crypto.rsaPKCS1Params
 
 /**
  * The `KassaforteAsymmetricService` class allows to generate and to use asymmetric keys and managing their persistence.
@@ -209,15 +214,38 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         val rawCryptoKeyPair: RawCryptoKeyPair = serviceManager.retrieveKeyData(
             alias = alias
         )
-        val signedMessage = serviceManager.useKey(
+        return serviceManager.useKey(
             rawKey = rawCryptoKeyPair.privateKey,
             rawKeyData = rawCryptoKeyPair,
             format = PKCS8,
             usage = { key ->
-
+                val signedMessage = serviceManager.sign(
+                    algorithm = key.resolveSignatureParams(
+                        digest = digest
+                    ),
+                    key = key,
+                    message = message
+                ).toByteArray()
+                encode(signedMessage)
             }
         )
-        return ""
+    }
+
+    @RequiresDocumentation(
+        additionalNotes = "INSERT INTO Revision Two"
+    )
+    @Returner
+    private fun CryptoKey.resolveSignatureParams(
+        digest: Digest,
+    ): EncryptionParams {
+        val algorithm = algorithm.name
+        return if (algorithm.contains(RSASSA_PKCS1_v1_5.value))
+            rsaPKCS1Params()
+        else {
+            ecdsaParams(
+                hash = digest.value
+            )
+        }
     }
 
     /**

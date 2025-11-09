@@ -3,6 +3,7 @@
 package com.tecknobit.kassaforte.wrappers.crypto
 
 import com.tecknobit.equinoxcore.annotations.Assembler
+import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.KeyGenSpec
@@ -263,6 +264,39 @@ external fun aesGcmParams(
 )
 @Assembler
 external fun rsaOaepParams(): EncryptionParams
+
+@RequiresDocumentation(
+    additionalNotes = "INSERT SINCE Revision Two"
+)
+@JsFun(
+    """
+    (name) => (
+       {
+          name: "RSASSA-PKCS1-v1_5"
+       }
+    )   
+    """
+)
+@Assembler
+external fun rsaPKCS1Params(): EncryptionParams
+
+@RequiresDocumentation(
+    additionalNotes = "INSERT SINCE Revision Two"
+)
+@JsFun(
+    """
+    (hash) => (
+       {
+          name: "ECDSA",
+          hash: hash
+       }
+    )   
+    """
+)
+@Assembler
+external fun ecdsaParams(
+    hash: String,
+): EcdsaParams
 
 /**
  * Method used to assemble the parameters to use with `HMAC` algorithm and associated hash function
