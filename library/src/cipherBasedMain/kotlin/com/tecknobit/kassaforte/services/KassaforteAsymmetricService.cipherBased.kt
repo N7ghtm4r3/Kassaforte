@@ -227,7 +227,11 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             alias = alias,
             keyOperation = SIGN
         )
-        val signature = Signature.getInstance(key.algorithm).run {
+        val signatureAlgorithm = resolveSignatureAlgorithm(
+            digest = digest,
+            keyAlgorithm = key.algorithm
+        )
+        val signature = Signature.getInstance(signatureAlgorithm).run {
             initSign(key as PrivateKey)
             update(message.encodeForKeyOperation())
             sign()
@@ -243,8 +247,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         digest: Digest,
         keyAlgorithm: String,
     ): String {
-        val digest = digest.value
-        return digest + "with" + keyAlgorithm
+        return "${digest.name}with$keyAlgorithm"
     }
 
     /**

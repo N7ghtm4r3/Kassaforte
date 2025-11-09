@@ -3,6 +3,7 @@ package com.tecknobit.kassaforte.services.impls
 import android.os.Build.VERSION.SDK_INT
 import android.os.Build.VERSION_CODES.P
 import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyProperties.SIGNATURE_PADDING_RSA_PKCS1
 import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.key.genspec.Algorithm
@@ -13,7 +14,8 @@ import com.tecknobit.kassaforte.key.genspec.Digest
 import com.tecknobit.kassaforte.key.genspec.Digest.SHA1
 import com.tecknobit.kassaforte.key.genspec.Digest.SHA256
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
-import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.*
+import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.RSA_OAEP
+import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.RSA_PKCS1
 import com.tecknobit.kassaforte.key.usages.KeyOperation
 import com.tecknobit.kassaforte.key.usages.KeyOperation.Companion.checkIfRequiresPublicKey
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
@@ -70,7 +72,8 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
             setupGenSpec(
                 algorithm = algorithm,
                 padding = keyGenSpec.encryptionPadding,
-                digest = keyGenSpec.digest
+                digest = keyGenSpec.digest,
+                keyPurposes = purposes
             )
         }
         keyPairGenerator.initialize(genSpec)
@@ -83,6 +86,7 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
      * @param algorithm The algorithm the key will use
      * @param padding The padding to apply to encrypt data
      * @param digest The digest to apply to encrypt data
+     * @param keyPurposes The purposes the key can be used
      *
      * @return the key generation spec as [KeyGenParameterSpec]
      *
@@ -93,6 +97,7 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
         algorithm: Algorithm,
         padding: EncryptionPadding,
         digest: Digest?,
+        keyPurposes: KeyPurposes,
     ): KeyGenParameterSpec {
         return when (algorithm) {
             EC -> {
@@ -102,13 +107,13 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
             }
 
             RSA -> {
-                if (padding == NONE)
-                    throw IllegalArgumentException("For RSA must be used PKCS1Padding or OAEPPadding padding type")
                 when (padding) {
                     RSA_PKCS1 -> {
                         digest?.let {
                             setDigests(digest.value)
                         }
+                        if (keyPurposes.canSign || keyPurposes.canVerify)
+                            setSignaturePaddings(SIGNATURE_PADDING_RSA_PKCS1)
                     }
 
                     RSA_OAEP -> {
@@ -122,8 +127,7 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
                         } else
                             setDigests(SHA1.value)
                     }
-
-                    else -> throw IllegalArgumentException("Invalid padding to apply with the RSA algorithm")
+                    else -> {}
                 }
                 setEncryptionPaddings(padding.value)
             }
