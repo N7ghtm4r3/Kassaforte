@@ -1,7 +1,6 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
-import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.kassaforte.ECDSA
 import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
@@ -188,7 +187,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     }
 
     /**
-     * Method used to resolve the transformation value to obtain a cipher instance
+     * Method used to resolve the transformation value to obtain a [Cipher] instance
      *
      * @param algorithm The algorithm to use
      * @param padding The padding to apply to ciphering data
@@ -216,9 +215,17 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         return transformation
     }
 
-    @RequiresDocumentation(
-        additionalNotes = "INSERT SINCE Revision Two"
-    )
+    /**
+     * Method used to sign messages with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param digest The digest to apply to sign messages
+     * @param message The message to sign
+     *
+     * @return the signed message as [String]
+     *
+     * @since Revision Two
+     */
     actual suspend fun sign(
         alias: String,
         digest: Digest,
@@ -240,9 +247,14 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         return encode(signature)
     }
 
-    @RequiresDocumentation(
-        additionalNotes = "INSERT SINCE Revision Two"
-    )
+    /**
+     * Method used to resolve the signature algorithm to obtain a [Signature] instance
+     *
+     * @param digest The digest to apply to sign messages
+     * @param keyAlgorithm The algorithm to use to sign messages
+     *
+     * @return the signature algorithm as [String]
+     */
     @Assembler
     private fun resolveSignatureAlgorithm(
         digest: Digest,

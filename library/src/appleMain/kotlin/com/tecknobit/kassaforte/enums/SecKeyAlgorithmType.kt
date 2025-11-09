@@ -2,7 +2,6 @@
 
 package com.tecknobit.kassaforte.enums
 
-import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.key.genspec.Digest
 import com.tecknobit.kassaforte.key.genspec.Digest.*
@@ -53,54 +52,74 @@ enum class SecKeyAlgorithmType(
      */
     rsaEncryptionOAEPSHA512(kSecKeyAlgorithmRSAEncryptionOAEPSHA512),
 
-    @RequiresDocumentation(
-        additionalNotes = "TO INSERT SINCE Revision Two"
-    )
+    /**
+     * `rsaSignatureMessagePKCS1v15SHA1` RSA signature using PKCS1v15 with SHA-1
+     *
+     * @since Revision Two
+     */
     rsaSignatureMessagePKCS1v15SHA1(kSecKeyAlgorithmRSASignatureMessagePKCS1v15SHA1),
 
-    @RequiresDocumentation(
-        additionalNotes = "TO INSERT SINCE Revision Two"
-    )
+    /**
+     * `rsaSignatureMessagePKCS1v15SHA224` RSA signature using PKCS1v15 with SHA-224
+     *
+     * @since Revision Two
+     */
     rsaSignatureMessagePKCS1v15SHA224(kSecKeyAlgorithmRSASignatureMessagePKCS1v15SHA224),
 
-    @RequiresDocumentation(
-        additionalNotes = "TO INSERT SINCE Revision Two"
-    )
+    /**
+     * `rsaSignatureMessagePKCS1v15SHA256` RSA signature using PKCS1v15 with SHA-256
+     *
+     * @since Revision Two
+     */
     rsaSignatureMessagePKCS1v15SHA256(kSecKeyAlgorithmRSASignatureMessagePKCS1v15SHA256),
 
-    @RequiresDocumentation(
-        additionalNotes = "TO INSERT SINCE Revision Two"
-    )
+    /**
+     * `rsaSignatureMessagePKCS1v15SHA384` RSA signature using PKCS1v15 with SHA-384
+     *
+     * @since Revision Two
+     */
     rsaSignatureMessagePKCS1v15SHA384(kSecKeyAlgorithmRSASignatureMessagePKCS1v15SHA384),
 
-    @RequiresDocumentation(
-        additionalNotes = "TO INSERT SINCE Revision Two"
-    )
+    /**
+     * `rsaSignatureMessagePKCS1v15SHA512` RSA signature using PKCS1v15 with SHA-512
+     *
+     * @since Revision Two
+     */
     rsaSignatureMessagePKCS1v15SHA512(kSecKeyAlgorithmRSASignatureMessagePKCS1v15SHA512),
 
-    @RequiresDocumentation(
-        additionalNotes = "TO INSERT SINCE Revision Two"
-    )
+    /**
+     * `ecdsaSignatureMessageX962SHA1` ECDSA signature using `X962` with SHA-1
+     *
+     * @since Revision Two
+     */
     ecdsaSignatureMessageX962SHA1(kSecKeyAlgorithmECDSASignatureMessageX962SHA1),
 
-    @RequiresDocumentation(
-        additionalNotes = "TO INSERT SINCE Revision Two"
-    )
+    /**
+     * `ecdsaSignatureMessageX962SHA224` ECDSA signature using `X962` with SHA-224
+     *
+     * @since Revision Two
+     */
     ecdsaSignatureMessageX962SHA224(kSecKeyAlgorithmECDSASignatureMessageX962SHA224),
 
-    @RequiresDocumentation(
-        additionalNotes = "TO INSERT SINCE Revision Two"
-    )
+    /**
+     * `ecdsaSignatureMessageX962SHA256` ECDSA signature using `X962` with SHA-256
+     *
+     * @since Revision Two
+     */
     ecdsaSignatureMessageX962SHA256(kSecKeyAlgorithmECDSASignatureMessageX962SHA256),
 
-    @RequiresDocumentation(
-        additionalNotes = "TO INSERT SINCE Revision Two"
-    )
+    /**
+     * `ecdsaSignatureMessageX962SHA256` ECDSA signature using `X962` with SHA-384
+     *
+     * @since Revision Two
+     */
     ecdsaSignatureMessageX962SHA384(kSecKeyAlgorithmECDSASignatureMessageX962SHA384),
 
-    @RequiresDocumentation(
-        additionalNotes = "TO INSERT SINCE Revision Two"
-    )
+    /**
+     * `ecdsaSignatureMessageX962SHA512` ECDSA signature using `X962` with SHA-512
+     *
+     * @since Revision Two
+     */
     ecdsaSignatureMessageX962SHA512(kSecKeyAlgorithmECDSASignatureMessageX962SHA512);
 
     companion object {
@@ -108,7 +127,7 @@ enum class SecKeyAlgorithmType(
         /**
          * Method used to convert an [EncryptionPadding] value to the related [SecKeyAlgorithmType]
          *
-         * @param digest The digest value required when is the [EncryptionPadding.RSA_OAEP] mode
+         * @param digest The digest value
          *
          * @return the security key algorithm type as [SecKeyAlgorithmType]
          *

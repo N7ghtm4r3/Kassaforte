@@ -3,7 +3,6 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
-import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.enums.ExportFormat.PKCS8
 import com.tecknobit.kassaforte.enums.ExportFormat.SPKI
@@ -203,9 +202,17 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         return decryptedData
     }
 
-    @RequiresDocumentation(
-        additionalNotes = "INSERT SINCE Revision Two"
-    )
+    /**
+     * Method used to sign messages with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param digest The digest to apply to sign messages
+     * @param message The message to sign
+     *
+     * @return the signed message as [String]
+     *
+     * @since Revision Two
+     */
     actual suspend fun sign(
         alias: String,
         digest: Digest,
@@ -231,9 +238,13 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         )
     }
 
-    @RequiresDocumentation(
-        additionalNotes = "INSERT INTO Revision Two"
-    )
+    /**
+     * Method used to resolve the signature params to use to sign or verify the messages
+     *
+     * @param digest The digest to apply to sign or verify messages
+     *
+     * @return the signature params as [EncryptionParams]
+     */
     @Returner
     private fun CryptoKey.resolveSignatureParams(
         digest: Digest,

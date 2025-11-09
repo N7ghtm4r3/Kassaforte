@@ -1,6 +1,5 @@
 package com.tecknobit.kassaforte.services
 
-import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.kassaforte.key.genspec.*
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 
@@ -75,9 +74,17 @@ expect object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         data: String,
     ): String
 
-    @RequiresDocumentation(
-        additionalNotes = "INSERT SINCE Revision Two"
-    )
+    /**
+     * Method used to sign messages with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param digest The digest to apply to sign messages
+     * @param message The message to sign
+     *
+     * @return the signed message as [String]
+     *
+     * @since Revision Two
+     */
     suspend fun sign(
         alias: String,
         digest: Digest,

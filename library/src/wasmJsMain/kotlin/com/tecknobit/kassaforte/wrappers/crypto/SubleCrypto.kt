@@ -3,7 +3,6 @@
 package com.tecknobit.kassaforte.wrappers.crypto
 
 import com.tecknobit.equinoxcore.annotations.Assembler
-import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.KeyGenSpec
@@ -265,9 +264,13 @@ external fun aesGcmParams(
 @Assembler
 external fun rsaOaepParams(): EncryptionParams
 
-@RequiresDocumentation(
-    additionalNotes = "INSERT SINCE Revision Two"
-)
+/**
+ * Method used to assemble the parameters to use with `RSASSA-PKCS1-v1_5` algorithm
+ *
+ * @return the `RSASSA-PKCS1-v1_5` params as [EncryptionParams]
+ *
+ * @since Revision Two
+ */
 @JsFun(
     """
     (name) => (
@@ -280,9 +283,15 @@ external fun rsaOaepParams(): EncryptionParams
 @Assembler
 external fun rsaPKCS1Params(): EncryptionParams
 
-@RequiresDocumentation(
-    additionalNotes = "INSERT SINCE Revision Two"
-)
+/**
+ * Method used to assemble the parameters to use with `ECDSA` algorithm
+ *
+ * @param hash The hashing function to use to sign or verify messages
+ *
+ * @return the `ECDSA` params as [EncryptionParams]
+ *
+ * @since Revision Two
+ */
 @JsFun(
     """
     (hash) => (
@@ -301,7 +310,11 @@ external fun ecdsaParams(
 /**
  * Method used to assemble the parameters to use with `HMAC` algorithm and associated hash function
  *
+ * @param hash The hashing function to use to sign or verify messages
+ *
  * @return the `HMAC` params as [HmacParams]
+ *
+ * @since Revision Two
  */
 @JsFun(
     """

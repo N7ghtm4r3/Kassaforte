@@ -1,12 +1,20 @@
 package com.tecknobit.kassaforte.wrappers.crypto.params
 
-import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
-
-@RequiresDocumentation(
-    additionalNotes = "INSERT SINCE Revision Two"
-)
+/**
+ * The `EcdsaParams` interface provides the basic information how to use the key to sign or verify the messages
+ *
+ * @author Tecknobit - N7ghtm4r3
+ *
+ * @see JsAny
+ * @see EncryptionParams
+ *
+ * @since Revision Two
+ */
 external interface EcdsaParams : EncryptionParams {
 
+    /**
+     * `hash` the hashing function to use to sign messages
+     */
     val hash: String
 
 }
