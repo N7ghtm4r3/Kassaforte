@@ -1,7 +1,6 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
-import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.kassaforte.ECDSA
 import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
@@ -241,14 +240,23 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         )
     }
 
-    @RequiresDocumentation(
-        additionalNotes = "INSERT SINCE Revision Two"
-    )
+    /**
+     * Method used to verify the validity of the messages previously signed with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param digest The digest applied to sign [message]
+     * @param message The message to verify
+     * @param signature The signature previously computed
+     *
+     * @return whether the message matches to [signature] as [Boolean]
+     *
+     * @since Revision Two
+     */
     actual suspend fun verify(
         alias: String,
         digest: Digest,
-        signature: String,
         message: Any,
+        signature: String,
     ): Boolean {
         return useSignature(
             alias = alias,
@@ -262,9 +270,20 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         )
     }
 
-    @RequiresDocumentation(
-        additionalNotes = "INSERT SINCE Revision Two"
-    )
+    /**
+     * Method used to work and to use a [Signature] instance to perform signing or verifying of the messages
+     *
+     * @param alias The alias which identify the key to use
+     * @param keyOperation The operation the key have to perform
+     * @param digest The digest to apply to sign or verifying messages
+     * @param usage The routine the signature instance have to perform
+     *
+     * @return the result from [usage] as [T]
+     *
+     * @param T The type of the result obtained using the signature instance
+     *
+     * @since Revision Two
+     */
     private inline fun <reified T> useSignature(
         alias: String,
         keyOperation: KeyOperation,

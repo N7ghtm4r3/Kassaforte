@@ -3,7 +3,6 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
-import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.equinoxcore.annotations.Wrapper
 import com.tecknobit.kassaforte.enums.KeyType.Companion.toKeyType
@@ -388,14 +387,23 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         return encode(signature)
     }
 
-    @RequiresDocumentation(
-        additionalNotes = "INSERT SINCE Revision Two"
-    )
+    /**
+     * Method used to verify the validity of the messages previously signed with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param digest The digest applied to sign [message]
+     * @param message The message to verify
+     * @param signature The signature previously computed
+     *
+     * @return whether the message matches to [signature] as [Boolean]
+     *
+     * @since Revision Two
+     */
     actual suspend fun verify(
         alias: String,
         digest: Digest,
-        signature: String,
         message: Any,
+        signature: String,
     ): Boolean {
         return useKey(
             alias = alias,
@@ -425,7 +433,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
      * @param digest The digest to apply to ciphering data
      * @param usage The ciphering routine to perform
      *
-     * @return the ciphered data as [ByteArray]
+     * @return the result from [usage] as [T]
      *
      * @param T The type of the result obtained using the key
      */

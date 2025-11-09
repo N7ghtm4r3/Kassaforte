@@ -3,7 +3,6 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
-import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.enums.ExportFormat.PKCS8
 import com.tecknobit.kassaforte.enums.ExportFormat.SPKI
@@ -240,14 +239,23 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         )
     }
 
-    @RequiresDocumentation(
-        additionalNotes = "INSERT SINCE Revision Two"
-    )
+    /**
+     * Method used to verify the validity of the messages previously signed with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param digest The digest applied to sign [message]
+     * @param message The message to verify
+     * @param signature The signature previously computed
+     *
+     * @return whether the message matches to [signature] as [Boolean]
+     *
+     * @since Revision Two
+     */
     actual suspend fun verify(
         alias: String,
         digest: Digest,
-        signature: String,
         message: Any,
+        signature: String,
     ): Boolean {
         val rawCryptoKeyPair: RawCryptoKeyPair = serviceManager.retrieveKeyData(
             alias = alias
