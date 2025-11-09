@@ -104,6 +104,59 @@ object KassaforteAsymmetricServiceJvm {
     }
 
     /**
+     * Method used to sign messages with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param digest The digest to apply to sign messages
+     * @param message The message to sign
+     *
+     * @return the signed message as [String]
+     *
+     * @since Revision Two
+     */
+    @Wrapper
+    @JvmStatic
+    fun sign(
+        alias: String,
+        digest: Digest,
+        message: Any,
+    ) = runBlocking {
+        KassaforteAsymmetricService.sign(
+            alias = alias,
+            digest = digest,
+            message = message
+        )
+    }
+
+    /**
+     * Method used to verify the validity of the messages previously signed with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param digest The digest applied to sign [message]
+     * @param message The message to verify
+     * @param signature The signature previously computed
+     *
+     * @return whether the message matches to [signature] as [Boolean]
+     *
+     * @since Revision Two
+     */
+    @Wrapper
+    @JvmStatic
+    fun verify(
+        alias: String,
+        digest: Digest,
+        message: Any,
+        signature: String,
+    ) = runBlocking {
+        KassaforteAsymmetricService.verify(
+            alias = alias,
+            digest = digest,
+            message = message,
+            signature = signature
+        )
+    }
+
+    /**
      * Method used to delete a generated key
      *
      * @param alias The alias of the key to delete
