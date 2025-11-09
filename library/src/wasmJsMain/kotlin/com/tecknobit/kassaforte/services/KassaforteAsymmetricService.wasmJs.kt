@@ -206,7 +206,18 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         digest: Digest,
         message: Any,
     ): String {
-        TODO("Not yet implemented")
+        val rawCryptoKeyPair: RawCryptoKeyPair = serviceManager.retrieveKeyData(
+            alias = alias
+        )
+        val signedMessage = serviceManager.useKey(
+            rawKey = rawCryptoKeyPair.privateKey,
+            rawKeyData = rawCryptoKeyPair,
+            format = PKCS8,
+            usage = { key ->
+
+            }
+        )
+        return ""
     }
 
     /**

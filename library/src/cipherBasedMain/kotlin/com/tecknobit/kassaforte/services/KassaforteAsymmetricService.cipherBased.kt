@@ -2,6 +2,7 @@ package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
+import com.tecknobit.kassaforte.ECDSA
 import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.genspec.Digest
@@ -247,7 +248,11 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         digest: Digest,
         keyAlgorithm: String,
     ): String {
-        return "${digest.name}with$keyAlgorithm"
+        val algorithm = if (keyAlgorithm == Algorithm.EC.value)
+            ECDSA
+        else
+            keyAlgorithm
+        return "${digest.name}with$algorithm"
     }
 
     /**

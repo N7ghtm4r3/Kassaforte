@@ -56,27 +56,52 @@ enum class SecKeyAlgorithmType(
     @RequiresDocumentation(
         additionalNotes = "TO INSERT SINCE Revision Two"
     )
-    rsaSignatureDigestPKCS1v15SHA1(kSecKeyAlgorithmRSASignatureDigestPKCS1v15SHA1),
+    rsaSignatureMessagePKCS1v15SHA1(kSecKeyAlgorithmRSASignatureMessagePKCS1v15SHA1),
 
     @RequiresDocumentation(
         additionalNotes = "TO INSERT SINCE Revision Two"
     )
-    rsaSignatureDigestPKCS1v15SHA224(kSecKeyAlgorithmRSASignatureDigestPKCS1v15SHA224),
+    rsaSignatureMessagePKCS1v15SHA224(kSecKeyAlgorithmRSASignatureMessagePKCS1v15SHA224),
 
     @RequiresDocumentation(
         additionalNotes = "TO INSERT SINCE Revision Two"
     )
-    rsaSignatureDigestPKCS1v15SHA256(kSecKeyAlgorithmRSASignatureDigestPKCS1v15SHA256),
+    rsaSignatureMessagePKCS1v15SHA256(kSecKeyAlgorithmRSASignatureMessagePKCS1v15SHA256),
 
     @RequiresDocumentation(
         additionalNotes = "TO INSERT SINCE Revision Two"
     )
-    rsaSignatureDigestPKCS1v15SHA384(kSecKeyAlgorithmRSASignatureDigestPKCS1v15SHA384),
+    rsaSignatureMessagePKCS1v15SHA384(kSecKeyAlgorithmRSASignatureMessagePKCS1v15SHA384),
 
     @RequiresDocumentation(
         additionalNotes = "TO INSERT SINCE Revision Two"
     )
-    rsaSignatureDigestPKCS1v15SHA512(kSecKeyAlgorithmRSASignatureDigestPKCS1v15SHA512);
+    rsaSignatureMessagePKCS1v15SHA512(kSecKeyAlgorithmRSASignatureMessagePKCS1v15SHA512),
+
+    @RequiresDocumentation(
+        additionalNotes = "TO INSERT SINCE Revision Two"
+    )
+    ecdsaSignatureMessageX962SHA1(kSecKeyAlgorithmECDSASignatureMessageX962SHA1),
+
+    @RequiresDocumentation(
+        additionalNotes = "TO INSERT SINCE Revision Two"
+    )
+    ecdsaSignatureMessageX962SHA224(kSecKeyAlgorithmECDSASignatureMessageX962SHA224),
+
+    @RequiresDocumentation(
+        additionalNotes = "TO INSERT SINCE Revision Two"
+    )
+    ecdsaSignatureMessageX962SHA256(kSecKeyAlgorithmECDSASignatureMessageX962SHA256),
+
+    @RequiresDocumentation(
+        additionalNotes = "TO INSERT SINCE Revision Two"
+    )
+    ecdsaSignatureMessageX962SHA384(kSecKeyAlgorithmECDSASignatureMessageX962SHA384),
+
+    @RequiresDocumentation(
+        additionalNotes = "TO INSERT SINCE Revision Two"
+    )
+    ecdsaSignatureMessageX962SHA512(kSecKeyAlgorithmECDSASignatureMessageX962SHA512);
 
     companion object {
 
@@ -97,11 +122,11 @@ enum class SecKeyAlgorithmType(
             return when (this) {
                 RSA_PKCS1 -> {
                     when (digest) {
-                        SHA1 -> rsaSignatureDigestPKCS1v15SHA1
-                        SHA224 -> rsaSignatureDigestPKCS1v15SHA224
-                        SHA256 -> rsaSignatureDigestPKCS1v15SHA256
-                        SHA384 -> rsaSignatureDigestPKCS1v15SHA384
-                        SHA512 -> rsaSignatureDigestPKCS1v15SHA512
+                        SHA1 -> rsaSignatureMessagePKCS1v15SHA1
+                        SHA224 -> rsaSignatureMessagePKCS1v15SHA224
+                        SHA256 -> rsaSignatureMessagePKCS1v15SHA256
+                        SHA384 -> rsaSignatureMessagePKCS1v15SHA384
+                        SHA512 -> rsaSignatureMessagePKCS1v15SHA512
                         else -> rsaEncryptionPKCS1
                     }
                 }
@@ -116,7 +141,20 @@ enum class SecKeyAlgorithmType(
                     }
                 }
 
-                else -> throw IllegalArgumentException(INVALID_ENCRYPTION_PADDING)
+                EncryptionPadding.NONE -> {
+                    when (digest) {
+                        SHA1 -> ecdsaSignatureMessageX962SHA1
+                        SHA224 -> ecdsaSignatureMessageX962SHA224
+                        SHA256 -> ecdsaSignatureMessageX962SHA256
+                        SHA384 -> ecdsaSignatureMessageX962SHA384
+                        SHA512 -> ecdsaSignatureMessageX962SHA512
+                        else -> throw IllegalArgumentException("Invalid digest type")
+                    }
+                }
+
+                else -> {
+                    throw IllegalArgumentException(INVALID_ENCRYPTION_PADDING)
+                }
             }
         }
 

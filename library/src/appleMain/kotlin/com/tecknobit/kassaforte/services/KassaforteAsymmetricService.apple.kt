@@ -12,6 +12,7 @@ import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.genspec.Digest
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
+import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.NONE
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.RSA_PKCS1
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.helpers.KassaforteAsymmetricServiceManager
@@ -20,6 +21,7 @@ import kotlinx.cinterop.CValuesRef
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ptr
 import platform.CoreFoundation.CFDictionaryAddValue
+import platform.CoreFoundation.CFDictionaryGetValue
 import platform.CoreFoundation.CFMutableDictionaryRef
 import platform.CoreFoundation.kCFBooleanTrue
 import platform.Foundation.CFBridgingRetain
@@ -364,7 +366,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             digest = digest,
             usage = { key, algorithm ->
                 val dataToSign = message.encodeForKeyOperation()
-                val signedData = errorScoped { error ->
+                val signedMessage = errorScoped { error ->
                     SecKeyCreateSignature(
                         key = key,
                         algorithm = algorithm,
@@ -372,7 +374,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                         error = error.ptr
                     )
                 }
-                signedData.toByteArray()
+                signedMessage.toByteArray()
             }
         )
         return encode(signature)
@@ -397,7 +399,18 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         val key = serviceManager.retrieveKey(
             alias = alias
         )
-        val algorithmType = padding.toSecKeyAlgorithm(
+        val attributes = SecKeyCopyAttributes(
+            key = key
+        )
+        val keyType = CFDictionaryGetValue(
+            theDict = attributes,
+            key = kSecAttrKeyType
+        )
+        val encryptionPadding = if (keyType == kSecAttrKeyTypeEC)
+            NONE
+        else
+            padding
+        val algorithmType = encryptionPadding.toSecKeyAlgorithm(
             digest = digest
         ).algorithm!!
         return usage(key, algorithmType)
