@@ -17,25 +17,26 @@ to ensure data protection
 
 ## Roadmap to 1.0.0
 
-### beta-01
+### beta-01 ✅
 
 This release provides the `Kassaforte` API to securely store sensitive data.
 
 Provides also the services, symmetric and asymmetric, to generate keys and perform the `encryption` and `decryption` of
 the data
 
-### beta-02
+### beta-02 ✅
 
 This release will provide:
 
 - `signing` and `verification` of the data
-- `GCM` block mode support also on `iOS`
 
 ### beta-03
 
 This release will provide:
 
 - `wrap` and `unwrap` of the keys
+- `GCM` block mode support also on `apple` (if the `CommonCrypto` will fully supports it and will be the ported on
+  `Kotlin/Native`, otherwise will be integrated when will be available)
 
 Should be the latest `beta` version before the `stable` one
 
@@ -83,8 +84,6 @@ A big thanks to the repositories and their maintainers for developing the librar
 work correctly:
 
 - [java-keyring](https://github.com/javakeyring/java-keyring) - handles the secure storage on the `JVM` target
-- [korlibs-crypto](https://github.com/korlibs/korlibs-crypto) - handles the symmetric encryption and decryption on the
-  `Apple` target
 - [windpapi4j](https://github.com/peter-gergely-horvath/windpapi4j) - handles (DPAPI) data protection on `Windows` to
   securely store the generated keys on the `JVM` target
 

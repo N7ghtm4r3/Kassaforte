@@ -35,7 +35,6 @@ import java.security.PublicKey
  *
  * @see KassaforteServiceImpl
  */
-// TODO: TO WARN ABOUT SET allowBackup=false
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 internal actual class KassaforteAsymmetricServiceImpl actual constructor() : KassaforteServiceImpl() {
 

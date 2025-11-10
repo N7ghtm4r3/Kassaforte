@@ -1,4 +1,4 @@
-
+import com.vanniktech.maven.publish.JavadocJar
 import com.vanniktech.maven.publish.KotlinMultiplatform
 import org.jetbrains.dokka.DokkaConfiguration.Visibility.*
 import org.jetbrains.dokka.base.DokkaBase
@@ -116,9 +116,8 @@ kotlin {
 
 mavenPublishing {
     configure(
-        // TODO: TO ENABLE WHEN PUBLISH
         platform = KotlinMultiplatform(
-            //javadocJar = JavadocJar.Dokka("dokkaHtml"),
+            javadocJar = JavadocJar.Dokka("dokkaHtml"),
             sourcesJar = true
         )
     )

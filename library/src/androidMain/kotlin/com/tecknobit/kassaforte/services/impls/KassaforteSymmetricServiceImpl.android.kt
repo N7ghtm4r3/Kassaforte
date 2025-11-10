@@ -21,7 +21,6 @@ import javax.crypto.KeyGenerator
  *
  * @see KassaforteServiceImpl
  */
-// TODO: TO WARN ABOUT SET allowBackup=false
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 internal actual class KassaforteSymmetricServiceImpl actual constructor() : KassaforteServiceImpl() {
 

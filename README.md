@@ -132,14 +132,14 @@ The keys are used by the `SubtleCrypto` to encrypt or decrypt the data
 
 ## Roadmap to 1.0.0
 
-### beta-01
+### beta-01 ✅
 
 This release provides the `Kassaforte` API to securely store sensitive data.
 
 Provides also the services, symmetric and asymmetric, to generate keys and perform the `encryption` and `decryption` of
 the data
 
-### beta-02
+### beta-02 ✅
 
 This release provides:
 
