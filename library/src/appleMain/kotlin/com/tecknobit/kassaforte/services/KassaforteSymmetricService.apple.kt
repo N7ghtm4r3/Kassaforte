@@ -2,7 +2,6 @@
 
 package com.tecknobit.kassaforte.services
 
-import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.equinoxcore.annotations.Validator
 import com.tecknobit.kassaforte.Kassaforte
@@ -202,14 +201,17 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     }
 
     /**
-     * Method used to work and to use a key (private or public) to perform encryption or decryption of the data
+     * Method used to work and to use a key to perform encryption or decryption of the data
      *
      * @param alias The alias which identify the key to use
      * @param keyOperation The operation the key have to perform
      * @param blockMode The block mode to use to ciphering data
      * @param iv The initialization vector to use to perform the ciphering
+     * @param data The data to handle using the [CCCryptorRef]
      *
-     * @return the ciphered data as [ByteArray]
+     * @return the handled data as [ByteArray]
+     *
+     * @since Revision Two
      */
     private inline fun useCryptor(
         alias: String,
@@ -242,9 +244,18 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         }
     }
 
-    @RequiresDocumentation(
-        additionalNotes = "TO INSER SINCE Revision Two"
-    )
+    /**
+     * Method used to create a [CCCryptorRefVar] instance to perform the symmetric encryption or decryption
+     *
+     * @param key The key to use to create the cryptor instance
+     * @param keyOperation The operation the key have to perform
+     * @param blockMode The block mode to use to ciphering data
+     * @param iv The initialization vector to use to perform the ciphering
+     *
+     * @return the cryptor instance as [CCCryptorRefVar]
+     *
+     * @since Revision Two
+     */
     private fun MemScope.createCryptor(
         key: ByteArray,
         keyOperation: KeyOperation,
@@ -281,9 +292,17 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         return cryptor
     }
 
-    @RequiresDocumentation(
-        additionalNotes = "TO INSER SINCE Revision Two"
-    )
+    /**
+     * Method used to consume a [CCCryptorRef] instance and obtain the result of its consuming such cipher text or plain
+     * text bytes
+     *
+     * @param cryptor The cryptor instance to consume
+     * @param data The data to handle using the cryptor
+     *
+     * @return the result produced by cryptor consuming as [ByteArray]
+     *
+     * @since Revision Two
+     */
     private fun MemScope.consumeCryptor(
         cryptor: CCCryptorRef?,
         data: ByteArray,
