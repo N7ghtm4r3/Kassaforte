@@ -144,13 +144,14 @@ the data
 This release provides:
 
 - `signing` and `verification` of the data
-- `GCM` block mode support also on `iOS`
 
 ### beta-03
 
 This release will provide:
 
 - `wrap` and `unwrap` of the keys
+- `GCM` block mode support also on `apple` (if the `CommonCrypto` will fully supports it and will be the ported on
+  `Kotlin/Native`, otherwise will be integrated when will be available)
 
 Should be the latest `beta` version before the `stable` one
 

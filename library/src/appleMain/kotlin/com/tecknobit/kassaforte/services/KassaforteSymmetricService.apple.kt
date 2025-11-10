@@ -1,15 +1,15 @@
-@file:OptIn(ExperimentalForeignApi::class)
+@file:OptIn(ExperimentalForeignApi::class, ExperimentalForeignApi::class)
 
 package com.tecknobit.kassaforte.services
 
+import com.tecknobit.equinoxcore.annotations.RequiresDocumentation
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.equinoxcore.annotations.Validator
 import com.tecknobit.kassaforte.Kassaforte
 import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.Algorithm.*
 import com.tecknobit.kassaforte.key.genspec.BlockMode
-import com.tecknobit.kassaforte.key.genspec.BlockMode.CTR
-import com.tecknobit.kassaforte.key.genspec.BlockMode.GCM
+import com.tecknobit.kassaforte.key.genspec.BlockMode.*
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyDetailsSheet
@@ -20,16 +20,13 @@ import com.tecknobit.kassaforte.services.helpers.KassaforteSymmetricServiceManag
 import com.tecknobit.kassaforte.util.decode
 import com.tecknobit.kassaforte.util.encode
 import com.tecknobit.kassaforte.util.encodeForKeyOperation
-import korlibs.crypto.*
-import korlibs.crypto.AES
-import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.addressOf
-import kotlinx.cinterop.usePinned
+import kotlinx.cinterop.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import platform.CoreCrypto.*
 import platform.Security.SecRandomCopyBytes
 import platform.Security.kSecRandomDefault
+import platform.posix.size_tVar
 import kotlin.experimental.xor
 
 /**
@@ -155,18 +152,21 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         padding: EncryptionPadding,
         data: Any,
     ): String {
-        val iv = ByteArray(blockMode.blockSize).apply {
-            SecureRandom.nextBytes(this)
+        val blockSize = blockMode.blockSize
+        val iv = ByteArray(blockSize)
+        iv.usePinned { pinned ->
+            SecRandomCopyBytes(
+                kSecRandomDefault,
+                blockSize.toULong(),
+                pinned.addressOf(0)
+            )
         }
-        val encryptedData = useCipher(
+        val encryptedData = useCryptor(
             alias = alias,
             keyOperation = ENCRYPT,
             blockMode = blockMode,
             iv = iv,
-            usage = { cipher ->
-                val dataToEncrypt = data.encodeForKeyOperation()
-                cipher.encrypt(dataToEncrypt)
-            }
+            data = data.encodeForKeyOperation()
         )
         return encode(iv + encryptedData)
     }
@@ -191,12 +191,12 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         val blockSize = blockMode.blockSize
         val iv = dataToDecrypt.copyOfRange(0, blockSize)
         val cipherText = dataToDecrypt.copyOfRange(blockSize, dataToDecrypt.size)
-        val plainText = useCipher(
+        val plainText = useCryptor(
             alias = alias,
             keyOperation = DECRYPT,
             blockMode = blockMode,
             iv = iv,
-            usage = { cipher -> cipher.decrypt(cipherText) }
+            data = cipherText
         )
         return plainText.decodeToString()
     }
@@ -208,37 +208,114 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
      * @param keyOperation The operation the key have to perform
      * @param blockMode The block mode to use to ciphering data
      * @param iv The initialization vector to use to perform the ciphering
-     * @param usage The routine the cipher have to perform
      *
      * @return the ciphered data as [ByteArray]
      */
-    private inline fun useCipher(
+    private inline fun useCryptor(
         alias: String,
         keyOperation: KeyOperation,
         blockMode: BlockMode,
         iv: ByteArray,
-        usage: (CipherWithModeAndPadding) -> ByteArray,
+        data: ByteArray,
     ): ByteArray {
         // TODO: to remove when GCM integrated
         if (blockMode == GCM)
-            throw RuntimeException("GCM on iOS is currently missing, use CBC or CTR instead")
+            throw RuntimeException("GCM on Apple is currently missing, use CBC or CTR instead")
+        // TODO: WHEN GCM AVAILABLE INTEGRATE IT
         val keyInfo = getKeyInfo(
             alias = alias,
             keyOperation = keyOperation
         )
-        // TODO: WHEN GCM AVAILABLE INTEGRATE IT
-        val cipher = AES(keyInfo.key).get(
+        val key = keyInfo.key
+        return memScoped {
+            val cryptor = createCryptor(
+                key = key,
+                keyOperation = keyOperation,
+                blockMode = blockMode,
+                iv = iv
+            )
+            val output = consumeCryptor(
+                cryptor = cryptor.value,
+                data = data
+            )
+            output
+        }
+    }
+
+    @RequiresDocumentation(
+        additionalNotes = "TO INSER SINCE Revision Two"
+    )
+    private fun MemScope.createCryptor(
+        key: ByteArray,
+        keyOperation: KeyOperation,
+        blockMode: BlockMode,
+        iv: ByteArray,
+    ): CCCryptorRefVar {
+        val cryptor = alloc<CCCryptorRefVar>()
+        val status = CCCryptorCreateWithMode(
+            op = if (keyOperation == ENCRYPT)
+                kCCEncrypt
+            else
+                kCCDecrypt,
             mode = when (blockMode) {
-                CTR -> CipherMode.CTR
-                else -> CipherMode.CBC
+                CBC -> kCCModeCBC
+                CTR -> kCCModeCTR
+                else -> throw RuntimeException("Invalid block mode")
             },
-            padding = when (blockMode) {
-                CTR -> CipherPadding.NoPadding
-                else -> CipherPadding.PKCS7Padding
-            },
-            iv = iv
+            alg = kCCAlgorithmAES,
+            padding = if (blockMode == CBC)
+                ccPKCS7Padding
+            else
+                ccNoPadding,
+            iv = iv.refTo(0),
+            key = key.refTo(0),
+            keyLength = key.size.toULong(),
+            cryptorRef = cryptor.ptr,
+            tweak = null,
+            tweakLength = 0uL,
+            numRounds = 0,
+            options = 0u
         )
-        return usage(cipher)
+        if (status != kCCSuccess)
+            throw RuntimeException("Cannot perform operation with the key")
+        return cryptor
+    }
+
+    @RequiresDocumentation(
+        additionalNotes = "TO INSER SINCE Revision Two"
+    )
+    private fun MemScope.consumeCryptor(
+        cryptor: CCCryptorRef?,
+        data: ByteArray,
+    ): ByteArray {
+        val output = ByteArray((data.size.toUInt() + kCCBlockSizeAES128).toInt())
+        val outputSize = output.size
+        val outputMoved = alloc<size_tVar>()
+        val outMovedFinal = alloc<size_tVar>()
+        val totalProduced: Int
+        try {
+            CCCryptorUpdate(
+                cryptorRef = cryptor,
+                dataIn = data.refTo(0),
+                dataInLength = data.size.toULong(),
+                dataOut = output.refTo(0),
+                dataOutAvailable = outputSize.toULong(),
+                dataOutMoved = outputMoved.ptr
+            )
+            totalProduced = outputMoved.value.toInt()
+            CCCryptorFinal(
+                cryptorRef = cryptor,
+                dataOut = output.refTo(totalProduced),
+                dataOutAvailable = (outputSize - totalProduced).toULong(),
+                dataOutMoved = outMovedFinal.ptr
+            )
+        } finally {
+            CCCryptorRelease(
+                cryptorRef = cryptor
+            )
+        }
+        val totalBytes = totalProduced + outMovedFinal.value.toInt()
+        return output.copyOf(totalBytes)
     }
 
     /**

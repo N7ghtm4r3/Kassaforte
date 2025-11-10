@@ -76,7 +76,6 @@ kotlin {
             macosX64Main.dependsOn(this)
             macosArm64Main.dependsOn(this)
             dependencies {
-                implementation(libs.krypto)
             }
         }
 
