@@ -2,6 +2,7 @@
 
 package com.tecknobit.kassaforte.enums
 
+import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.key.genspec.Digest
 import com.tecknobit.kassaforte.key.genspec.Digest.*
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
@@ -49,26 +50,105 @@ enum class SecKeyAlgorithmType(
     /**
      * `rsaEncryptionOAEPSHA512` RSA encryption using OAEP with SHA-512
      */
-    rsaEncryptionOAEPSHA512(kSecKeyAlgorithmRSAEncryptionOAEPSHA512);
+    rsaEncryptionOAEPSHA512(kSecKeyAlgorithmRSAEncryptionOAEPSHA512),
+
+    /**
+     * `rsaSignatureMessagePKCS1v15SHA1` RSA signature using PKCS1v15 with SHA-1
+     *
+     * @since Revision Two
+     */
+    rsaSignatureMessagePKCS1v15SHA1(kSecKeyAlgorithmRSASignatureMessagePKCS1v15SHA1),
+
+    /**
+     * `rsaSignatureMessagePKCS1v15SHA224` RSA signature using PKCS1v15 with SHA-224
+     *
+     * @since Revision Two
+     */
+    rsaSignatureMessagePKCS1v15SHA224(kSecKeyAlgorithmRSASignatureMessagePKCS1v15SHA224),
+
+    /**
+     * `rsaSignatureMessagePKCS1v15SHA256` RSA signature using PKCS1v15 with SHA-256
+     *
+     * @since Revision Two
+     */
+    rsaSignatureMessagePKCS1v15SHA256(kSecKeyAlgorithmRSASignatureMessagePKCS1v15SHA256),
+
+    /**
+     * `rsaSignatureMessagePKCS1v15SHA384` RSA signature using PKCS1v15 with SHA-384
+     *
+     * @since Revision Two
+     */
+    rsaSignatureMessagePKCS1v15SHA384(kSecKeyAlgorithmRSASignatureMessagePKCS1v15SHA384),
+
+    /**
+     * `rsaSignatureMessagePKCS1v15SHA512` RSA signature using PKCS1v15 with SHA-512
+     *
+     * @since Revision Two
+     */
+    rsaSignatureMessagePKCS1v15SHA512(kSecKeyAlgorithmRSASignatureMessagePKCS1v15SHA512),
+
+    /**
+     * `ecdsaSignatureMessageX962SHA1` ECDSA signature using `X962` with SHA-1
+     *
+     * @since Revision Two
+     */
+    ecdsaSignatureMessageX962SHA1(kSecKeyAlgorithmECDSASignatureMessageX962SHA1),
+
+    /**
+     * `ecdsaSignatureMessageX962SHA224` ECDSA signature using `X962` with SHA-224
+     *
+     * @since Revision Two
+     */
+    ecdsaSignatureMessageX962SHA224(kSecKeyAlgorithmECDSASignatureMessageX962SHA224),
+
+    /**
+     * `ecdsaSignatureMessageX962SHA256` ECDSA signature using `X962` with SHA-256
+     *
+     * @since Revision Two
+     */
+    ecdsaSignatureMessageX962SHA256(kSecKeyAlgorithmECDSASignatureMessageX962SHA256),
+
+    /**
+     * `ecdsaSignatureMessageX962SHA256` ECDSA signature using `X962` with SHA-384
+     *
+     * @since Revision Two
+     */
+    ecdsaSignatureMessageX962SHA384(kSecKeyAlgorithmECDSASignatureMessageX962SHA384),
+
+    /**
+     * `ecdsaSignatureMessageX962SHA512` ECDSA signature using `X962` with SHA-512
+     *
+     * @since Revision Two
+     */
+    ecdsaSignatureMessageX962SHA512(kSecKeyAlgorithmECDSASignatureMessageX962SHA512);
 
     companion object {
 
         /**
          * Method used to convert an [EncryptionPadding] value to the related [SecKeyAlgorithmType]
          *
-         * @param digest The digest value required when is the [EncryptionPadding.RSA_OAEP] mode
+         * @param digest The digest value
          *
          * @return the security key algorithm type as [SecKeyAlgorithmType]
          *
          * @throws IllegalArgumentException when the encryption padding is not valid or, when required, the digest value
          * is not valid
          */
-        // TODO: TO ANNOTATE WITH @Returner
+        @Returner
         fun EncryptionPadding?.toSecKeyAlgorithm(
             digest: Digest? = null,
         ): SecKeyAlgorithmType {
             return when (this) {
-                RSA_PKCS1 -> rsaEncryptionPKCS1
+                RSA_PKCS1 -> {
+                    when (digest) {
+                        SHA1 -> rsaSignatureMessagePKCS1v15SHA1
+                        SHA224 -> rsaSignatureMessagePKCS1v15SHA224
+                        SHA256 -> rsaSignatureMessagePKCS1v15SHA256
+                        SHA384 -> rsaSignatureMessagePKCS1v15SHA384
+                        SHA512 -> rsaSignatureMessagePKCS1v15SHA512
+                        else -> rsaEncryptionPKCS1
+                    }
+                }
                 RSA_OAEP -> {
                     when (digest) {
                         SHA1 -> rsaEncryptionOAEPSHA1
@@ -80,7 +160,20 @@ enum class SecKeyAlgorithmType(
                     }
                 }
 
-                else -> throw IllegalArgumentException(INVALID_ENCRYPTION_PADDING)
+                EncryptionPadding.NONE -> {
+                    when (digest) {
+                        SHA1 -> ecdsaSignatureMessageX962SHA1
+                        SHA224 -> ecdsaSignatureMessageX962SHA224
+                        SHA256 -> ecdsaSignatureMessageX962SHA256
+                        SHA384 -> ecdsaSignatureMessageX962SHA384
+                        SHA512 -> ecdsaSignatureMessageX962SHA512
+                        else -> throw IllegalArgumentException("Invalid digest type")
+                    }
+                }
+
+                else -> {
+                    throw IllegalArgumentException(INVALID_ENCRYPTION_PADDING)
+                }
             }
         }
 

@@ -2,6 +2,7 @@
 
 package com.tecknobit.kassaforte.services.helpers
 
+import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.kassaforte.services.KassaforteAsymmetricService.PRIVATE_KEY_TAG
 import com.tecknobit.kassaforte.services.KassaforteAsymmetricService.PUBLIC_KEY_TAG
 import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.IMPOSSIBLE_TO_RETRIEVE_KEY_ERROR
@@ -83,7 +84,7 @@ internal class KassaforteAsymmetricServiceManager : KassaforteServiceImplManager
      *
      * @return the searching dictionary as [CFMutableDictionaryRef]
      */
-    // TODO TO ANNOTATE WITH @Assembler
+    @Assembler
     private fun searchingDictionary(
         alias: String,
         keyClass: CFStringRef?,
@@ -138,7 +139,7 @@ internal class KassaforteAsymmetricServiceManager : KassaforteServiceImplManager
      *
      * @return the deleting dictionary as [CFMutableDictionaryRef]
      */
-    // TODO TO ANNOTATE WITH @Assembler
+    @Assembler
     private fun deletingDictionary(
         alias: String,
     ): CFMutableDictionaryRef {

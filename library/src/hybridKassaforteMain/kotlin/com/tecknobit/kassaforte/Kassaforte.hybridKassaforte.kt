@@ -64,8 +64,8 @@ actual class Kassaforte actual constructor(
     private fun generateSecretKeyIfMissing() {
         try {
             KassaforteSymmetricService.generateKey(
-                algorithm = Algorithm.AES,
                 alias = SECRET_KEY,
+                algorithm = Algorithm.AES,
                 keyGenSpec = SymmetricKeyGenSpec(
                     keySize = S256,
                     encryptionPadding = PKCS7,

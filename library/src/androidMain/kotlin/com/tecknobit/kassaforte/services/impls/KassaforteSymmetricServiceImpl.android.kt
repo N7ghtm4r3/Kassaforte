@@ -21,7 +21,6 @@ import javax.crypto.KeyGenerator
  *
  * @see KassaforteServiceImpl
  */
-// TODO: TO WARN ABOUT SET allowBackup=false
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 internal actual class KassaforteSymmetricServiceImpl actual constructor() : KassaforteServiceImpl() {
 
@@ -34,18 +33,20 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() : Kass
      * Method used to generate an asymmetric new key
      *
      * @param alias The alias used to identify the key
+     * @param algorithm The algorithm the key will use
      * @param keyGenSpec The generation spec to use to generate the key
      * @param purposes The purposes the key can be used
      */
     actual fun generateKey(
         alias: String,
+        algorithm: Algorithm,
         keyGenSpec: SymmetricKeyGenSpec,
         purposes: KeyPurposes,
     ) {
         if (aliasExists(alias))
             throw IllegalAccessException(KassaforteKeysService.ALIAS_ALREADY_TAKEN_ERROR)
         val keyGenerator = KeyGenerator.getInstance(
-            Algorithm.AES.value,
+            algorithm.value,
             ANDROID_KEYSTORE
         )
         val genSpec = serviceImplManager.resolveGenSpec(
@@ -53,7 +54,9 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() : Kass
             keyGenSpec = keyGenSpec,
             purposes = purposes
         ).run {
-            setBlockModes(keyGenSpec.blockMode.value)
+            val blockMode = keyGenSpec.blockMode
+            if (blockMode != BlockMode.NONE)
+                setBlockModes(blockMode.value)
             setEncryptionPaddings(keyGenSpec.encryptionPadding.value)
             build()
         }

@@ -17,17 +17,28 @@ expect object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     /**
      * Method used to generate a new asymmetric key
      *
-     * @param algorithm The algorithm the key will use
      * @param alias The alias used to identify the key
+     * @param algorithm The algorithm the key will use
      * @param keyGenSpec The generation spec to use to generate the key
      * @param purposes The purposes the key can be used
      */
     override fun generateKey(
-        algorithm: Algorithm,
         alias: String,
+        algorithm: Algorithm,
         keyGenSpec: AsymmetricKeyGenSpec,
         purposes: KeyPurposes,
     )
+
+    /**
+     * Method used to check whether the alias has been already taken to identify other key
+     *
+     * @param alias The alias to check
+     *
+     * @return whether the alias has been already taken as [Boolean]
+     */
+    override fun aliasExists(
+        alias: String,
+    ): Boolean
 
     /**
      * Method used to encrypt data with the key specified by the [alias] value
@@ -64,14 +75,39 @@ expect object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     ): String
 
     /**
-     * Method used to check whether the alias has been already taken to identify other key
+     * Method used to sign messages with the key specified by the [alias] value
      *
-     * @param alias The alias to check
+     * @param alias The alias which identify the key to use
+     * @param digest The digest to apply to sign messages
+     * @param message The message to sign
      *
-     * @return whether the alias has been already taken as [Boolean]
+     * @return the signed message as [String]
+     *
+     * @since Revision Two
      */
-    override fun aliasExists(
+    suspend fun sign(
         alias: String,
+        digest: Digest,
+        message: Any,
+    ): String
+
+    /**
+     * Method used to verify the validity of the messages previously signed with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param digest The digest applied to sign [message]
+     * @param message The message to verify
+     * @param signature The signature previously computed
+     *
+     * @return whether the message matches to [signature] as [Boolean]
+     *
+     * @since Revision Two
+     */
+    suspend fun verify(
+        alias: String,
+        digest: Digest,
+        message: Any,
+        signature: String,
     ): Boolean
 
     /**

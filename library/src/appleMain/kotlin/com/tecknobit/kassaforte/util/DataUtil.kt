@@ -2,6 +2,7 @@
 
 package com.tecknobit.kassaforte.util
 
+import com.tecknobit.equinoxcore.annotations.Returner
 import kotlinx.cinterop.*
 import platform.CoreFoundation.*
 
@@ -10,7 +11,7 @@ import platform.CoreFoundation.*
  *
  * @return the converted byte array as nullable [CFDataRef]
  */
-// TODO: TO ANNOTATE WITH @Returner
+@Returner
 fun ByteArray?.toCFData(): CFDataRef? {
     return if (this == null || this.isEmpty()) {
         CFDataCreate(
@@ -32,9 +33,9 @@ fun ByteArray?.toCFData(): CFDataRef? {
  *
  * @return the converted string as nullable [CFDataRef]
  */
-// TODO: TO ANNOTATE WITH @Returner
-fun String.toCFData(): CFDataRef? {
-    val dataToConvert = this.encodeToByteArray()
+@Returner
+fun Any.convertToCFData(): CFDataRef? {
+    val dataToConvert = encodeForKeyOperation()
     return dataToConvert.toCFData()
 }
 
@@ -43,7 +44,7 @@ fun String.toCFData(): CFDataRef? {
  *
  * @return the native data reference object as [ByteArray]
  */
-// TODO: TO ANNOTATE WITH @Returner
+@Returner
 fun CFDataRef?.toByteArray(): ByteArray {
     val emptyData = ByteArray(0)
     if (this == null)

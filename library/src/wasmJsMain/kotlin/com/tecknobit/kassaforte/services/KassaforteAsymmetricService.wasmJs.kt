@@ -8,6 +8,7 @@ import com.tecknobit.kassaforte.enums.ExportFormat.PKCS8
 import com.tecknobit.kassaforte.enums.ExportFormat.SPKI
 import com.tecknobit.kassaforte.enums.NamedCurve.Companion.toNamedCurve
 import com.tecknobit.kassaforte.enums.RsaAlgorithmName.Companion.toRsaAlgorithmName
+import com.tecknobit.kassaforte.enums.RsaAlgorithmName.RSASSA_PKCS1_v1_5
 import com.tecknobit.kassaforte.helpers.asPlainText
 import com.tecknobit.kassaforte.helpers.toByteArray
 import com.tecknobit.kassaforte.key.genspec.Algorithm
@@ -18,13 +19,18 @@ import com.tecknobit.kassaforte.key.genspec.Digest
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.helpers.KassaforteAsymmetricServiceManager
-import com.tecknobit.kassaforte.util.checkIfIsSupportedType
+import com.tecknobit.kassaforte.util.decode
+import com.tecknobit.kassaforte.util.encode
+import com.tecknobit.kassaforte.util.encodeForKeyOperation
+import com.tecknobit.kassaforte.wrappers.crypto.ecdsaParams
+import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.EcKeyGenParams
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.KeyGenSpec
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.RsaHashedKeyGenParams
 import com.tecknobit.kassaforte.wrappers.crypto.key.raw.RawCryptoKeyPair
+import com.tecknobit.kassaforte.wrappers.crypto.params.EncryptionParams
 import com.tecknobit.kassaforte.wrappers.crypto.rsaOaepParams
-import kotlin.io.encoding.Base64
+import com.tecknobit.kassaforte.wrappers.crypto.rsaPKCS1Params
 
 /**
  * The `KassaforteAsymmetricService` class allows to generate and to use asymmetric keys and managing their persistence.
@@ -55,14 +61,14 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     /**
      * Method used to generate a new asymmetric key
      *
-     * @param algorithm The algorithm the key will use
      * @param alias The alias used to identify the key
+     * @param algorithm The algorithm the key will use
      * @param keyGenSpec The generation spec to use to generate the key
      * @param purposes The purposes the key can be used
      */
     actual override fun generateKey(
-        algorithm: Algorithm,
         alias: String,
+        algorithm: Algorithm,
         keyGenSpec: AsymmetricKeyGenSpec,
         purposes: KeyPurposes,
     ) {
@@ -141,9 +147,6 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         digest: Digest?,
         data: Any,
     ): String {
-        checkIfIsSupportedType(
-            data = data
-        )
         val rawCryptoKeyPair: RawCryptoKeyPair = serviceManager.retrieveKeyData(
             alias = alias
         )
@@ -158,7 +161,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                     key = key,
                     data = data
                 )
-                Base64.encode(encryptedData.toByteArray())
+                encode(encryptedData.toByteArray())
             }
         )
         return encryptedData
@@ -188,7 +191,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             rawKeyData = rawCryptoKeyPair,
             format = PKCS8,
             usage = { key ->
-                val dataToDecrypt = Base64.decode(data)
+                val dataToDecrypt = decode(data)
                 val decryptedData = serviceManager.decrypt(
                     algorithm = rsaOaepParams(),
                     key = key,
@@ -198,6 +201,104 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             }
         )
         return decryptedData
+    }
+
+    /**
+     * Method used to sign messages with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param digest The digest to apply to sign messages
+     * @param message The message to sign
+     *
+     * @return the signed message as [String]
+     *
+     * @since Revision Two
+     */
+    actual suspend fun sign(
+        alias: String,
+        digest: Digest,
+        message: Any,
+    ): String {
+        val rawCryptoKeyPair: RawCryptoKeyPair = serviceManager.retrieveKeyData(
+            alias = alias
+        )
+        val signedMessage = serviceManager.useKey(
+            rawKey = rawCryptoKeyPair.privateKey,
+            rawKeyData = rawCryptoKeyPair,
+            format = PKCS8,
+            usage = { key ->
+                val signature = serviceManager.sign(
+                    algorithm = key.resolveSignatureParams(
+                        digest = digest
+                    ),
+                    key = key,
+                    message = message
+                ).toByteArray()
+                encode(signature)
+            }
+        )
+        return signedMessage
+    }
+
+    /**
+     * Method used to verify the validity of the messages previously signed with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param digest The digest applied to sign [message]
+     * @param message The message to verify
+     * @param signature The signature previously computed
+     *
+     * @return whether the message matches to [signature] as [Boolean]
+     *
+     * @since Revision Two
+     */
+    actual suspend fun verify(
+        alias: String,
+        digest: Digest,
+        message: Any,
+        signature: String,
+    ): Boolean {
+        val rawCryptoKeyPair: RawCryptoKeyPair = serviceManager.retrieveKeyData(
+            alias = alias
+        )
+        val result = serviceManager.useKey(
+            rawKey = rawCryptoKeyPair.publicKey,
+            rawKeyData = rawCryptoKeyPair,
+            format = SPKI,
+            usages = rawCryptoKeyPair.publicKeyUsages,
+            usage = { key ->
+                serviceManager.verify(
+                    algorithm = key.resolveSignatureParams(
+                        digest = digest
+                    ),
+                    key = key,
+                    signature = decode(signature),
+                    data = message.encodeForKeyOperation()
+                )
+            }
+        )
+        return result
+    }
+
+    /**
+     * Method used to resolve the signature params to use to sign or verify the messages
+     *
+     * @param digest The digest to apply to sign or verify messages
+     *
+     * @return the signature params as [EncryptionParams]
+     */
+    @Returner
+    private fun CryptoKey.resolveSignatureParams(
+        digest: Digest,
+    ): EncryptionParams {
+        val algorithm = algorithm.name
+        return if (algorithm.contains(RSASSA_PKCS1_v1_5.value))
+            rsaPKCS1Params()
+        else {
+            ecdsaParams(
+                hash = digest.value
+            )
+        }
     }
 
     /**

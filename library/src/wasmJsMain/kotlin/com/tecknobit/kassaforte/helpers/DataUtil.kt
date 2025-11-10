@@ -3,6 +3,7 @@ package com.tecknobit.kassaforte.helpers
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.key.genspec.BlockMode
 import com.tecknobit.kassaforte.key.genspec.BlockMode.CBC
+import com.tecknobit.kassaforte.util.encodeForKeyOperation
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
 
@@ -16,7 +17,7 @@ import org.khronos.webgl.Uint8Array
 fun Any.prepareToEncrypt(
     blockMode: BlockMode? = null,
 ): Uint8Array {
-    val plainText = this.toString().encodeToByteArray()
+    val plainText = encodeForKeyOperation()
     return if (blockMode == CBC) {
         plainText.pad(
             blockMode = blockMode
@@ -39,19 +40,6 @@ private fun ByteArray.pad(
     val padding = blockSize - (this.size % blockSize)
     val paddedArray = this + ByteArray(padding) { padding.toByte() }
     return paddedArray.toUint8Array()
-}
-
-/**
- * Method used to prepare the data to be decrypted
- *
- * @return the data prepared to be decrypted as [Uint8Array]
- */
-@Returner
-fun Any.prepareToDecrypt(): Uint8Array {
-    return if (this is ByteArray)
-        this.toUint8Array()
-    else
-        toString().encodeToByteArray().toUint8Array()
 }
 
 /**
@@ -89,3 +77,17 @@ fun ByteArray.unPad(
         throw IllegalArgumentException("Invalid padding")
     return this.copyOfRange(0, this.size - padding)
 }
+
+/**
+ * Method used to prepare the data to be decrypted
+ *
+ * @return the data prepared to be decrypted as [Uint8Array]
+ */
+@Returner
+fun Any.toUint8Array(): Uint8Array {
+    return if (this is ByteArray)
+        this.toUint8Array()
+    else
+        encodeForKeyOperation().toUint8Array()
+}
+

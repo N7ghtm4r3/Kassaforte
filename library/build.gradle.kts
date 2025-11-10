@@ -15,7 +15,7 @@ plugins {
 }
 
 group = "com.tecknobit.kassaforte"
-version = "1.0.0beta-01"
+version = "1.0.0beta-02"
 
 kotlin {
     androidTarget {
@@ -57,8 +57,7 @@ kotlin {
 
         val commonMain by getting {
             dependencies {
-                // TODO: TO USE THIS INSTEAD
-                // implementation(libs.equinox.core)
+                implementation(libs.equinox.core)
                 implementation(libs.json)
                 implementation(libs.kotlinx.coroutines)
             }
@@ -77,16 +76,11 @@ kotlin {
             macosX64Main.dependsOn(this)
             macosArm64Main.dependsOn(this)
             dependencies {
-                implementation(libs.krypto)
             }
         }
 
         val cipherBasedMain by creating {
             dependsOn(commonMain)
-            // TODO: TO REMOVE AND USE IN THE CORE ONE
-            dependencies {
-                implementation(libs.equinox.core)
-            }
         }
 
         val jvmMain by getting {
@@ -100,10 +94,6 @@ kotlin {
 
         val hybridKassaforteMain by creating {
             dependsOn(commonMain)
-            // TODO: TO REMOVE AND USE IN THE CORE ONE
-            dependencies {
-                implementation(libs.equinox.core)
-            }
         }
 
         val androidMain by getting {
@@ -134,7 +124,7 @@ mavenPublishing {
     coordinates(
         groupId = "io.github.n7ghtm4r3",
         artifactId = "kassaforte",
-        version = "1.0.0beta-01"
+        version = "1.0.0beta-02"
     )
     pom {
         name.set("Kassaforte")

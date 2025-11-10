@@ -42,7 +42,18 @@ enum class BlockMode(
     GCM(
         value = "GCM",
         blockSize = 12
-    );
+    ),
 
+    /**
+     * `NONE` - No block mode to adopt
+     *
+     * Useful to provide a default value when is not needed a block mode
+     *
+     * @since Revision Two
+     */
+    NONE(
+        value = "",
+        blockSize = 0
+    )
 
 }

@@ -2,12 +2,17 @@
 
 package com.tecknobit.kassaforte.services
 
+import com.tecknobit.equinoxcore.annotations.Assembler
+import com.tecknobit.equinoxcore.annotations.Returner
+import com.tecknobit.equinoxcore.annotations.Wrapper
 import com.tecknobit.kassaforte.enums.KeyType.Companion.toKeyType
 import com.tecknobit.kassaforte.enums.SecKeyAlgorithmType.Companion.toSecKeyAlgorithm
 import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.genspec.Digest
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
+import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.NONE
+import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.RSA_PKCS1
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.helpers.KassaforteAsymmetricServiceManager
 import com.tecknobit.kassaforte.util.*
@@ -15,11 +20,11 @@ import kotlinx.cinterop.CValuesRef
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ptr
 import platform.CoreFoundation.CFDictionaryAddValue
+import platform.CoreFoundation.CFDictionaryGetValue
 import platform.CoreFoundation.CFMutableDictionaryRef
 import platform.CoreFoundation.kCFBooleanTrue
 import platform.Foundation.CFBridgingRetain
 import platform.Security.*
-import kotlin.io.encoding.Base64
 
 /**
  * The `KassaforteAsymmetricService` class allows to generate and to use asymmetric keys and managing their persistence.
@@ -54,14 +59,14 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     /**
      * Method used to generate an asymmetric key
      *
-     * @param algorithm The algorithm the key will use
      * @param alias The alias used to identify the key
+     * @param algorithm The algorithm the key will use
      * @param keyGenSpec The generation spec to use to generate the key
      * @param purposes The purposes the key can be used
      */
     actual override fun generateKey(
-        algorithm: Algorithm,
         alias: String,
+        algorithm: Algorithm,
         keyGenSpec: AsymmetricKeyGenSpec,
         purposes: KeyPurposes,
     ) {
@@ -92,7 +97,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
      *
      * @return the usages for the private and public keys as [Pair] of [CFMutableDictionaryRef]
      */
-    // TODO: ANNOTATE WITH @Assembler
+    @Assembler
     private fun resolveUsages(
         alias: String,
         purposes: KeyPurposes,
@@ -155,7 +160,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
      *
      * @return the gen spec as [CFMutableDictionaryRef]
      */
-    // TODO: ANNOTATE WITH @Assembler
+    @Assembler
     private fun resolveKeyGenSpec(
         algorithm: Algorithm,
         keyGenSpec: AsymmetricKeyGenSpec,
@@ -201,7 +206,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
      *
      * @return the dictionary with the key information as [CFMutableDictionaryRef]
      */
-    // TODO: ANNOTATE WITH @Assembler
+    @Assembler
     private fun keyAttrsDictionary(
         tag: String,
         usages: CFMutableDictionaryRef.() -> Unit,
@@ -231,7 +236,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
      * @param key The key to assign the ciphering information
      * @param purposes The usages the key can be used
      */
-    // TODO: ANNOTATE WITH @Assembler
+    @Assembler
     private fun CFMutableDictionaryRef.keyAttrsCipheringDictionary(
         key: CValuesRef<*>?,
         purposes: KeyPurposes,
@@ -286,9 +291,6 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         digest: Digest?,
         data: Any,
     ): String {
-        checkIfIsSupportedType(
-            data = data
-        )
         val encryptedData = useKey(
             alias = resolvePublicKeyAlias(
                 alias = alias
@@ -296,7 +298,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             padding = padding,
             digest = digest,
             usage = { publicKey, algorithm ->
-                val dataToEncrypt = data.toString().toCFData()
+                val dataToEncrypt = data.convertToCFData()
                 val encryptedData = errorScoped { errorVar ->
                     SecKeyCreateEncryptedData(
                         key = publicKey,
@@ -308,7 +310,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                 encryptedData.toByteArray()
             }
         )
-        return Base64.encode(encryptedData)
+        return encode(encryptedData)
     }
 
     /**
@@ -334,7 +336,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             padding = padding,
             digest = digest,
             usage = { privateKey, algorithm ->
-                val dataToDecrypt = Base64.decode(data).toCFData()
+                val dataToDecrypt = decode(data).toCFData()
                 val decryptedData = errorScoped { errorVar ->
                     SecKeyCreateDecryptedData(
                         key = privateKey,
@@ -350,6 +352,80 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     }
 
     /**
+     * Method used to sign messages with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param digest The digest to apply to sign messages
+     * @param message The message to sign
+     *
+     * @return the signed message as [String]
+     *
+     * @since Revision Two
+     */
+    actual suspend fun sign(
+        alias: String,
+        digest: Digest,
+        message: Any,
+    ): String {
+        val signedMessage = useKey(
+            alias = alias,
+            padding = RSA_PKCS1,
+            digest = digest,
+            usage = { key, algorithm ->
+                val dataToSign = message.encodeForKeyOperation()
+                val signature = errorScoped { error ->
+                    SecKeyCreateSignature(
+                        key = key,
+                        algorithm = algorithm,
+                        dataToSign = dataToSign.toCFData(),
+                        error = error.ptr
+                    )
+                }
+                signature.toByteArray()
+            }
+        )
+        return encode(signedMessage)
+    }
+
+    /**
+     * Method used to verify the validity of the messages previously signed with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param digest The digest applied to sign [message]
+     * @param message The message to verify
+     * @param signature The signature previously computed
+     *
+     * @return whether the message matches to [signature] as [Boolean]
+     *
+     * @since Revision Two
+     */
+    actual suspend fun verify(
+        alias: String,
+        digest: Digest,
+        message: Any,
+        signature: String,
+    ): Boolean {
+        val result = useKey(
+            alias = alias,
+            padding = RSA_PKCS1,
+            digest = digest,
+            usage = { key, algorithm ->
+                val signedData = message.encodeForKeyOperation()
+                errorScoped { error ->
+                    SecKeyVerifySignature(
+                        key = key,
+                        algorithm = algorithm,
+                        signedData = signedData.toCFData(),
+                        signature = decode(signature).toCFData(),
+                        error = error.ptr
+                    )
+                }
+            }
+        )
+        return result
+    }
+
+    /**
      * Method used to work and to use a key (private or public) to perform encryption or decryption of the data
      *
      * @param alias The alias which identify the key to use
@@ -357,18 +433,31 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
      * @param digest The digest to apply to ciphering data
      * @param usage The ciphering routine to perform
      *
-     * @return the ciphered data as [ByteArray]
+     * @return the result from [usage] as [T]
+     *
+     * @param T The type of the result obtained using the key
      */
-    private inline fun useKey(
+    private inline fun <reified T> useKey(
         alias: String,
         padding: EncryptionPadding?,
         digest: Digest?,
-        usage: (SecKeyRef, SecKeyAlgorithm) -> ByteArray,
-    ): ByteArray {
+        usage: (SecKeyRef, SecKeyAlgorithm) -> T,
+    ): T {
         val key = serviceManager.retrieveKey(
             alias = alias
         )
-        val algorithmType = padding.toSecKeyAlgorithm(
+        val attributes = SecKeyCopyAttributes(
+            key = key
+        )
+        val keyType = CFDictionaryGetValue(
+            theDict = attributes,
+            key = kSecAttrKeyType
+        )
+        val encryptionPadding = if (keyType == kSecAttrKeyTypeEC)
+            NONE
+        else
+            padding
+        val algorithmType = encryptionPadding.toSecKeyAlgorithm(
             digest = digest
         ).algorithm!!
         return usage(key, algorithmType)
@@ -401,8 +490,8 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
      *
      * @return the resolved alias of the private key as [String]
      */
-    // TODO: TO ANNOTATE WITH @Wrapper
-    // TODO: TO ANNOTATE WITH @Returner
+    @Wrapper
+    @Returner
     private fun resolvePrivateKeyAlias(
         alias: String,
     ): String {
@@ -419,8 +508,8 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
      *
      * @return the resolved alias of the public key as [String]
      */
-    // TODO: TO ANNOTATE WITH @Wrapper
-    // TODO: TO ANNOTATE WITH @Returner
+    @Wrapper
+    @Returner
     private fun resolvePublicKeyAlias(
         alias: String,
     ): String {
@@ -438,7 +527,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
      *
      * @return the resolved alias of the asymmetric key as [String]
      */
-    // TODO: TO ANNOTATE WITH @Returner
+    @Returner
     private fun resolveAlias(
         alias: String,
         tag: String,

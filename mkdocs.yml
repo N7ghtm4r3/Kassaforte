@@ -58,10 +58,14 @@ plugins:
 
 nav:
   - Overview: index.md
+  - Advice: advice.md
   - Secure Storage: secure_storage.md
   - Services:
       - Overview: services/index.md
-      - Symmetric: services/symmetric.md
+      - Symmetric:
+          - Overview: services/symmetric/symmetric.md
+          - AES: services/symmetric/aes.md
+          - HMAC: services/symmetric/hmac.md
       - Asymmetric: services/asymmetric.md
 
 extra:

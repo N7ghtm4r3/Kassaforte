@@ -7,6 +7,7 @@ import com.tecknobit.equinoxcore.annotations.Structure
 import com.tecknobit.equinoxcore.enums.OperatingSystem
 import com.tecknobit.equinoxcore.util.isRunningOn
 import com.tecknobit.kassaforte.key.usages.KeyDetailsSheet
+import com.tecknobit.kassaforte.util.encode
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import java.security.Key
@@ -41,7 +42,7 @@ internal abstract class KassaforteServiceImplManager<KI : KeyDetailsSheet<*>> in
          */
         @Returner
         fun Key.encode64(): String {
-            return Base64.encode(this.encoded)
+            return encode(this.encoded)
         }
 
         /**
@@ -99,7 +100,7 @@ internal abstract class KassaforteServiceImplManager<KI : KeyDetailsSheet<*>> in
             keyInfo
         )
         return if (encode64)
-            Base64.encode(encodedKeyInfo.encodeToByteArray())
+            encode(encodedKeyInfo.encodeToByteArray())
         else
             encodedKeyInfo
     }

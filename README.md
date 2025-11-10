@@ -8,7 +8,7 @@
 ![Static Badge](https://img.shields.io/badge/wasmjs-834C74)
 ![Static Badge](https://img.shields.io/badge/backend-7d7d7d?link=https%3A%2F%2Fimg.shields.io%2Fbadge%2Fandroid-4280511051)
 
-**v1.0.0beta-01**
+**v1.0.0beta-02**
 
 **Kassaforte** enables secure storage of sensitive data in Compose Multiplatform applications and on the backend by
 leveraging
@@ -45,7 +45,9 @@ ensure data protection
 
 #### Symmetric
 
-The supported algorithm to generate and then use the keys is the **AES** algorithm with the following block modes:
+<h6>AES</h6>
+
+Algorithm used to `encrypt` and `decrypt` data the following block modes:
 
 - `CBC` - _**Cipher Block Chaining**_  where each block of plaintext is XORed with the previous ciphertext block before
   being encrypted. Requires an initialization vector (IV) of the block size
@@ -54,6 +56,15 @@ The supported algorithm to generate and then use the keys is the **AES** algorit
 - `GCM` - _**Galois/Counter Mode**_ it is based on `CTR` mode for encryption, but also provides authentication (AEAD)
   using Galois field multiplication.
   Requires a nonce, typically 12 bytes for efficiency (on Apple at the moment is not supported)
+
+<h6>HMAC</h6>
+
+Algorithm used to `sign` and `verify` messages with the following digests:
+
+- `SHA1`
+- `SHA256`
+- `SHA384`
+- `SHA512`
 
 <h6>Android</h6>
 
@@ -132,25 +143,26 @@ The keys are used by the `SubtleCrypto` to encrypt or decrypt the data
 
 ## Roadmap to 1.0.0
 
-### beta-01
+### beta-01 ✅
 
 This release provides the `Kassaforte` API to securely store sensitive data.
 
 Provides also the services, symmetric and asymmetric, to generate keys and perform the `encryption` and `decryption` of
 the data
 
-### beta-02
+### beta-02 ✅
 
-This release will provide:
+This release provides:
 
 - `signing` and `verification` of the data
-- `GCM` block mode support also on `iOS`
 
 ### beta-03
 
 This release will provide:
 
 - `wrap` and `unwrap` of the keys
+- `GCM` block mode support also on `apple` (if the `CommonCrypto` will fully supports it and will be the ported on
+  `Kotlin/Native`, otherwise will be integrated when will be available)
 
 Should be the latest `beta` version before the `stable` one
 
@@ -160,7 +172,7 @@ Should be the latest `beta` version before the `stable` one
 
 ```groovy
 dependencies {
-    implementation 'io.github.n7ghtm4r3:kassaforte:1.0.0beta-01'
+    implementation 'io.github.n7ghtm4r3:kassaforte:1.0.0beta-02'
 }
 ```
 
@@ -168,7 +180,7 @@ dependencies {
 
 ```kotlin
 dependencies {
-    implementation("io.github.n7ghtm4r3:kassaforte:1.0.0beta-01")
+    implementation("io.github.n7ghtm4r3:kassaforte:1.0.0beta-02")
 }
 ```
 
@@ -178,7 +190,7 @@ dependencies {
 
 ```toml
 [versions]
-kassaforte = "1.0.0beta-01"
+kassaforte = "1.0.0beta-02"
 
 [libraries]
 kassaforte = { module = "io.github.n7ghtm4r3:kassaforte", version.ref = "kassaforte" } 
@@ -250,185 +262,25 @@ Using the services you can generate and then use symmetric and asymmetric keys
 
 #### Symmetric
 
-<h6>Generate key</h6>
-
-```kotlin
-@Composable
-fun App() {
-    // specify the generation spec of the key
-    val keyGenSpec = SymmetricKeyGenSpec(
-        blockMode = BlockMode.GCM,
-        keySize = S128,
-        encryptionPadding = EncryptionPadding.NONE
-    )
-
-    // specify the purposes where the key can be used
-    val purposes = KeyPurposes(
-        canEncrypt = true,
-        canDecrypt = true
-    )
-
-    // generate the key
-    KassaforteSymmetricService.generateKey(
-        algorithm = Algorithm.AES,
-        alias = "toIdentifyTheKey",
-        keyGenSpec = keyGenSpec,
-        purposes = purposes
-    )
-} 
-```
-
-<h6>Encrypt with the key</h6>
-
-```kotlin
-@Composable
-fun App() {
-    val scope = MainScope()
-    scope.launch {
-        // data to encrypt
-        val dataToEncrypt = "PLAINTEXT"
-
-        // encrypt the data 
-        val encryptedData = KassaforteSymmetricService.encrypt(
-            alias = "toIdentifyTheKey",
-            // must match with the value used to create the key
-            blockMode = BlockMode.GCM,
-            // must match with the value used to create the key
-            padding = EncryptionPadding.NONE,
-            data = encryptedData
-        )
-
-        println(encryptedData)
-    }
-} 
-```
-
-<h6>Decrypt with the key</h6>
-
-```kotlin
-@Composable
-fun App() {
-    val scope = MainScope()
-    scope.launch {
-        // data to decrypt
-        val dataToDecrypt = "...some encrypted data..."
-
-        // decrypt the data 
-        val decryptedData = KassaforteSymmetricService.decrypt(
-            alias = "toIdentifyTheKey",
-            // must match with the value used to create the key
-            blockMode = BlockMode.GCM,
-            // must match with the value used to create the key
-            padding = EncryptionPadding.NONE,
-            data = dataToDecrypt
-        )
-
-        println(decryptedData) // PLAINTEXT
-    }
-} 
-```
-
-<h6>Delete a key</h6>
-
-```kotlin
-@Composable
-fun App() {
-    KassaforteSymmetricService.deleteKey(
-        alias = "toIdentifyTheKey"
-    )
-} 
-```
+| Method        | Description                         |
+|---------------|-------------------------------------|
+| `generateKey` | Allows to generate symmetric keys   |
+| `encrypt`     | Allows to encrypt data              |
+| `decrypt`     | Allows to decrypt data              |
+| `sign`        | Allows to sign messages             |
+| `verify`      | Allows to verify messages           |
+| `delete`      | Allows to delete the generated keys |
 
 #### Asymmetric
 
-<h6>Generate key</h6>
-
-```kotlin
-@Composable
-fun App() {
-    // specify the generation spec of the key
-    val keyGenSpec = AsymmetricKeyGenSpec(
-        keySize = KeySize.S4096,
-        encryptionPadding = EncryptionPadding.RSA_OAEP, // or PKCS#1
-        digest = Digest.SHA256
-    )
-
-    // specify the purposes where the key can be used
-    val purposes = KeyPurposes(
-        canEncrypt = true,
-        canDecrypt = true
-    )
-
-    // generate the key
-    KassaforteAsymmetricService.generateKey(
-        algorithm = Algorithm.RSA, // or EC
-        alias = "toIdentifyTheKey",
-        keyGenSpec = keyGenSpec,
-        purposes = purposes
-    )
-} 
-```
-
-<h6>Encrypt with the key</h6>
-
-```kotlin
-@Composable
-fun App() {
-    val scope = MainScope()
-    scope.launch {
-        // data to encrypt
-        val dataToEncrypt = "PLAINTEXT"
-
-        // encrypt the data 
-        val encryptedData = KassaforteAsymmetricService.encrypt(
-            alias = "toIdentifyTheKey",
-            // must match with the value used to create the key
-            padding = EncryptionPadding.RSA_OAEP,
-            // must match with the value used to create the key
-            digest = digest.SHA256,
-            data = dataToDecrypt
-        )
-
-        println(encryptedData)
-    }
-} 
-```
-
-<h6>Decrypt with the key</h6>
-
-```kotlin
-@Composable
-fun App() {
-    val scope = MainScope()
-    scope.launch {
-        // data to decrypt
-        val dataToDecrypt = "...some encrypted data..."
-
-        // decrypt the data 
-        val decryptedData = KassaforteAsymmetricService.decrypt(
-            alias = "toIdentifyTheKey",
-            // must match with the value used to create the key
-            padding = EncryptionPadding.RSA_OAEP,
-            // must match with the value used to create the key
-            digest = digest.SHA256,
-            data = dataToEncrypt
-        )
-
-        println(decryptedData) // PLAINTEXT
-    }
-} 
-```
-
-<h6>Delete a key</h6>
-
-```kotlin
-@Composable
-fun App() {
-    KassaforteAsymmetricService.deleteKey(
-        alias = "toIdentifyTheKey"
-    )
-} 
-```
+| Method        | Description                         |
+|---------------|-------------------------------------|
+| `generateKey` | Allows to generate asymmetric keys  |
+| `encrypt`     | Allows to encrypt data              |
+| `decrypt`     | Allows to decrypt data              |
+| `sign`        | Allows to sign messages             |
+| `verify`      | Allows to verify messages           |
+| `delete`      | Allows to delete the generated keys |
 
 ## Documentation
 
@@ -442,8 +294,6 @@ A big thanks to the repositories and their maintainers for developing the librar
 work correctly:
 
 - [java-keyring](https://github.com/javakeyring/java-keyring) - handles the secure storage on the `JVM` target
-- [korlibs-crypto](https://github.com/korlibs/korlibs-crypto) - handles the symmetric encryption and decryption on the
-  `Apple` target
 - [windpapi4j](https://github.com/peter-gergely-horvath/windpapi4j) - handles (DPAPI) data protection on `Windows` to
   securely store the generated keys on the `JVM` target
 

@@ -7,20 +7,22 @@ import com.tecknobit.kassaforte.key.genspec.BlockMode.GCM
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyOperation
-import com.tecknobit.kassaforte.key.usages.KeyOperation.DECRYPT
-import com.tecknobit.kassaforte.key.usages.KeyOperation.ENCRYPT
+import com.tecknobit.kassaforte.key.usages.KeyOperation.*
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.impls.KassaforteSymmetricServiceImpl
-import com.tecknobit.kassaforte.util.checkIfIsSupportedType
+import com.tecknobit.kassaforte.util.decode
+import com.tecknobit.kassaforte.util.encode
+import com.tecknobit.kassaforte.util.encodeForKeyOperation
 import java.security.Key
+import java.security.MessageDigest
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
+import javax.crypto.Mac
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.IvParameterSpec
-import kotlin.io.encoding.Base64
 
 /**
- * The `KassaforteKeysService` class allows to generate and to use symmetric keys and managing their persistence.
+ * The `KassaforteKeysService` object allows to generate and to use symmetric keys and managing their persistence.
  *
  * It is based on the [Cipher] API to handling the encryption and decryption of the data and on the [KeyGenerator] API
  * to generate the keys
@@ -41,19 +43,20 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     /**
      * Method used to generate a new symmetric key
      *
-     * @param algorithm The algorithm the key will use
      * @param alias The alias used to identify the key
+     * @param algorithm The algorithm the key will use
      * @param keyGenSpec The generation spec to use to generate the key
      * @param purposes The purposes the key can be used
      */
     actual override fun generateKey(
-        algorithm: Algorithm,
         alias: String,
+        algorithm: Algorithm,
         keyGenSpec: SymmetricKeyGenSpec,
         purposes: KeyPurposes,
     ) {
         serviceImpl.generateKey(
             alias = alias,
+            algorithm = algorithm,
             keyGenSpec = keyGenSpec,
             purposes = purposes
         )
@@ -90,9 +93,6 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         padding: EncryptionPadding,
         data: Any,
     ): String {
-        checkIfIsSupportedType(
-            data = data
-        )
         var cipherIv: ByteArray = byteArrayOf()
         var encryptedData = useCipher(
             alias = alias,
@@ -102,11 +102,11 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         ) { cipher, key ->
             cipher.init(Cipher.ENCRYPT_MODE, key)
             cipherIv = cipher.iv
-            val dataToEncrypt = data.toString().encodeToByteArray()
+            val dataToEncrypt = data.encodeForKeyOperation()
             cipher.doFinal(dataToEncrypt)
         }
         encryptedData = cipherIv + encryptedData
-        return Base64.encode(encryptedData)
+        return encode(encryptedData)
     }
 
     /**
@@ -131,7 +131,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             padding = padding,
             keyOperation = DECRYPT
         ) { cipher, key ->
-            val dataToDecrypt = Base64.decode(data)
+            val dataToDecrypt = decode(data)
             val blockSize = blockMode.blockSize
             val ivSeed = dataToDecrypt.copyOfRange(0, blockSize)
             val algorithmParameterSpec = when (blockMode) {
@@ -159,9 +159,9 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     private inline fun useCipher(
         alias: String,
         keyOperation: KeyOperation,
-        blockMode: BlockMode?,
-        padding: EncryptionPadding?,
-        usage: (Cipher, Key) -> ByteArray,
+        blockMode: BlockMode? = null,
+        padding: EncryptionPadding? = null,
+        crossinline usage: (Cipher, Key) -> ByteArray,
     ): ByteArray {
         val key = serviceImpl.getKey(
             alias = alias,
@@ -196,6 +196,73 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             blockMode = blockMode,
             padding = padding
         )
+    }
+
+    /**
+     * Method used to sign messages with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param message The message to sign
+     *
+     * @return the signed message as [String]
+     *
+     * @since Revision Two
+     */
+    actual suspend fun sign(
+        alias: String,
+        message: Any,
+    ): String {
+        val signedMessage = useMac(
+            alias = alias,
+            usage = { mac -> mac.doFinal(message.encodeForKeyOperation()) }
+        )
+        return encode(signedMessage)
+    }
+
+    /**
+     * Method used to verify the validity of the messages previously signed with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param message The message to verify
+     * @param signature The signature previously computed
+     *
+     * @return whether the message matches to [signature] as [Boolean]
+     *
+     * @since Revision Two
+     */
+    actual suspend fun verify(
+        alias: String,
+        message: Any,
+        signature: String,
+    ): Boolean {
+        val verification = sign(
+            alias = alias,
+            message = message
+        )
+        return MessageDigest.isEqual(decode(signature), decode(verification))
+    }
+
+    /**
+     * Method used to work and to use a [Mac] instance to perform signing or verifying of the data
+     *
+     * @param alias The alias which identify the key to use
+     * @param usage The routine the mac instance have to perform
+     *
+     * @return the message processed by the [Mac] instance as [ByteArray]
+     *
+     * @since Revision Two
+     */
+    private inline fun useMac(
+        alias: String,
+        crossinline usage: (Mac) -> ByteArray,
+    ): ByteArray {
+        val key = serviceImpl.getKey(
+            alias = alias,
+            keyOperation = SIGN
+        )
+        val mac = Mac.getInstance(key.algorithm)
+        mac.init(key)
+        return usage(mac)
     }
 
     /**

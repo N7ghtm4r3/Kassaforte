@@ -2,6 +2,7 @@
 
 package com.tecknobit.kassaforte.enums
 
+import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.Algorithm.EC
 import com.tecknobit.kassaforte.key.genspec.Algorithm.RSA
@@ -37,7 +38,7 @@ enum class KeyType(
          *
          * @return the native key type related to an algorithm as [KeyType]
          */
-        // TODO: TO ANNOTATE WITH @Returner
+        @Returner
         fun Algorithm.toKeyType(): KeyType {
             return when (this) {
                 RSA -> kAttrKeyRSA
@@ -49,6 +50,5 @@ enum class KeyType(
         }
 
     }
-
 
 }

@@ -7,9 +7,11 @@ import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.equinoxcore.annotations.Structure
 import com.tecknobit.kassaforte.enums.ExportFormat
 import com.tecknobit.kassaforte.helpers.IndexedDBManager
-import com.tecknobit.kassaforte.helpers.prepareToDecrypt
 import com.tecknobit.kassaforte.helpers.prepareToEncrypt
+import com.tecknobit.kassaforte.helpers.toUint8Array
+import com.tecknobit.kassaforte.key.genspec.BlockMode
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
+import com.tecknobit.kassaforte.util.decode
 import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.KeyGenSpec
 import com.tecknobit.kassaforte.wrappers.crypto.params.EncryptionParams
@@ -197,15 +199,17 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
      * @param format The format which the key has been previously exported
      * @param usage The ciphering routine to perform
      *
-     * @return the ciphered data as [ByteArray]
+     * @param T The type of the result from the [usage] execution
+     *
+     * @return the ciphered data as [T]
      */
-    suspend inline fun useKey(
+    suspend inline fun <reified T> useKey(
         rawKey: String,
         rawKeyData: CryptoKey,
         usages: JsArray<JsString> = rawKeyData.usages,
         format: ExportFormat,
-        usage: (CryptoKey) -> String,
-    ): String {
+        usage: (CryptoKey) -> T,
+    ): T {
         val keyData = rawKey.toDecodedKeyData()
         val key: CryptoKey = subtleCrypto.importKey(
             format = format.value,
@@ -224,7 +228,7 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
      */
     @Returner
     private fun String.toDecodedKeyData(): ArrayBuffer {
-        val encodedKeyData = Base64.decode(this)
+        val encodedKeyData = decode(this)
         val uint8Array = Uint8Array(encodedKeyData.size)
         val mappedSourceArray = encodedKeyData
             .map { (it.toInt() and 0xFF).toJsNumber() }
@@ -239,6 +243,7 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
      * Method used to encrypt data with the specified key
      *
      * @param algorithm The algorithm to use to encrypt the data
+     * @param blockMode The block mode to use to prepare the data
      * @param key The key to use to encrypt the data
      * @param data The data to encrypt
      *
@@ -246,13 +251,16 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
      */
     suspend fun encrypt(
         algorithm: EncryptionParams,
+        blockMode: BlockMode? = null,
         key: CryptoKey,
         data: Any,
     ): ArrayBuffer {
         return subtleCrypto.encrypt(
             algorithm = algorithm,
             key = key,
-            data = data.prepareToEncrypt()
+            data = data.prepareToEncrypt(
+                blockMode = blockMode
+            )
         ).await()
     }
 
@@ -273,8 +281,58 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
         return subtleCrypto.decrypt(
             algorithm = algorithm,
             key = key,
-            data = data.prepareToDecrypt()
+            data = data.toUint8Array()
         ).await()
+    }
+
+    /**
+     * Method used to sign message
+     *
+     * @param algorithm The algorithm to use to sign the message
+     * @param key The key to use to sign the message
+     * @param message The message to sign
+     *
+     * @return the signed message as [ArrayBuffer]
+     *
+     * @since Revision Two
+     */
+    suspend fun sign(
+        algorithm: EncryptionParams,
+        key: CryptoKey,
+        message: Any,
+    ): ArrayBuffer {
+        return subtleCrypto.sign(
+            algorithm = algorithm,
+            key = key,
+            data = message.toUint8Array()
+        ).await()
+    }
+
+    /**
+     * Method used to verify the validity of a message
+     *
+     * @param algorithm The algorithm to use to verify the message
+     * @param key The key to use to verify the message
+     * @param signature The signature previously computed
+     * @param data The data of the message to verify
+     *
+     * @return whether the message matches to [signature] as [Boolean]
+     *
+     * @since Revision Two
+     */
+    suspend fun verify(
+        algorithm: JsAny,
+        key: CryptoKey,
+        signature: ByteArray,
+        data: ByteArray,
+    ): Boolean {
+        val result: JsBoolean = subtleCrypto.verify(
+            algorithm = algorithm,
+            key = key,
+            signature = signature.toUint8Array(),
+            data = data.toUint8Array()
+        ).await()
+        return result.toBoolean()
     }
 
     /**

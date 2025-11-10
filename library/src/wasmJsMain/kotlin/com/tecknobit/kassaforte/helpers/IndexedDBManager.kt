@@ -4,6 +4,7 @@ package com.tecknobit.kassaforte.helpers
 
 import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.equinoxcore.annotations.Returner
+import com.tecknobit.kassaforte.util.encode
 import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKeyPair
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.KeyGenSpec
@@ -131,7 +132,7 @@ internal object IndexedDBManager {
     @Returner
     private fun ArrayBuffer.toEncodedKey(): String {
         val keyBytes = this.toByteArray()
-        return Base64.encode(keyBytes)
+        return encode(keyBytes)
     }
 
     /**

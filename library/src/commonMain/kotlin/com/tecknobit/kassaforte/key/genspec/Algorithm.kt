@@ -21,7 +21,40 @@ enum class Algorithm(
     EC("EC"),
 
     /**
-     * `AES` symmetric block cipher algorithm widely used for secure data encryption.
+     * `AES` symmetric block cipher algorithm widely used for secure data encryption
      */
-    AES("AES")
+    AES("AES"),
+
+    /**
+     * `HMAC_SHA1` algorithm used to ensure message integrity and authentication,
+     * implemented using the [Digest.SHA1] function
+     *
+     * @since Revision Two
+     */
+    HMAC_SHA1("HmacSHA1"),
+
+    /**
+     * `HMAC_SHA256` algorithm used to ensure message integrity and authentication,
+     * implemented using the [Digest.SHA256] function
+     *
+     * @since Revision Two
+     */
+    HMAC_SHA256("HmacSHA256"),
+
+    /**
+     * `HMAC_SHA384` algorithm used to ensure message integrity and authentication,
+     * implemented using the [Digest.SHA384] function
+     *
+     * @since Revision Two
+     */
+    HMAC_SHA384("HmacSHA384"),
+
+    /**
+     * `HmacSHA512` algorithm used to ensure message integrity and authentication,
+     * implemented using the [Digest.SHA512] function
+     *
+     * @since Revision Two
+     */
+    HMAC_SHA512("HmacSHA512")
+
 }

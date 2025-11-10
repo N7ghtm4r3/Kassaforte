@@ -1,5 +1,7 @@
 package com.tecknobit.kassaforte.util
 
+import com.tecknobit.equinoxcore.annotations.Returner
+import com.tecknobit.equinoxcore.annotations.Validator
 import com.tecknobit.kassaforte.key.genspec.Algorithm.RSA
 import com.tecknobit.kassaforte.key.genspec.Digest
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
@@ -15,7 +17,7 @@ const val UNSUPPORTED_CIPHER_ALGORITHM = "The %s algorithm is not supported to c
  *
  * @param algorithm The algorithm to check
  */
-// TODO: ANNOTATE WITH @Validator
+@Validator
 internal fun checkIfIsSupportedCipherAlgorithm(
     algorithm: String,
 ) {
@@ -32,7 +34,7 @@ internal fun checkIfIsSupportedCipherAlgorithm(
  *
  * @return the decrypted data as nullable [Int]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun KassaforteAsymmetricService.decryptToInt(
     alias: String,
     padding: EncryptionPadding? = null,
@@ -57,7 +59,7 @@ suspend fun KassaforteAsymmetricService.decryptToInt(
  *
  * @return the decrypted data as nullable [UInt]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun KassaforteAsymmetricService.decryptToUInt(
     alias: String,
     padding: EncryptionPadding? = null,
@@ -82,7 +84,7 @@ suspend fun KassaforteAsymmetricService.decryptToUInt(
  *
  * @return the decrypted data as nullable [Long]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun KassaforteAsymmetricService.decryptToLong(
     alias: String,
     padding: EncryptionPadding? = null,
@@ -107,7 +109,7 @@ suspend fun KassaforteAsymmetricService.decryptToLong(
  *
  * @return the decrypted data as nullable [ULong]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun KassaforteAsymmetricService.decryptToULong(
     alias: String,
     padding: EncryptionPadding? = null,
@@ -132,7 +134,7 @@ suspend fun KassaforteAsymmetricService.decryptToULong(
  *
  * @return the decrypted data as nullable [Short]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun KassaforteAsymmetricService.decryptToShort(
     alias: String,
     padding: EncryptionPadding? = null,
@@ -157,7 +159,7 @@ suspend fun KassaforteAsymmetricService.decryptToShort(
  *
  * @return the decrypted data as nullable [UShort]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun KassaforteAsymmetricService.decryptToUShort(
     alias: String,
     padding: EncryptionPadding? = null,
@@ -182,7 +184,7 @@ suspend fun KassaforteAsymmetricService.decryptToUShort(
  *
  * @return the decrypted data as nullable [Byte]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun KassaforteAsymmetricService.decryptToByte(
     alias: String,
     padding: EncryptionPadding? = null,
@@ -207,7 +209,7 @@ suspend fun KassaforteAsymmetricService.decryptToByte(
  *
  * @return the decrypted data as nullable [UByte]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun KassaforteAsymmetricService.decryptToUByte(
     alias: String,
     padding: EncryptionPadding? = null,
@@ -232,7 +234,7 @@ suspend fun KassaforteAsymmetricService.decryptToUByte(
  *
  * @return the decrypted data as nullable [Float]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun KassaforteAsymmetricService.decryptToFloat(
     alias: String,
     padding: EncryptionPadding? = null,
@@ -257,7 +259,7 @@ suspend fun KassaforteAsymmetricService.decryptToFloat(
  *
  * @return the decrypted data as nullable [Double]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun KassaforteAsymmetricService.decryptToDouble(
     alias: String,
     padding: EncryptionPadding? = null,
@@ -282,7 +284,7 @@ suspend fun KassaforteAsymmetricService.decryptToDouble(
  *
  * @return the decrypted data as nullable [Boolean]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun KassaforteAsymmetricService.decryptToBoolean(
     alias: String,
     padding: EncryptionPadding? = null,
@@ -307,7 +309,7 @@ suspend fun KassaforteAsymmetricService.decryptToBoolean(
  *
  * @return the decrypted data as nullable [Char]
  */
-// TODO TO ANNOTATE WITH @Returner
+@Returner
 suspend fun KassaforteAsymmetricService.decryptToChar(
     alias: String,
     padding: EncryptionPadding? = null,

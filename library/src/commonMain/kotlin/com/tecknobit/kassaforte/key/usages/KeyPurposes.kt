@@ -7,8 +7,8 @@ import kotlinx.serialization.Serializable
  *
  * @property canEncrypt Whether the key can be used to encrypt data
  * @property canDecrypt Whether the key can be used to decrypt data
- * @property canSign Whether the key can be used to sign data
- * @property canVerify Whether the key can be used to verify data
+ * @property canSign Whether the key can be used to sign messages
+ * @property canVerify Whether the key can be used to verify messages, note that this purpose could be ignored on symmetric contexts like `HMAC`
  * @property canWrapKey Whether the key can be used in a key agreement protocol
  * to derive a shared secret
  * @property canAgree Whether the key can be used to wrap other key

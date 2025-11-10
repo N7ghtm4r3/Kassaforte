@@ -6,10 +6,7 @@ import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.KeyGenSpec
-import com.tecknobit.kassaforte.wrappers.crypto.params.AesCbcParams
-import com.tecknobit.kassaforte.wrappers.crypto.params.AesCtrParams
-import com.tecknobit.kassaforte.wrappers.crypto.params.AesGcmParams
-import com.tecknobit.kassaforte.wrappers.crypto.params.EncryptionParams
+import com.tecknobit.kassaforte.wrappers.crypto.params.*
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
 import kotlin.js.Promise
@@ -102,6 +99,42 @@ external interface SubtleCrypto : JsAny {
         key: CryptoKey,
         data: Uint8Array,
     ): Promise<ArrayBuffer>
+
+    /**
+     * Method used to sign message
+     *
+     * @param algorithm The algorithm to use to sign the message
+     * @param key The key to use to sign the message
+     * @param data The data of the message to sign
+     *
+     * @return the signed message as [Promise] of [ArrayBuffer]
+     *
+     * @since Revision Two
+     */
+    fun sign(
+        algorithm: JsAny,
+        key: CryptoKey,
+        data: Uint8Array,
+    ): Promise<ArrayBuffer>
+
+    /**
+     * Method used to verify the validity of a message
+     *
+     * @param algorithm The algorithm to use to verify the message
+     * @param key The key to use to verify the message
+     * @param signature The signature previously computed
+     * @param data The data of the message to verify
+     *
+     * @return whether the message matches to [signature] as [Promise] of [JsBoolean]
+     *
+     * @since Revision Two
+     */
+    fun verify(
+        algorithm: JsAny,
+        key: CryptoKey,
+        signature: Uint8Array,
+        data: Uint8Array,
+    ): Promise<JsBoolean>
 
 }
 
@@ -230,3 +263,70 @@ external fun aesGcmParams(
 )
 @Assembler
 external fun rsaOaepParams(): EncryptionParams
+
+/**
+ * Method used to assemble the parameters to use with `RSASSA-PKCS1-v1_5` algorithm
+ *
+ * @return the `RSASSA-PKCS1-v1_5` params as [EncryptionParams]
+ *
+ * @since Revision Two
+ */
+@JsFun(
+    """
+    (name) => (
+       {
+          name: "RSASSA-PKCS1-v1_5"
+       }
+    )   
+    """
+)
+@Assembler
+external fun rsaPKCS1Params(): EncryptionParams
+
+/**
+ * Method used to assemble the parameters to use with `ECDSA` algorithm
+ *
+ * @param hash The hashing function to use to sign or verify messages
+ *
+ * @return the `ECDSA` params as [EncryptionParams]
+ *
+ * @since Revision Two
+ */
+@JsFun(
+    """
+    (hash) => (
+       {
+          name: "ECDSA",
+          hash: hash
+       }
+    )   
+    """
+)
+@Assembler
+external fun ecdsaParams(
+    hash: String,
+): EcdsaParams
+
+/**
+ * Method used to assemble the parameters to use with `HMAC` algorithm and associated hash function
+ *
+ * @param hash The hashing function to use to sign or verify messages
+ *
+ * @return the `HMAC` params as [HmacParams]
+ *
+ * @since Revision Two
+ */
+@JsFun(
+    """
+    (name, hash) => (
+       {
+          name: "HMAC",
+          hash: hash
+       }
+    )   
+    """
+)
+@Assembler
+external fun hmacParams(
+    hash: String,
+): HmacParams

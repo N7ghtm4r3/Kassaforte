@@ -1,5 +1,7 @@
 package com.tecknobit.kassaforte.key.usages
 
+import com.tecknobit.equinoxcore.annotations.Returner
+
 /**
  * These are the operations a generated key can do
  */
@@ -49,7 +51,7 @@ enum class KeyOperation {
          *
          * @return whether the key required is the public one based on the performing [KeyOperation]
          */
-        // TODO: TO ANNOTATE WITH @Returner
+        @Returner
         fun KeyOperation.checkIfRequiresPublicKey(): Boolean {
             return when (this) {
                 ENCRYPT, VERIFY -> true

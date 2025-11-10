@@ -1,49 +1,55 @@
-package com.tecknobit.kassaforte.services
+package com.tecknobit.kassaforte.adapters
 
+import com.tecknobit.equinoxcore.annotations.Wrapper
 import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.BlockMode
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
-import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.NONE
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
+import com.tecknobit.kassaforte.services.KassaforteKeysService
+import com.tecknobit.kassaforte.services.KassaforteSymmetricService
+import kotlinx.coroutines.runBlocking
+import javax.crypto.Cipher
+import javax.crypto.KeyGenerator
 
 /**
- * The `KassaforteSymmetricService` object allows to generate and to use symmetric keys and managing their persistence
+ * The `KassaforteSymmetricServiceJvm` object allows to generate and to use symmetric keys and managing their persistence,
+ * integrating in a `JVM` environment without any boilerplate and `suspend` tricky handling
+ *
+ * It is based on the [Cipher] API to handling the encryption and decryption of the data and on the [KeyGenerator] API
+ * to generate the keys
  *
  * @author Tecknobit - N7ghtm4r3
  *
  * @see KassaforteKeysService
+ * @see KassaforteSymmetricService
  * @see SymmetricKeyGenSpec
+ *
+ * @since Revision Two
  */
-@Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
-expect object KassaforteSymmetricService: KassaforteKeysService<SymmetricKeyGenSpec> {
+object KassaforteSymmetricServiceJvm {
 
     /**
      * Method used to generate a new symmetric key
      *
+     * @param algorithm The algorithm the key will use
      * @param alias The alias used to identify the key
-     * @param algorithm The algorithm the key will use, at the moment will be overridden by default with
-     * [Algorithm.AES] value
      * @param keyGenSpec The generation spec to use to generate the key
      * @param purposes The purposes the key can be used
      */
-    override fun generateKey(
-        alias: String,
+    @Wrapper
+    @JvmStatic
+    fun generateKey(
         algorithm: Algorithm,
+        alias: String,
         keyGenSpec: SymmetricKeyGenSpec,
         purposes: KeyPurposes,
+    ) = KassaforteSymmetricService.generateKey(
+        algorithm = algorithm,
+        alias = alias,
+        keyGenSpec = keyGenSpec,
+        purposes = purposes
     )
-
-    /**
-     * Method used to check whether the alias has been already taken to identify other key
-     *
-     * @param alias The alias to check
-     *
-     * @return whether the alias has been already taken as [Boolean]
-     */
-    override fun aliasExists(
-        alias: String
-    ): Boolean
 
     /**
      * Method used to encrypt data with the key specified by the [alias] value
@@ -55,12 +61,21 @@ expect object KassaforteSymmetricService: KassaforteKeysService<SymmetricKeyGenS
      *
      * @return the encrypted data as [String]
      */
-    suspend fun encrypt(
+    @Wrapper
+    @JvmStatic
+    fun encrypt(
         alias: String,
         blockMode: BlockMode,
-        padding: EncryptionPadding = NONE,
+        padding: EncryptionPadding,
         data: Any,
-    ): String
+    ) = runBlocking {
+        KassaforteSymmetricService.encrypt(
+            alias = alias,
+            blockMode = blockMode,
+            padding = padding,
+            data = data
+        )
+    }
 
     /**
      * Method used to decrypt encrypted data with the key specified by the [alias] value
@@ -72,12 +87,21 @@ expect object KassaforteSymmetricService: KassaforteKeysService<SymmetricKeyGenS
      *
      * @return the decrypted data as [String]
      */
-    suspend fun decrypt(
+    @Wrapper
+    @JvmStatic
+    fun decrypt(
         alias: String,
         blockMode: BlockMode,
-        padding: EncryptionPadding = NONE,
+        padding: EncryptionPadding,
         data: String,
-    ): String
+    ) = runBlocking {
+        KassaforteSymmetricService.decrypt(
+            alias = alias,
+            blockMode = blockMode,
+            padding = padding,
+            data = data
+        )
+    }
 
     /**
      * Method used to sign messages with the key specified by the [alias] value
@@ -86,13 +110,18 @@ expect object KassaforteSymmetricService: KassaforteKeysService<SymmetricKeyGenS
      * @param message The message to sign
      *
      * @return the signed message as [String]
-     *
-     * @since Revision Two
      */
-    suspend fun sign(
+    @Wrapper
+    @JvmStatic
+    fun sign(
         alias: String,
         message: Any,
-    ): String
+    ) = runBlocking {
+        KassaforteSymmetricService.sign(
+            alias = alias,
+            message = message
+        )
+    }
 
     /**
      * Method used to verify the validity of the messages previously signed with the key specified by the [alias] value
@@ -102,24 +131,32 @@ expect object KassaforteSymmetricService: KassaforteKeysService<SymmetricKeyGenS
      * @param signature The signature previously computed
      *
      * @return whether the message matches to [signature] as [Boolean]
-     *
-     * @since Revision Two
      */
-    suspend fun verify(
+    @Wrapper
+    @JvmStatic
+    fun verify(
         alias: String,
         message: Any,
         signature: String,
-    ): Boolean
+    ) = runBlocking {
+        KassaforteSymmetricService.verify(
+            alias = alias,
+            message = message,
+            signature = signature
+        )
+    }
 
     /**
      * Method used to delete a generated key
      *
      * @param alias The alias of the key to delete
      */
-    override fun deleteKey(
-        alias: String
+    @Wrapper
+    @JvmStatic
+    fun deleteKey(
+        alias: String,
+    ) = KassaforteSymmetricService.deleteKey(
+        alias = alias
     )
 
 }
-
-

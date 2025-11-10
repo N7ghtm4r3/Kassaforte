@@ -1,6 +1,7 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
+import com.tecknobit.kassaforte.ECDSA
 import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.genspec.Digest
@@ -8,23 +9,21 @@ import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.RSA_OAEP
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.RSA_PKCS1
 import com.tecknobit.kassaforte.key.usages.KeyOperation
-import com.tecknobit.kassaforte.key.usages.KeyOperation.DECRYPT
-import com.tecknobit.kassaforte.key.usages.KeyOperation.ENCRYPT
+import com.tecknobit.kassaforte.key.usages.KeyOperation.*
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
-import com.tecknobit.kassaforte.services.OAEPWith.Companion.oaepWithValue
 import com.tecknobit.kassaforte.services.impls.KassaforteAsymmetricServiceImpl
 import com.tecknobit.kassaforte.util.checkIfIsSupportedCipherAlgorithm
-import com.tecknobit.kassaforte.util.checkIfIsSupportedType
+import com.tecknobit.kassaforte.util.decode
+import com.tecknobit.kassaforte.util.encode
+import com.tecknobit.kassaforte.util.encodeForKeyOperation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.security.Key
-import java.security.KeyPairGenerator
+import java.security.*
 import javax.crypto.Cipher
-import kotlin.io.encoding.Base64
 
 /**
- * The `KassaforteAsymmetricService` class allows to generate and to use asymmetric keys and managing their persistence.
+ * The `KassaforteAsymmetricService` object allows to generate and to use asymmetric keys and managing their persistence.
  *
  * It is based on the [Cipher] API to handling the encryption and decryption of the data and on the [KeyPairGenerator]
  * API to generate the pairs of keys
@@ -52,14 +51,14 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     /**
      * Method used to generate an asymmetric new key
      *
-     * @param algorithm The algorithm the key will use
      * @param alias The alias used to identify the key
+     * @param algorithm The algorithm the key will use
      * @param keyGenSpec The generation spec to use to generate the key
      * @param purposes The purposes the key can be used
      */
     actual override fun generateKey(
-        algorithm: Algorithm,
         alias: String,
+        algorithm: Algorithm,
         keyGenSpec: AsymmetricKeyGenSpec,
         purposes: KeyPurposes,
     ) {
@@ -104,9 +103,6 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         digest: Digest?,
         data: Any,
     ): String {
-        checkIfIsSupportedType(
-            data = data
-        )
         val cipherText = useCipher(
             alias = alias,
             keyOperation = ENCRYPT,
@@ -114,11 +110,11 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             digest = digest,
             usage = { cipher, key ->
                 cipher.init(Cipher.ENCRYPT_MODE, key)
-                val plainText = data.toString().encodeToByteArray()
+                val plainText = data.encodeForKeyOperation()
                 cipher.doFinal(plainText)
             }
         )
-        return Base64.encode(cipherText)
+        return encode(cipherText)
     }
 
     /**
@@ -144,7 +140,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             digest = digest,
             usage = { cipher, key ->
                 cipher.init(Cipher.DECRYPT_MODE, key)
-                val cipherText = Base64.decode(data)
+                val cipherText = decode(data)
                 cipher.doFinal(cipherText)
             }
         )
@@ -188,7 +184,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     }
 
     /**
-     * Method used to resolve the transformation value to obtain a cipher instance
+     * Method used to resolve the transformation value to obtain a [Cipher] instance
      *
      * @param algorithm The algorithm to use
      * @param padding The padding to apply to ciphering data
@@ -214,6 +210,118 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             else -> throw IllegalArgumentException("Invalid padding value")
         }
         return transformation
+    }
+
+    /**
+     * Method used to sign messages with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param digest The digest to apply to sign messages
+     * @param message The message to sign
+     *
+     * @return the signed message as [String]
+     *
+     * @since Revision Two
+     */
+    actual suspend fun sign(
+        alias: String,
+        digest: Digest,
+        message: Any,
+    ): String {
+        val signedMessage = useSignature(
+            alias = alias,
+            keyOperation = SIGN,
+            digest = digest,
+            usage = { key ->
+                initSign(key as PrivateKey)
+                update(message.encodeForKeyOperation())
+                encode(sign())
+            }
+        )
+        return signedMessage
+    }
+
+    /**
+     * Method used to verify the validity of the messages previously signed with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param digest The digest applied to sign [message]
+     * @param message The message to verify
+     * @param signature The signature previously computed
+     *
+     * @return whether the message matches to [signature] as [Boolean]
+     *
+     * @since Revision Two
+     */
+    actual suspend fun verify(
+        alias: String,
+        digest: Digest,
+        message: Any,
+        signature: String,
+    ): Boolean {
+        val result = useSignature(
+            alias = alias,
+            keyOperation = VERIFY,
+            digest = digest,
+            usage = { key ->
+                initVerify(key as PublicKey)
+                update(message.encodeForKeyOperation())
+                verify(decode(signature))
+            }
+        )
+        return result
+    }
+
+    /**
+     * Method used to work and to use a [Signature] instance to perform signing or verifying of the messages
+     *
+     * @param alias The alias which identify the key to use
+     * @param keyOperation The operation the key have to perform
+     * @param digest The digest to apply to sign or verifying messages
+     * @param usage The routine the signature instance have to perform
+     *
+     * @return the result from [usage] as [T]
+     *
+     * @param T The type of the result obtained using the signature instance
+     *
+     * @since Revision Two
+     */
+    private inline fun <reified T> useSignature(
+        alias: String,
+        keyOperation: KeyOperation,
+        digest: Digest,
+        usage: Signature.(Key) -> T,
+    ): T {
+        val key = serviceImpl.getKey(
+            alias = alias,
+            keyOperation = keyOperation
+        )
+        val signatureAlgorithm = resolveSignatureAlgorithm(
+            digest = digest,
+            keyAlgorithm = key.algorithm
+        )
+        val signature = Signature.getInstance(signatureAlgorithm)
+        return usage(signature, key)
+    }
+
+    /**
+     * Method used to resolve the signature algorithm to obtain a [Signature] instance
+     *
+     * @param digest The digest to apply to sign messages
+     * @param keyAlgorithm The algorithm to use to sign messages
+     *
+     * @return the signature algorithm as [String]
+     */
+    @Assembler
+    private fun resolveSignatureAlgorithm(
+        digest: Digest,
+        keyAlgorithm: String,
+    ): String {
+        val algorithm = if (keyAlgorithm == Algorithm.EC.value)
+            ECDSA
+        else
+            keyAlgorithm
+        return "${digest.name}with$algorithm"
     }
 
     /**

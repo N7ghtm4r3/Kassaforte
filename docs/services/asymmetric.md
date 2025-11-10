@@ -8,7 +8,7 @@ The supported asymmetric algorithms to generate and then use the keys are the fo
   modes:
     - `PKCS#1` RSA signature scheme with `PKCS#1 v1.5 padding` (on the web just signing and verifying only)
     - `RSA_OAEP` RSA encryption using OAEP padding
-- `EC` symmetric algorithm based on elliptic curve cryptography (ECC),
+- `EC` asymmetric algorithm based on elliptic curve cryptography (ECC),
   commonly used for digital signatures (ECDSA) and key exchange (ECDH, unsupported at the moment)
 
 ## Architecture
@@ -60,12 +60,14 @@ Following the below compatibility table you can create a new asymmetric key:
 
 !!! Warning
 
-    The usage of `SHA1` is discouraged due to known collision vulnerabilities and it is considered obsolete
+    The use of `SHA1` is discouraged due to known collision vulnerabilities and is considered obsolete. 
+    However, on some **Android** devices, it may still be required due to hardware compatibility or limitations imposed by 
+    the platform. If the device does not support, for example, `SHA256`, `SHA1` will be automatically used instead
 
 ```kotlin
 val keyGenSpec = AsymmetricKeyGenSpec(
     keySize = KeySize.S4096,
-    encryptionPadding = EncryptionPadding.RSA_OAEP,
+    encryptionPadding = EncryptionPadding.RSA_OAEP, // not to sign or verify
     digest = Digest.SHA256
 )
 ```
@@ -91,7 +93,10 @@ be thrown an exception
 ```kotlin
 val purposes = KeyPurposes(
     canEncrypt = true,
-    canDecrypt = true
+    canDecrypt = true,
+    -- and / or --
+    canSign = true,
+    canVerify = true
 )
 ```
 
@@ -99,8 +104,8 @@ val purposes = KeyPurposes(
 
 ```kotlin
 KassaforteAsymmetricService.generateKey(
-    algorithm = Algorithm.RSA,
     alias = "toIdentifyTheKey",
+    algorithm = Algorithm.RSA,
     keyGenSpec = keyGenSpec,
     purposes = purposes
 )
@@ -124,7 +129,7 @@ scope.launch {
     val encryptedData = KassaforteAsymmetricService.encrypt(
         alias = "toIdentifyTheKey",
         padding = EncryptionPadding.RSA_OAEP,
-        digest = digest.SHA256,
+        digest = Digest.SHA256,
         data = dataToDecrypt
     )
 
@@ -149,7 +154,7 @@ scope.launch {
     val decryptedData = KassaforteAsymmetricService.decrypt(
         alias = "toIdentifyTheKey",
         padding = EncryptionPadding.RSA_OAEP,
-        digest = digest.SHA256,
+        digest = Digest.SHA256,
         data = dataToEncrypt
     )
 
@@ -161,6 +166,48 @@ scope.launch {
 
     The `padding` and the `digest` values must match the values used to generate the using key, otherwise the decryption
     will fail
+
+#### Sign
+
+```kotlin
+val scope = MainScope()
+scope.launch {
+    // data to sign
+    val message = "My message"
+
+    // sign the message 
+    val signedMessage = KassaforteAsymmetricService.sign(
+        alias = "toIdentifyTheKey",
+        digest = Digest.SHA256,
+        message = message
+    )
+
+    println(signedMessage)
+}
+```
+
+#### Verify
+
+```kotlin
+val scope = MainScope()
+scope.launch {
+    // data to verify
+    val messageToVerify = "My message"
+
+    // signature
+    val signedMessage = "...signed message.."
+
+    // verify the data 
+    val result = KassaforteSymmetricService.verify(
+        alias = "toIdentifyTheKey",
+        digest = Digest.SHA256,
+        message = messageToVerify,
+        signature = signedMessage
+    )
+
+    println(result) // true or false
+}
+```
 
 ### Delete a key
 

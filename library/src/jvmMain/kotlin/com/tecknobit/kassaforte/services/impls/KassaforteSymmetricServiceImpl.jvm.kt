@@ -13,11 +13,11 @@ import com.tecknobit.kassaforte.services.KassaforteKeysService
 import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.KEY_CANNOT_PERFORM_OPERATION_ERROR
 import com.tecknobit.kassaforte.services.helpers.KassaforteServiceImplManager
 import com.tecknobit.kassaforte.services.helpers.KassaforteServiceImplManager.Companion.encode64
+import com.tecknobit.kassaforte.util.decode
 import kotlinx.serialization.Serializable
 import java.security.Key
 import javax.crypto.KeyGenerator
 import javax.crypto.spec.SecretKeySpec
-import kotlin.io.encoding.Base64
 
 /**
  * The `KassaforteSymmetricServiceImpl` class allows to implement a service to perform the operations
@@ -51,24 +51,26 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() : Kass
      * Method used to generate an asymmetric new key
      *
      * @param alias The alias used to identify the key
+     * @param algorithm The algorithm the key will use
      * @param keyGenSpec The generation spec to use to generate the key
      * @param purposes The purposes the key can be used
      */
     actual fun generateKey(
         alias: String,
+        algorithm: Algorithm,
         keyGenSpec: SymmetricKeyGenSpec,
         purposes: KeyPurposes,
     ) {
         if (aliasExists(alias))
             throw IllegalAccessException(KassaforteKeysService.ALIAS_ALREADY_TAKEN_ERROR)
-        val algorithm = Algorithm.AES.value
-        val keyGenerator = KeyGenerator.getInstance(algorithm)
+        val algorithmValue = algorithm.value
+        val keyGenerator = KeyGenerator.getInstance(algorithmValue)
         keyGenerator.init(keyGenSpec.keySize.bitCount)
         val key = keyGenerator.generateKey()
         serviceImplManager.storeKeyData(
             alias = alias,
             keyInfo = KeyInfo(
-                algorithm = algorithm,
+                algorithm = algorithmValue,
                 keyPurposes = purposes,
                 key = key
             )
@@ -205,7 +207,7 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() : Kass
          */
         @Returner
         fun resolveKey(): Key = SecretKeySpec(
-            Base64.decode(key.encodeToByteArray()),
+            decode(key.encodeToByteArray()),
             algorithm
         )
 

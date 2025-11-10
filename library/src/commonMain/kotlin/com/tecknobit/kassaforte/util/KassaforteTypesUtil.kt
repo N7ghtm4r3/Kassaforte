@@ -1,5 +1,7 @@
 package com.tecknobit.kassaforte.util
 
+import com.tecknobit.equinoxcore.annotations.Validator
+
 /**
  * `UNSUPPORTED_TYPE` the error message to display when the type is not supported
  */
@@ -10,7 +12,7 @@ const val UNSUPPORTED_TYPE = "Type not supported"
  *
  * @param data The data to check its type
  */
-// TODO: ANNOTATE WITH @Validator
+@Validator
 internal fun checkIfIsSupportedType(
     data: Any
 ) {
