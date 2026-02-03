@@ -1,11 +1,10 @@
-@file:OptIn(ExperimentalWasmJsInterop::class)
+@file:OptIn(ExperimentalWasmJsInterop::class, ExperimentalWasmJsInterop::class)
 
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.enums.ExportFormat.RAW
-import com.tecknobit.kassaforte.helpers.asPlainText
 import com.tecknobit.kassaforte.helpers.toArrayBuffer
 import com.tecknobit.kassaforte.helpers.toByteArray
 import com.tecknobit.kassaforte.key.genspec.Algorithm
@@ -22,6 +21,7 @@ import com.tecknobit.kassaforte.services.helpers.KassaforteSymmetricServiceManag
 import com.tecknobit.kassaforte.util.decode
 import com.tecknobit.kassaforte.util.encode
 import com.tecknobit.kassaforte.util.encodeForKeyOperation
+import com.tecknobit.kassaforte.utils.asPlainText
 import com.tecknobit.kassaforte.wrappers.crypto.aesCbcParams
 import com.tecknobit.kassaforte.wrappers.crypto.aesCtrParams
 import com.tecknobit.kassaforte.wrappers.crypto.aesGcmParams
@@ -35,6 +35,8 @@ import com.tecknobit.kassaforte.wrappers.crypto.params.AesCtrParams
 import com.tecknobit.kassaforte.wrappers.crypto.params.AesGcmParams
 import com.tecknobit.kassaforte.wrappers.crypto.params.EncryptionParams
 import org.khronos.webgl.ArrayBuffer
+import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.unsafeCast
 
 /**
  * The `KassaforteSymmetricService` class allows to generate and to use symmetric keys and managing their persistence.
@@ -348,9 +350,9 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
  * @return the key gen params as [com.tecknobit.kassaforte.wrappers.crypto.key.genspec.SymmetricKeyGenSpec]
  */
 @JsFun(
-    """
+    $$"""
     (algorithm, blockType, bitCount) => ({
-        name: `${'$'}{algorithm}-${'$'}{blockType}`,
+        name: `${algorithm}-${blockType}`,
         length: bitCount
     })
     """
@@ -363,11 +365,11 @@ private external fun resolveAESKeyGenSpec(
 ): com.tecknobit.kassaforte.wrappers.crypto.key.genspec.SymmetricKeyGenSpec
 
 /**
- * Method used to assemble a native [com.tecknobit.kassaforte.wrappers.crypto.key.genspec.HmacKeyGenParams] object
+ * Method used to assemble a native [HmacKeyGenParams] object
  *
  * @param hash The hash function the generating key will be allowed to use
  *
- * @return the key gen params as [com.tecknobit.kassaforte.wrappers.crypto.key.genspec.HmacKeyGenParams]
+ * @return the key gen params as [HmacKeyGenParams]
  *
  * @since Revision Two
  */

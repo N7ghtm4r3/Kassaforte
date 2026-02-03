@@ -7,7 +7,7 @@ import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
  *
  * @author Tecknobit - N7ghtm4r3
  *
- * @see JsAny
+ * @see kotlin.js.JsAny
  * @see CryptoKey
  */
 external interface RawCryptoKey : CryptoKey {

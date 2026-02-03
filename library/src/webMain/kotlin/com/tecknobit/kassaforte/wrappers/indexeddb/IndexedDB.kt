@@ -3,6 +3,8 @@
 package com.tecknobit.kassaforte.wrappers.indexeddb
 
 import com.tecknobit.kassaforte.wrappers.indexeddb.requests.IDBOpenDBRequest
+import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.JsAny
 
 /**
  * The `IndexedDB` interface wraps the native [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB)

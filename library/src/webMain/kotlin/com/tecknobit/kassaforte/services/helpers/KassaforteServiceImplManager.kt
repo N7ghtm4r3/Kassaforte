@@ -1,4 +1,5 @@
 @file:OptIn(ExperimentalWasmJsInterop::class)
+@file:Suppress("UNCHECKED_CAST")
 
 package com.tecknobit.kassaforte.services.helpers
 
@@ -7,24 +8,29 @@ import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.equinoxcore.annotations.Structure
 import com.tecknobit.kassaforte.enums.ExportFormat
 import com.tecknobit.kassaforte.helpers.IndexedDBManager
-import com.tecknobit.kassaforte.helpers.prepareToEncrypt
-import com.tecknobit.kassaforte.helpers.toUint8Array
 import com.tecknobit.kassaforte.key.genspec.BlockMode
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.util.decode
+import com.tecknobit.kassaforte.utils.await
+import com.tecknobit.kassaforte.utils.prepareToEncrypt
+import com.tecknobit.kassaforte.utils.toUint8Array
 import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.KeyGenSpec
 import com.tecknobit.kassaforte.wrappers.crypto.params.EncryptionParams
 import com.tecknobit.kassaforte.wrappers.crypto.subtleCrypto
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
 import kotlin.coroutines.resume
 import kotlin.io.encoding.Base64
+import kotlin.js.*
 
 /**
- * The `KassaforteServiceImplManager` class allows to perform operations that [com.tecknobit.kassaforte.services.helpers.KassaforteAsymmetricServiceManager]
- * and [com.tecknobit.kassaforte.services.helpers.KassaforteSymmetricServiceManager] have in common
+ * The `KassaforteServiceImplManager` class allows to perform operations that [KassaforteAsymmetricServiceManager]
+ * and [KassaforteSymmetricServiceManager] have in common
  *
  * It is particularly useful to avoid to break the `expect/actual` implementation and clean implement shared code avoiding
  * duplication
@@ -85,7 +91,7 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
      *
      * @param purposes The purposes the key can be used
      *
-     * @return the usages for the keys as [JsArray] of [JsString]
+     * @return the usages for the keys as [kotlin.js.JsArray] of [kotlin.js.JsString]
      *
      * @throws IllegalStateException when the combination of the usages is not valid
      */
@@ -127,7 +133,7 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
             algorithm = genSpec,
             extractable = true,
             keyUsages = usages
-        ).await()
+        ).await() as K
         store(
             alias = alias,
             algorithm = genSpec,
@@ -217,7 +223,7 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
             algorithm = rawKeyData.algorithm,
             extractable = rawKeyData.extractable,
             keyUsages = usages
-        ).await()
+        ).await() as CryptoKey
         return usage(key)
     }
 

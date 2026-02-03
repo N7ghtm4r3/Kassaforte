@@ -64,6 +64,7 @@ kotlin {
     }
 
     sourceSets {
+        applyDefaultHierarchyTemplate()
 
         val commonMain by getting {
             dependencies {
@@ -73,18 +74,7 @@ kotlin {
             }
         }
 
-        val iosX64Main by getting
-        val iosArm64Main by getting
-        val iosSimulatorArm64Main by getting
-        val macosX64Main by getting
-        val macosArm64Main by getting
-        val appleMain by creating {
-            dependsOn(commonMain)
-            iosX64Main.dependsOn(this)
-            iosArm64Main.dependsOn(this)
-            iosSimulatorArm64Main.dependsOn(this)
-            macosX64Main.dependsOn(this)
-            macosArm64Main.dependsOn(this)
+        val appleMain by getting {
             dependencies {
             }
         }
@@ -114,22 +104,20 @@ kotlin {
             }
         }
 
-        val webMain by creating {
+        val webMain by getting {
+            dependsOn(hybridKassaforteMain)
             dependencies {
-                dependsOn(commonMain)
                 implementation(libs.kotlin.browser)
             }
         }
 
         val jsMain by getting {
             dependencies {
-                dependsOn(webMain)
             }
         }
 
         val wasmJsMain by getting {
             dependencies {
-                dependsOn(webMain)
             }
         }
     }

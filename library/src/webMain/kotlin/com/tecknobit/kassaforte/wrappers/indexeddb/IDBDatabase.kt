@@ -3,6 +3,8 @@
 package com.tecknobit.kassaforte.wrappers.indexeddb
 
 import org.w3c.dom.DOMTokenList
+import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.JsAny
 
 /**
  * The `IDBDatabase` interface wraps the native [IDBDatabase](https://developer.mozilla.org/en-US/docs/Web/API/IDBDatabase)

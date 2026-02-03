@@ -1,8 +1,12 @@
-@file:OptIn(ExperimentalWasmJsInterop::class)
+@file:OptIn(ExperimentalWasmJsInterop::class, ExperimentalWasmJsInterop::class)
 
 package com.tecknobit.kassaforte.wrappers.crypto.key
 
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.KeyGenSpec
+import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.JsAny
+import kotlin.js.JsArray
+import kotlin.js.JsString
 
 /**
  * The `CryptoKey` interface wraps the native [CryptoKey](https://developer.mozilla.org/en-US/docs/Web/API/CryptoKey)

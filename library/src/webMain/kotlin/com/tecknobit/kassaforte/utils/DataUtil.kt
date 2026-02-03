@@ -1,6 +1,8 @@
-package com.tecknobit.kassaforte.helpers
+package com.tecknobit.kassaforte.utils
 
 import com.tecknobit.equinoxcore.annotations.Returner
+import com.tecknobit.kassaforte.helpers.toByteArray
+import com.tecknobit.kassaforte.helpers.toUint8Array
 import com.tecknobit.kassaforte.key.genspec.BlockMode
 import com.tecknobit.kassaforte.key.genspec.BlockMode.CBC
 import com.tecknobit.kassaforte.util.encodeForKeyOperation

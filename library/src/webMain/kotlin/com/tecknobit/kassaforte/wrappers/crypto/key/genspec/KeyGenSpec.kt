@@ -3,6 +3,8 @@
 package com.tecknobit.kassaforte.wrappers.crypto.key.genspec
 
 import com.tecknobit.equinoxcore.annotations.Structure
+import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.JsAny
 
 /**
  * The `KeyGenSpec` interface provides the basic information for the generation of a key

@@ -2,6 +2,9 @@
 
 package com.tecknobit.kassaforte.wrappers.indexeddb
 
+import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.JsAny
+
 /**
  * The `TransactionMode` interface wraps the native [modes](https://developer.mozilla.org/en-US/docs/Web/API/IDBTransaction#mode_constants)
  *

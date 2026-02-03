@@ -9,7 +9,6 @@ import com.tecknobit.kassaforte.enums.ExportFormat.SPKI
 import com.tecknobit.kassaforte.enums.NamedCurve.Companion.toNamedCurve
 import com.tecknobit.kassaforte.enums.RsaAlgorithmName.Companion.toRsaAlgorithmName
 import com.tecknobit.kassaforte.enums.RsaAlgorithmName.RSASSA_PKCS1_v1_5
-import com.tecknobit.kassaforte.helpers.asPlainText
 import com.tecknobit.kassaforte.helpers.toByteArray
 import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.Algorithm.EC
@@ -22,6 +21,7 @@ import com.tecknobit.kassaforte.services.helpers.KassaforteAsymmetricServiceMana
 import com.tecknobit.kassaforte.util.decode
 import com.tecknobit.kassaforte.util.encode
 import com.tecknobit.kassaforte.util.encodeForKeyOperation
+import com.tecknobit.kassaforte.utils.asPlainText
 import com.tecknobit.kassaforte.wrappers.crypto.ecdsaParams
 import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.EcKeyGenParams
@@ -31,6 +31,7 @@ import com.tecknobit.kassaforte.wrappers.crypto.key.raw.RawCryptoKeyPair
 import com.tecknobit.kassaforte.wrappers.crypto.params.EncryptionParams
 import com.tecknobit.kassaforte.wrappers.crypto.rsaOaepParams
 import com.tecknobit.kassaforte.wrappers.crypto.rsaPKCS1Params
+import kotlin.js.ExperimentalWasmJsInterop
 
 /**
  * The `KassaforteAsymmetricService` class allows to generate and to use asymmetric keys and managing their persistence.

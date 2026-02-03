@@ -3,6 +3,8 @@
 package com.tecknobit.kassaforte.wrappers.indexeddb.requests
 
 import org.w3c.dom.events.Event
+import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.JsAny
 
 /**
  * The `IDBRequest` interface wraps the native [IDBRequest](https://developer.mozilla.org/en-US/docs/Web/API/IDBRequest)

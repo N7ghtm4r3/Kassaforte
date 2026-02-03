@@ -18,6 +18,7 @@ import com.tecknobit.kassaforte.wrappers.indexeddb.requests.IDBRequest
 import org.khronos.webgl.ArrayBuffer
 import org.w3c.dom.events.Event
 import kotlin.io.encoding.Base64
+import kotlin.js.*
 
 /**
  * The `IndexedDBManager` allows the management of the native [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) APIs
@@ -239,11 +240,11 @@ internal object IndexedDBManager {
         }
         val request = indexedDb().openDB()
         request.onsuccess = { event ->
-            indexedDB = event.getResult()!!
+            indexedDB = event.getResult()!! as IDBDatabase
             onReady?.invoke()
         }
         request.onupgradeneeded = { event ->
-            indexedDB = event.getResult()!!
+            indexedDB = event.getResult()!! as IDBDatabase
             indexedDB.createMainObjectStore()
         }
         request.onerror = {
@@ -281,13 +282,11 @@ internal object IndexedDBManager {
     /**
      * Method used to get a result from an [Event]
      *
-     * @param T The type of the result
-     *
-     * @return the result from an event as nullable [T]
+     * @return the result from an event as nullable [JsAny]
      */
     @Returner
-    private fun <T> Event.getResult(): T? {
-        return target?.unsafeCast<IDBRequest>()?.result?.unsafeCast()
+    private fun Event.getResult(): JsAny? {
+        return (target as? IDBRequest)?.result
     }
 
     /**

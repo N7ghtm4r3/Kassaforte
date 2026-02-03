@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalWasmJsInterop::class)
+@file:OptIn(ExperimentalWasmJsInterop::class, ExperimentalWasmJsInterop::class)
 
 package com.tecknobit.kassaforte.helpers
 
@@ -7,6 +7,9 @@ import com.tecknobit.equinoxcore.annotations.Wrapper
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
 import org.khronos.webgl.get
+import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.toJsArray
+import kotlin.js.toJsNumber
 
 /**
  * Method used to convert an [ArrayBuffer] into a [ByteArray]

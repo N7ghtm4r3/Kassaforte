@@ -9,7 +9,7 @@ import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.KeyGenSpec
 import com.tecknobit.kassaforte.wrappers.crypto.params.*
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
-import kotlin.js.Promise
+import kotlin.js.*
 
 /**
  * The `SubtleCrypto` interface wraps the native [SubtleCrypto](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto)
@@ -185,7 +185,7 @@ external fun aesCbcParams(
  * @param name The name of the algorithm to use
  * @param counter The initial value of the counter block. This must be 16 bytes long (the AES block size). The rightmost
  * length bits of this block are used for the counter, and the rest is used for the nonce.
- * For example, if [length] is set to `64`, then the first half of counter is the nonce and the second half is used for
+ * For example, if [kotlin.js.length] is set to `64`, then the first half of counter is the nonce and the second half is used for
  * the counter
  *
  * @return the `CTR` params as [AesCtrParams]

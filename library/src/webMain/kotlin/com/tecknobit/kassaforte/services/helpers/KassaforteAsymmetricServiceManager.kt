@@ -14,12 +14,11 @@ import kotlinx.coroutines.launch
  * @author Tecknobit - N7ghtm4r3
  *
  * @see KassaforteServiceManager
- * @see com.tecknobit.kassaforte.services.helpers.KassaforteServiceImplManager
+ * @see KassaforteServiceImplManager
  * @see CryptoKeyPair
  * @see RawCryptoKeyPair
  */
-internal class KassaforteAsymmetricServiceManager :
-    KassaforteServiceImplManager<CryptoKeyPair, RawCryptoKeyPair>() {
+internal class KassaforteAsymmetricServiceManager : KassaforteServiceImplManager<CryptoKeyPair, RawCryptoKeyPair>() {
 
     /**
      * Method used to secure store a new generated asymmetric key pair
@@ -33,12 +32,12 @@ internal class KassaforteAsymmetricServiceManager :
         algorithm: KeyGenSpec,
         generatedKey: CryptoKeyPair,
     ) {
-        KassaforteServiceImplManager.managerScope.launch {
-            val privateKey = KassaforteServiceImplManager.exportKey(
+        managerScope.launch {
+            val privateKey = exportKey(
                 key = generatedKey.privateKey,
                 format = PKCS8
             )
-            val publicKey = KassaforteServiceImplManager.exportKey(
+            val publicKey = exportKey(
                 key = generatedKey.publicKey,
                 format = SPKI
             )

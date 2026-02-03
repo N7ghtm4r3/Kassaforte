@@ -8,7 +8,7 @@ import org.khronos.webgl.ArrayBuffer
  *
  * @author Tecknobit - N7ghtm4r3
  *
- * @see JsAny
+ * @see kotlin.js.JsAny
  * @see com.tecknobit.kassaforte.wrappers.crypto.params.EncryptionParams
  */
 external interface AesGcmParams : EncryptionParams {

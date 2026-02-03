@@ -2,6 +2,9 @@
 
 package com.tecknobit.kassaforte.wrappers.crypto.key
 
+import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.JsAny
+
 /**
  * The `CryptoKeyPair` interface wraps the native [CryptoKeyPair](https://developer.mozilla.org/en-US/docs/Web/API/CryptoKeyPair)
  * object

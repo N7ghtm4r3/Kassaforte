@@ -8,7 +8,7 @@ import org.w3c.dom.events.Event
  *
  * @author Tecknobit - N7ghtm4r3
  *
- * @see JsAny
+ * @see kotlin.js.JsAny
  * @see com.tecknobit.kassaforte.wrappers.indexeddb.requests.IDBRequest
  */
 external interface IDBOpenDBRequest : IDBRequest {

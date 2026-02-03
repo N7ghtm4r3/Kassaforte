@@ -3,6 +3,8 @@
 package com.tecknobit.kassaforte.wrappers.indexeddb
 
 import com.tecknobit.kassaforte.wrappers.indexeddb.requests.IDBRequest
+import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.JsAny
 
 /**
  * The `IDBObjectStore` interface wraps the native [IDBObjectStore](https://developer.mozilla.org/en-US/docs/Web/API/IDBObjectStore)
