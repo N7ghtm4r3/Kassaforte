@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://io.github.n7ghtm4r3/Kassaforte/</loc>
+         <lastmod>2026-02-03</lastmod>
+    </url>
+    <url>
+         <loc>https://io.github.n7ghtm4r3/Kassaforte/advice/</loc>
+         <lastmod>2026-02-03</lastmod>
+    </url>
+    <url>
+         <loc>https://io.github.n7ghtm4r3/Kassaforte/secure_storage/</loc>
+         <lastmod>2026-02-03</lastmod>
+    </url>
+    <url>
+         <loc>https://io.github.n7ghtm4r3/Kassaforte/services/</loc>
+         <lastmod>2026-02-03</lastmod>
+    </url>
+    <url>
+         <loc>https://io.github.n7ghtm4r3/Kassaforte/services/asymmetric/</loc>
+         <lastmod>2026-02-03</lastmod>
+    </url>
+    <url>
+         <loc>https://io.github.n7ghtm4r3/Kassaforte/services/symmetric/aes/</loc>
+         <lastmod>2026-02-03</lastmod>
+    </url>
+    <url>
+         <loc>https://io.github.n7ghtm4r3/Kassaforte/services/symmetric/hmac/</loc>
+         <lastmod>2026-02-03</lastmod>
+    </url>
+    <url>
+         <loc>https://io.github.n7ghtm4r3/Kassaforte/services/symmetric/symmetric/</loc>
+         <lastmod>2026-02-03</lastmod>
+    </url>
+</urlset>
