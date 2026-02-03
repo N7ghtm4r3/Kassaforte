@@ -5,7 +5,7 @@
 ![Static Badge](https://img.shields.io/badge/android-4280511051)
 ![Static Badge](https://img.shields.io/badge/ios-445E91)
 ![Static Badge](https://img.shields.io/badge/desktop-006874)
-![Static Badge](https://img.shields.io/badge/wab-834C74)
+![Static Badge](https://img.shields.io/badge/web-834C74)
 ![Static Badge](https://img.shields.io/badge/backend-7d7d7d?link=https%3A%2F%2Fimg.shields.io%2Fbadge%2Fandroid-4280511051)
 
 **v1.0.0beta-03**
