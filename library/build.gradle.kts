@@ -1,28 +1,32 @@
 import com.vanniktech.maven.publish.JavadocJar
 import com.vanniktech.maven.publish.KotlinMultiplatform
-import org.jetbrains.dokka.DokkaConfiguration.Visibility.*
-import org.jetbrains.dokka.base.DokkaBase
-import org.jetbrains.dokka.base.DokkaBaseConfiguration
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.vanniktech.mavenPublish)
+    alias(libs.plugins.androidKotlinMultiplatformLibrary)
+    alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.dokka)
-    kotlin("plugin.serialization") version "2.2.0"
+    alias(libs.plugins.vanniktech.mavenPublish)
 }
 
 group = "com.tecknobit.kassaforte"
-version = "1.0.0beta-02"
+version = "1.0.0beta-03"
 
 kotlin {
-    androidTarget {
-        publishLibraryVariants("release")
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_18)
+    androidLibrary {
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+        minSdk = libs.versions.android.minSdk.get().toInt()
+        namespace = "com.tecknobit.kassaforte"
+        experimentalProperties["android.experimental.kmp.enableAndroidResources"] = true
+
+        compilations {
+            compilerOptions {
+                jvmTarget.set(JvmTarget.JVM_18)
+            }
         }
+
     }
 
     listOf(
@@ -38,11 +42,17 @@ kotlin {
         }
     }
 
+    js {
+        browser()
+        binaries.library()
+    }
+
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        binaries.executable()
+        binaries.library()
         browser {
             webpackTask {
+
             }
         }
     }
@@ -54,6 +64,7 @@ kotlin {
     }
 
     sourceSets {
+        applyDefaultHierarchyTemplate()
 
         val commonMain by getting {
             dependencies {
@@ -63,18 +74,7 @@ kotlin {
             }
         }
 
-        val iosX64Main by getting
-        val iosArm64Main by getting
-        val iosSimulatorArm64Main by getting
-        val macosX64Main by getting
-        val macosArm64Main by getting
-        val appleMain by creating {
-            dependsOn(commonMain)
-            iosX64Main.dependsOn(this)
-            iosArm64Main.dependsOn(this)
-            iosSimulatorArm64Main.dependsOn(this)
-            macosX64Main.dependsOn(this)
-            macosArm64Main.dependsOn(this)
+        val appleMain by getting {
             dependencies {
             }
         }
@@ -104,27 +104,38 @@ kotlin {
             }
         }
 
-        val wasmJsMain by getting {
+        val webMain by getting {
             dependsOn(hybridKassaforteMain)
             dependencies {
                 implementation(libs.kotlin.browser)
             }
         }
 
+        val jsMain by getting {
+            dependencies {
+            }
+        }
+
+        val wasmJsMain by getting {
+            dependencies {
+            }
+        }
     }
+
+    jvmToolchain(18)
 }
 
 mavenPublishing {
     configure(
         platform = KotlinMultiplatform(
-            javadocJar = JavadocJar.Dokka("dokkaHtml"),
-            sourcesJar = true
+            javadocJar = JavadocJar.Dokka("dokkaGenerate"),
+            androidVariantsToPublish = listOf("release"),
         )
     )
     coordinates(
         groupId = "io.github.n7ghtm4r3",
         artifactId = "kassaforte",
-        version = "1.0.0beta-02"
+        version = "1.0.0beta-03"
     )
     pom {
         name.set("Kassaforte")
@@ -152,38 +163,4 @@ mavenPublishing {
     }
     publishToMavenCentral()
     signAllPublications()
-}
-
-android {
-    namespace = "com.tecknobit.kassaforte"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-    defaultConfig {
-        minSdk = libs.versions.android.minSdk.get().toInt()
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_18
-        targetCompatibility = JavaVersion.VERSION_18
-    }
-}
-
-buildscript {
-    dependencies {
-        classpath(libs.dokka.base)
-    }
-}
-
-subprojects {
-    apply(plugin = "org.jetbrains.dokka")
-}
-
-tasks.dokkaHtml {
-    outputDirectory.set(layout.projectDirectory.dir("../docs/dokka"))
-    dokkaSourceSets.configureEach {
-        moduleName = "Kassaforte"
-        includeNonPublic.set(true)
-        documentedVisibilities.set(setOf(PUBLIC, PROTECTED, PRIVATE, INTERNAL))
-    }
-    pluginConfiguration<DokkaBase, DokkaBaseConfiguration> {
-        footerMessage = "(c) 2025 Tecknobit"
-    }
 }
