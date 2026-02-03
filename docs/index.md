@@ -8,7 +8,7 @@
 ![Static Badge](https://img.shields.io/badge/wasmjs-834C74)
 ![Static Badge](https://img.shields.io/badge/backend-7d7d7d?link=https%3A%2F%2Fimg.shields.io%2Fbadge%2Fandroid-4280511051)
 
-**v1.0.0beta-02**
+**v1.0.0beta-03**
 
 **Kassaforte** enables secure storage of sensitive data in Compose Multiplatform applications and on the backend by
 leveraging
@@ -30,7 +30,13 @@ This release will provide:
 
 - `signing` and `verification` of the data
 
-### beta-03
+### beta-03 ✅
+
+This release will provide:
+
+- Adjustment under the hood and `JS` target integration and Kotlin `2.3.0`
+
+### beta-04
 
 This release will provide:
 
@@ -46,7 +52,7 @@ Should be the latest `beta` version before the `stable` one
 
 ```groovy
 dependencies {
-    implementation 'io.github.n7ghtm4r3:kassaforte:1.0.0beta-02'
+  implementation 'io.github.n7ghtm4r3:kassaforte:1.0.0beta-03'
 }
 ```
 
@@ -54,7 +60,7 @@ dependencies {
 
 ```kotlin
 dependencies {
-    implementation("io.github.n7ghtm4r3:kassaforte:1.0.0beta-02")
+  implementation("io.github.n7ghtm4r3:kassaforte:1.0.0beta-03")
 }
 ```
 
@@ -64,7 +70,7 @@ dependencies {
 
 ```toml
 [versions]
-kassaforte = "1.0.0beta-02"
+kassaforte = "1.0.0beta-03"
 
 [libraries]
 kassaforte = { module = "io.github.n7ghtm4r3:kassaforte", version.ref = "kassaforte" } 
