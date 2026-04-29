@@ -25,6 +25,12 @@ enum class Algorithm(
      */
     AES("AES"),
 
+    // TODO: TO DOCU SINCE
+    AES_KW("AES/KW"),
+
+    // TODO: TO DOCU SINCE
+    AES_KWP("AES/KWP"),
+
     /**
      * `HMAC_SHA1` algorithm used to ensure message integrity and authentication,
      * implemented using the [Digest.SHA1] function

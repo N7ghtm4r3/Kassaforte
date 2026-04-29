@@ -499,6 +499,23 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         return keyInfo
     }
 
+    actual suspend fun wrap(
+        kekAlias: String,
+        kekAlgorithm: Algorithm,
+        dekAlias: String
+    ): ByteArray {
+        TODO("Not yet implemented")
+    }
+
+    actual suspend fun unwrap(
+        kekAlias: String,
+        kekAlgorithm: Algorithm,
+        wrappedDek: ByteArray,
+        dekAlgorithm: Algorithm
+    ): ByteArray {
+        TODO("Not yet implemented")
+    }
+
     /**
      * Method used to delete a generated key
      *

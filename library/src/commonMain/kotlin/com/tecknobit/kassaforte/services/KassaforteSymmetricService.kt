@@ -111,6 +111,19 @@ expect object KassaforteSymmetricService: KassaforteKeysService<SymmetricKeyGenS
         signature: String,
     ): Boolean
 
+    suspend fun wrap(
+        kekAlias: String,
+        kekAlgorithm: Algorithm,
+        dekAlias: String,
+    ): ByteArray
+
+    suspend fun unwrap(
+        kekAlias: String,
+        kekAlgorithm: Algorithm,
+        wrappedDek: ByteArray,
+        dekAlgorithm: Algorithm
+    ): ByteArray
+
     /**
      * Method used to delete a generated key
      *

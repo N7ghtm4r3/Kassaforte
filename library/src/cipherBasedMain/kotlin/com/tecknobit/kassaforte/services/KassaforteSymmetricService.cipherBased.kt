@@ -16,6 +16,8 @@ import com.tecknobit.kassaforte.util.encodeForKeyOperation
 import java.security.Key
 import java.security.MessageDigest
 import javax.crypto.Cipher
+import javax.crypto.Cipher.UNWRAP_MODE
+import javax.crypto.Cipher.WRAP_MODE
 import javax.crypto.KeyGenerator
 import javax.crypto.Mac
 import javax.crypto.spec.GCMParameterSpec
@@ -106,6 +108,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             cipher.doFinal(dataToEncrypt)
         }
         encryptedData = cipherIv + encryptedData
+
         return encode(encryptedData)
     }
 
@@ -142,7 +145,120 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             val cipherText = dataToDecrypt.copyOfRange(blockSize, dataToDecrypt.size)
             cipher.doFinal(cipherText)
         }
+
         return decryptedData.decodeToString()
+    }
+
+    /**
+     * Method used to sign messages with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param message The message to sign
+     *
+     * @return the signed message as [String]
+     *
+     * @since Revision Two
+     */
+    actual suspend fun sign(
+        alias: String,
+        message: Any,
+    ): String {
+        val signedMessage = useMac(
+            alias = alias,
+            usage = { mac -> mac.doFinal(message.encodeForKeyOperation()) }
+        )
+
+        return encode(signedMessage)
+    }
+
+    /**
+     * Method used to verify the validity of the messages previously signed with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param message The message to verify
+     * @param signature The signature previously computed
+     *
+     * @return whether the message matches to [signature] as [Boolean]
+     *
+     * @since Revision Two
+     */
+    actual suspend fun verify(
+        alias: String,
+        message: Any,
+        signature: String,
+    ): Boolean {
+        val verification = sign(
+            alias = alias,
+            message = message
+        )
+        val digestA = decode(signature)
+        val digestB = decode(verification)
+
+        return MessageDigest.isEqual(digestA, digestB)
+    }
+
+    /**
+     * Method used to work and to use a [Mac] instance to perform signing or verifying of the data
+     *
+     * @param alias The alias which identify the key to use
+     * @param usage The routine the mac instance have to perform
+     *
+     * @return the message processed by the [Mac] instance as [ByteArray]
+     *
+     * @since Revision Two
+     */
+    private inline fun useMac(
+        alias: String,
+        crossinline usage: (Mac) -> ByteArray,
+    ): ByteArray {
+        val key = serviceImpl.getKey(
+            alias = alias,
+            keyOperation = SIGN
+        )
+
+        val mac = Mac.getInstance(key.algorithm)
+        mac.init(key)
+        return usage(mac)
+    }
+
+    actual suspend fun wrap(
+        kekAlias: String,
+        kekAlgorithm: Algorithm,
+        dekAlias: String
+    ): ByteArray {
+        val dek = serviceImpl.getKey(
+            alias = dekAlias,
+            keyOperation = OBTAIN_KEY
+        )
+
+        return useCipher(
+            alias = kekAlias,
+            keyOperation = WRAP,
+            algorithm = kekAlgorithm,
+            usage = { cipher, kek ->
+                cipher.init(WRAP_MODE, kek)
+                cipher.wrap(dek)
+            },
+        )
+    }
+
+    actual suspend fun unwrap(
+        kekAlias: String,
+        kekAlgorithm: Algorithm,
+        wrappedDek: ByteArray,
+        dekAlgorithm: Algorithm
+    ): ByteArray {
+        return useCipher(
+            alias = kekAlias,
+            keyOperation = WRAP,
+            algorithm = kekAlgorithm,
+            usage = { cipher, kek ->
+                cipher.init(UNWRAP_MODE, kek)
+                val key = cipher.unwrap(wrappedDek, dekAlgorithm.value, Cipher.SECRET_KEY)
+
+                key.encoded
+            },
+        )
     }
 
     /**
@@ -172,7 +288,24 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             blockMode = blockMode,
             padding = padding
         )
+
         val cipher = Cipher.getInstance(transformation)
+        return usage(cipher, key)
+    }
+
+    // TODO: TO DOCU
+    private inline fun useCipher(
+        alias: String,
+        algorithm: Algorithm,
+        keyOperation: KeyOperation,
+        crossinline usage: (Cipher, Key) -> ByteArray,
+    ): ByteArray {
+        val key = serviceImpl.getKey(
+            alias = alias,
+            keyOperation = keyOperation
+        )
+        val cipher = Cipher.getInstance(algorithm.value + "/" + EncryptionPadding.NONE.value)
+
         return usage(cipher, key)
     }
 
@@ -196,73 +329,6 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             blockMode = blockMode,
             padding = padding
         )
-    }
-
-    /**
-     * Method used to sign messages with the key specified by the [alias] value
-     *
-     * @param alias The alias which identify the key to use
-     * @param message The message to sign
-     *
-     * @return the signed message as [String]
-     *
-     * @since Revision Two
-     */
-    actual suspend fun sign(
-        alias: String,
-        message: Any,
-    ): String {
-        val signedMessage = useMac(
-            alias = alias,
-            usage = { mac -> mac.doFinal(message.encodeForKeyOperation()) }
-        )
-        return encode(signedMessage)
-    }
-
-    /**
-     * Method used to verify the validity of the messages previously signed with the key specified by the [alias] value
-     *
-     * @param alias The alias which identify the key to use
-     * @param message The message to verify
-     * @param signature The signature previously computed
-     *
-     * @return whether the message matches to [signature] as [Boolean]
-     *
-     * @since Revision Two
-     */
-    actual suspend fun verify(
-        alias: String,
-        message: Any,
-        signature: String,
-    ): Boolean {
-        val verification = sign(
-            alias = alias,
-            message = message
-        )
-        return MessageDigest.isEqual(decode(signature), decode(verification))
-    }
-
-    /**
-     * Method used to work and to use a [Mac] instance to perform signing or verifying of the data
-     *
-     * @param alias The alias which identify the key to use
-     * @param usage The routine the mac instance have to perform
-     *
-     * @return the message processed by the [Mac] instance as [ByteArray]
-     *
-     * @since Revision Two
-     */
-    private inline fun useMac(
-        alias: String,
-        crossinline usage: (Mac) -> ByteArray,
-    ): ByteArray {
-        val key = serviceImpl.getKey(
-            alias = alias,
-            keyOperation = SIGN
-        )
-        val mac = Mac.getInstance(key.algorithm)
-        mac.init(key)
-        return usage(mac)
     }
 
     /**
