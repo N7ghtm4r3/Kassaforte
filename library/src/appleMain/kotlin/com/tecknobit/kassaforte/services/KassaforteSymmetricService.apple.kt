@@ -66,8 +66,10 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     ) {
         if (aliasExists(alias))
             throw RuntimeException(ALIAS_ALREADY_TAKEN_ERROR)
+
         val keySize = keyGenSpec.keySize.bytes
         val keyBytes = ByteArray(keySize)
+
         val status = keyBytes.usePinned { pinned ->
             SecRandomCopyBytes(
                 rnd = kSecRandomDefault,
@@ -77,6 +79,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         }
         if (status != 0)
             throw RuntimeException("Error during the creation of the key")
+
         storeKeyData(
             alias = alias,
             keyInfo = KeyInfo(
@@ -116,6 +119,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             keyInfo = keyInfo
         )
         val kassaforte = Kassaforte(alias)
+
         kassaforte.safeguard(
             key = alias,
             data = encodedKeyData
@@ -134,6 +138,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         keyInfo: KeyInfo,
     ): String {
         val encodedKeyInfo = Json.encodeToString(keyInfo)
+
         return encode(encodedKeyInfo)
     }
 
@@ -155,6 +160,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     ): String {
         val blockSize = blockMode.blockSize
         val iv = ByteArray(blockSize)
+
         iv.usePinned { pinned ->
             SecRandomCopyBytes(
                 kSecRandomDefault,
@@ -162,6 +168,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
                 pinned.addressOf(0)
             )
         }
+
         val encryptedData = useCryptor(
             alias = alias,
             keyOperation = ENCRYPT,
@@ -169,6 +176,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             iv = iv,
             data = data.encodeForKeyOperation()
         )
+
         return encode(iv + encryptedData)
     }
 
@@ -192,6 +200,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         val blockSize = blockMode.blockSize
         val iv = dataToDecrypt.copyOfRange(0, blockSize)
         val cipherText = dataToDecrypt.copyOfRange(blockSize, dataToDecrypt.size)
+
         val plainText = useCryptor(
             alias = alias,
             keyOperation = DECRYPT,
@@ -199,6 +208,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             iv = iv,
             data = cipherText
         )
+
         return plainText.decodeToString()
     }
 
@@ -231,6 +241,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             keyOperation = keyOperation
         )
         val key = keyInfo.key
+
         return memScoped {
             val cryptor = createCryptor(
                 key = key,
@@ -265,6 +276,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         iv: ByteArray,
     ): CCCryptorRefVar {
         val cryptor = alloc<CCCryptorRefVar>()
+
         val status = CCCryptorCreateWithMode(
             op = if (keyOperation == ENCRYPT)
                 kCCEncrypt
@@ -289,8 +301,10 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             numRounds = 0,
             options = 0u
         )
+
         if (status != kCCSuccess)
             throw RuntimeException("Cannot perform operation with the key")
+
         return cryptor
     }
 
@@ -314,6 +328,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         val outputMoved = alloc<size_tVar>()
         val outMovedFinal = alloc<size_tVar>()
         val totalProduced: Int
+
         try {
             CCCryptorUpdate(
                 cryptorRef = cryptor,
@@ -335,6 +350,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
                 cryptorRef = cryptor
             )
         }
+
         val totalBytes = totalProduced + outMovedFinal.value.toInt()
         return output.copyOf(totalBytes)
     }
@@ -360,8 +376,10 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         val key = keyInfo.key
         val algorithm = keyInfo.algorithm
         val signedMessage = algorithm.resolveHMACOutRef()
+
         signedMessage.usePinned { messageRef ->
             val messageData = message.encodeForKeyOperation()
+
             key.usePinned { pinnedKey ->
                 messageData.usePinned { pinnedMessage ->
                     CCHmac(
@@ -376,6 +394,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
                 }
             }
         }
+
         return encode(signedMessage)
     }
 
@@ -437,6 +456,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             alias = alias,
             message = message
         )
+
         return verification.isEqual(
             signature = signature
         )
@@ -463,15 +483,104 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         val lenA = digesta.size
         val digestb = decode(signature)
         val lenB = digestb.size
+
         if (lenB == 0)
             return lenA == 0
+
         var result = 0
         result = result or (lenA - lenB)
         for (j in digesta.indices) {
             val indexB = ((j - lenB) ushr 31) * j
             result = result or (digesta[j] xor digestb[indexB]).toInt()
         }
+
         return result == 0
+    }
+
+    // TODO: TO DOCU SINCE
+    actual suspend fun wrap(
+        kekAlias: String,
+        kekAlgorithm: Algorithm,
+        dekBytes: ByteArray,
+    ): String {
+        val kekInfo = getKeyInfo(
+            alias = kekAlias,
+            keyOperation = WRAP
+        )
+        val kek = kekInfo.key
+        val wrappedDek = ByteArray(dekBytes.size + 8)
+
+        val wrappedDekLength = memScoped {
+            val wrappedDekLength = alloc<size_tVar>()
+            wrappedDekLength.value = wrappedDek.size.toULong()
+
+            kek.usePinned { pinnedKek ->
+                dekBytes.usePinned { pinnedDek ->
+                    wrappedDek.usePinned { pinnedWrappedDek ->
+                        val status = CCSymmetricKeyWrap(
+                            algorithm = kCCWRAPAES,
+                            iv = CCrfc3394_iv,
+                            ivLen = CCrfc3394_ivLen,
+                            kek = pinnedKek.addressOf(0).reinterpret(),
+                            kekLen = kek.size.toULong(),
+                            rawKey = pinnedDek.addressOf(0).reinterpret(),
+                            rawKeyLen = dekBytes.size.toULong(),
+                            wrappedKey = pinnedWrappedDek.addressOf(0).reinterpret(),
+                            wrappedKeyLen = wrappedDekLength.ptr,
+                        )
+
+                        if (status != kCCSuccess)
+                            throw RuntimeException("Error performing wrapping of a key")
+
+                    }
+                }
+            }
+
+            wrappedDekLength.value
+        }
+
+        return encode(wrappedDek.copyOf(wrappedDekLength.toInt()))
+    }
+
+    // TODO: TO DOCU SINCE
+    actual suspend fun unwrap(
+        kekAlias: String,
+        kekAlgorithm: Algorithm,
+        wrappedDek: String,
+        dekAlgorithm: Algorithm,
+    ): ByteArray {
+        val keyInfo = getKeyInfo(
+            alias = kekAlias,
+            keyOperation = WRAP
+        )
+        val kek = keyInfo.key
+        val wrappedDekBytes = decode(wrappedDek)
+        val dekOutput = ByteArray(wrappedDekBytes.size - 8)
+
+        memScoped {
+            val dekOutputLength = alloc<size_tVar>()
+            dekOutputLength.value = dekOutput.size.toULong()
+
+            kek.usePinned { pinnedKek ->
+                wrappedDekBytes.usePinned { pinnedWrappedDek ->
+                    dekOutput.usePinned { pinnedDekOut ->
+                        CCSymmetricKeyUnwrap(
+                            algorithm = kCCWRAPAES,
+                            iv = CCrfc3394_iv,
+                            ivLen = CCrfc3394_ivLen,
+                            kek = pinnedKek.addressOf(0).reinterpret(),
+                            kekLen = kek.size.toULong(),
+                            wrappedKey = pinnedWrappedDek.addressOf(0).reinterpret(),
+                            wrappedKeyLen = wrappedDekBytes.size.toULong(),
+                            rawKey = pinnedDekOut.addressOf(0).reinterpret(),
+                            rawKeyLen = dekOutputLength.ptr
+                        )
+                    }
+                }
+            }
+        }
+
+        return dekOutput
     }
 
     /**
@@ -483,6 +592,8 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
      * @return the key and related information as [KeyInfo]
      *
      * @since Revision Two
+     *
+     * @throws RuntimeException when the key is not available or cannot perform the specified [keyOperation]
      */
     private fun getKeyInfo(
         alias: String,
@@ -494,28 +605,14 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         )
         if (encodedKeyData == null)
             throw RuntimeException(IMPOSSIBLE_TO_RETRIEVE_KEY_ERROR)
+
         val decodedKeyData = decode(encodedKeyData).decodeToString()
         val keyInfo: KeyInfo = Json.decodeFromString(decodedKeyData)
+
         if (!keyInfo.canPerform(keyOperation))
             throw RuntimeException(KEY_CANNOT_PERFORM_OPERATION_ERROR.replace("%s", keyOperation.name))
+
         return keyInfo
-    }
-
-    actual suspend fun wrap(
-        kekAlias: String,
-        kekAlgorithm: Algorithm,
-        dekBytes: ByteArray,
-    ): String {
-        TODO("Not yet implemented")
-    }
-
-    actual suspend fun unwrap(
-        kekAlias: String,
-        kekAlgorithm: Algorithm,
-        wrappedDek: String,
-        dekAlgorithm: Algorithm,
-    ): ByteArray {
-        TODO("Not yet implemented")
     }
 
     /**

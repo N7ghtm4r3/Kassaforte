@@ -111,12 +111,14 @@ expect object KassaforteSymmetricService: KassaforteKeysService<SymmetricKeyGenS
         signature: String,
     ): Boolean
 
+    // TODO: TO DOCU SINCE
     suspend fun wrap(
         kekAlias: String,
         kekAlgorithm: Algorithm,
         dekBytes: ByteArray,
     ): String
 
+    // TODO: TO DOCU SINCE
     suspend fun unwrap(
         kekAlias: String,
         kekAlgorithm: Algorithm,
