@@ -146,6 +146,38 @@ object KassaforteSymmetricServiceJvm {
         )
     }
 
+    // TODO: TO DOCU SINCE
+    @Wrapper
+    @JvmStatic
+    fun wrap(
+        kekAlias: String,
+        kekAlgorithm: Algorithm,
+        dekBytes: ByteArray,
+    ) = runBlocking {
+        KassaforteSymmetricService.wrap(
+            kekAlias = kekAlias,
+            kekAlgorithm = kekAlgorithm,
+            dekBytes = dekBytes
+        )
+    }
+
+    // TODO: TO DOCU SINCE
+    @Wrapper
+    @JvmStatic
+    fun unwrap(
+        kekAlias: String,
+        kekAlgorithm: Algorithm,
+        wrappedDek: String,
+        dekAlgorithm: Algorithm,
+    ) = runBlocking {
+        KassaforteSymmetricService.unwrap(
+            kekAlias = kekAlias,
+            kekAlgorithm = kekAlgorithm,
+            wrappedDek = wrappedDek,
+            dekAlgorithm = dekAlgorithm
+        )
+    }
+
     /**
      * Method used to delete a generated key
      *
