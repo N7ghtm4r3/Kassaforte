@@ -128,7 +128,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
      * @return the data of the key formatted as [String]
      */
     @Returner
-    private inline fun formatKeyData(
+    private fun formatKeyData(
         keyInfo: KeyInfo,
     ): String {
         val encodedKeyInfo = Json.encodeToString(keyInfo)
@@ -213,7 +213,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
      *
      * @since Revision Two
      */
-    private inline fun useCryptor(
+    private fun useCryptor(
         alias: String,
         keyOperation: KeyOperation,
         blockMode: BlockMode,
