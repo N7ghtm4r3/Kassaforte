@@ -43,6 +43,7 @@ This release will provide:
 - `wrap` and `unwrap` of the keys
 - `GCM` block mode support also on `apple` (if the `CommonCrypto` will fully supports it and will be the ported on
   `Kotlin/Native`, otherwise will be integrated when will be available)
+- Key agreement
 
 Should be the latest `beta` version before the `stable` one
 
