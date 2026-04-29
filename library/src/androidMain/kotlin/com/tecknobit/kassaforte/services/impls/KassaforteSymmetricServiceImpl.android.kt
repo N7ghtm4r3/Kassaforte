@@ -45,10 +45,12 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() : Kass
     ) {
         if (aliasExists(alias))
             throw IllegalAccessException(KassaforteKeysService.ALIAS_ALREADY_TAKEN_ERROR)
+
         val keyGenerator = KeyGenerator.getInstance(
             algorithm.value,
             ANDROID_KEYSTORE
         )
+
         val genSpec = serviceImplManager.resolveGenSpec(
             alias = alias,
             keyGenSpec = keyGenSpec,
@@ -60,6 +62,7 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() : Kass
             setEncryptionPaddings(keyGenSpec.encryptionPadding.value)
             build()
         }
+
         keyGenerator.init(genSpec)
         keyGenerator.generateKey()
     }

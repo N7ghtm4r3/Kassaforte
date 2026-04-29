@@ -5,6 +5,7 @@ import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.BlockMode
 import com.tecknobit.kassaforte.key.genspec.BlockMode.GCM
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
+import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.NONE
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyOperation
 import com.tecknobit.kassaforte.key.usages.KeyOperation.*
@@ -15,13 +16,16 @@ import com.tecknobit.kassaforte.util.encode
 import com.tecknobit.kassaforte.util.encodeForKeyOperation
 import java.security.Key
 import java.security.MessageDigest
+import java.security.NoSuchAlgorithmException
 import javax.crypto.Cipher
 import javax.crypto.Cipher.UNWRAP_MODE
 import javax.crypto.Cipher.WRAP_MODE
 import javax.crypto.KeyGenerator
 import javax.crypto.Mac
+import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.SecretKeySpec
 
 /**
  * The `KassaforteKeysService` object allows to generate and to use symmetric keys and managing their persistence.
@@ -103,6 +107,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             keyOperation = ENCRYPT
         ) { cipher, key ->
             cipher.init(Cipher.ENCRYPT_MODE, key)
+
             cipherIv = cipher.iv
             val dataToEncrypt = data.encodeForKeyOperation()
             cipher.doFinal(dataToEncrypt)
@@ -141,12 +146,68 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
                 GCM -> GCMParameterSpec(128, ivSeed)
                 else -> IvParameterSpec(ivSeed)
             }
+
             cipher.init(Cipher.DECRYPT_MODE, key, algorithmParameterSpec)
+
             val cipherText = dataToDecrypt.copyOfRange(blockSize, dataToDecrypt.size)
             cipher.doFinal(cipherText)
         }
 
         return decryptedData.decodeToString()
+    }
+
+    /**
+     * Method used to work and to use a [Cipher] instance to perform encryption or decryption of the data
+     *
+     * @param alias The alias which identify the key to use
+     * @param keyOperation The operation the key have to perform
+     * @param blockMode The block mode to use to ciphering data
+     * @param padding The padding to apply to ciphering data
+     * @param usage The routine the cipher have to perform
+     *
+     * @return the ciphered data as [ByteArray]
+     */
+    private inline fun useCipher(
+        alias: String,
+        keyOperation: KeyOperation,
+        blockMode: BlockMode? = null,
+        padding: EncryptionPadding? = null,
+        crossinline usage: (Cipher, Key) -> ByteArray,
+    ): ByteArray {
+        val key = serviceImpl.getKey(
+            alias = alias,
+            keyOperation = keyOperation
+        )
+        val transformation = resolveTransformation(
+            algorithm = key.algorithm,
+            blockMode = blockMode,
+            padding = padding
+        )
+        val cipher = Cipher.getInstance(transformation)
+
+        return usage(cipher, key)
+    }
+
+    /**
+     * Method used to resolve the transformation value to obtain a cipher instance
+     *
+     * @param algorithm The algorithm to use
+     * @param blockMode The block mode to use to ciphering data
+     * @param padding The padding to apply to ciphering data
+     *
+     * @return the transformation value as [String]
+     */
+    @Assembler
+    private fun resolveTransformation(
+        algorithm: String,
+        blockMode: BlockMode?,
+        padding: EncryptionPadding?,
+    ): String {
+        return serviceImpl.resolveTransformation(
+            algorithm = algorithm,
+            blockMode = blockMode,
+            padding = padding
+        )
     }
 
     /**
@@ -221,114 +282,110 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         return usage(mac)
     }
 
+    // TODO: TO DOCU AND ADD DESCRIBE THE FALLBACK MECHANISM
     actual suspend fun wrap(
         kekAlias: String,
         kekAlgorithm: Algorithm,
-        dekAlias: String
-    ): ByteArray {
-        val dek = serviceImpl.getKey(
-            alias = dekAlias,
-            keyOperation = OBTAIN_KEY
-        )
+        dekBytes: ByteArray,
+    ): String {
+        val dek = SecretKeySpec(dekBytes, Algorithm.AES.value)
 
-        return useCipher(
-            alias = kekAlias,
-            keyOperation = WRAP,
-            algorithm = kekAlgorithm,
-            usage = { cipher, kek ->
-                cipher.init(WRAP_MODE, kek)
-                cipher.wrap(dek)
-            },
-        )
+        val wrappedDek = try {
+            val wrappedSource = useCipher(
+                alias = kekAlias,
+                algorithm = kekAlgorithm,
+                usage = { cipher, kek ->
+                    cipher.init(WRAP_MODE, kek)
+
+                    cipher.wrap(dek)
+                },
+            )
+
+            encode(wrappedSource)
+        } catch (_: NoSuchAlgorithmException) {
+            fallbackWrap(
+                kekAlias = kekAlias,
+                dek = dek
+            )
+        }
+
+        return wrappedDek
     }
 
+    // TODO: TO DOCU
+    private suspend fun fallbackWrap(
+        kekAlias: String,
+        dek: SecretKey,
+    ): String {
+        val wrappedDek = encrypt(
+            alias = kekAlias,
+            blockMode = GCM,
+            padding = NONE,
+            data = encode(dek.encoded)
+        )
+
+        return wrappedDek
+    }
+
+    // TODO: TO DOCU AND ADD DESCRIBE THE FALLBACK MECHANISM
     actual suspend fun unwrap(
         kekAlias: String,
         kekAlgorithm: Algorithm,
-        wrappedDek: ByteArray,
-        dekAlgorithm: Algorithm
+        wrappedDek: String,
+        dekAlgorithm: Algorithm,
     ): ByteArray {
-        return useCipher(
-            alias = kekAlias,
-            keyOperation = WRAP,
-            algorithm = kekAlgorithm,
-            usage = { cipher, kek ->
-                cipher.init(UNWRAP_MODE, kek)
-                val key = cipher.unwrap(wrappedDek, dekAlgorithm.value, Cipher.SECRET_KEY)
+        val wrappedDekSourceBytes = decode(wrappedDek)
 
-                key.encoded
-            },
-        )
+        val unwrappedDek = try {
+            useCipher(
+                alias = kekAlias,
+                algorithm = kekAlgorithm,
+                usage = { cipher, kek ->
+                    cipher.init(UNWRAP_MODE, kek)
+                    val key = cipher.unwrap(wrappedDekSourceBytes, dekAlgorithm.value, Cipher.SECRET_KEY)
+
+                    key.encoded
+                },
+            )
+        } catch (_: NoSuchAlgorithmException) {
+            fallbackUnwrap(
+                kekAlias = kekAlias,
+                wrappedDek = wrappedDek
+            )
+        }
+
+        return unwrappedDek
     }
 
-    /**
-     * Method used to work and to use a [Cipher] instance to perform encryption or decryption of the data
-     *
-     * @param alias The alias which identify the key to use
-     * @param keyOperation The operation the key have to perform
-     * @param blockMode The block mode to use to ciphering data
-     * @param padding The padding to apply to ciphering data
-     * @param usage The routine the cipher have to perform
-     *
-     * @return the ciphered data as [ByteArray]
-     */
-    private inline fun useCipher(
-        alias: String,
-        keyOperation: KeyOperation,
-        blockMode: BlockMode? = null,
-        padding: EncryptionPadding? = null,
-        crossinline usage: (Cipher, Key) -> ByteArray,
+    // TODO: TO DOCU
+    private suspend fun fallbackUnwrap(
+        kekAlias: String,
+        wrappedDek: String,
     ): ByteArray {
-        val key = serviceImpl.getKey(
-            alias = alias,
-            keyOperation = keyOperation
-        )
-        val transformation = resolveTransformation(
-            algorithm = key.algorithm,
-            blockMode = blockMode,
-            padding = padding
+        val unwrappedDek = decrypt(
+            alias = kekAlias,
+            blockMode = GCM,
+            padding = NONE,
+            data = wrappedDek
         )
 
-        val cipher = Cipher.getInstance(transformation)
-        return usage(cipher, key)
+        return decode(unwrappedDek)
     }
 
     // TODO: TO DOCU
     private inline fun useCipher(
         alias: String,
         algorithm: Algorithm,
-        keyOperation: KeyOperation,
         crossinline usage: (Cipher, Key) -> ByteArray,
     ): ByteArray {
         val key = serviceImpl.getKey(
             alias = alias,
-            keyOperation = keyOperation
+            keyOperation = WRAP
         )
-        val cipher = Cipher.getInstance(algorithm.value + "/" + EncryptionPadding.NONE.value)
+        val transformation = "${algorithm.value}/${NONE.value}"
+        val cipher = Cipher.getInstance(transformation)
 
         return usage(cipher, key)
-    }
-
-    /**
-     * Method used to resolve the transformation value to obtain a cipher instance
-     *
-     * @param algorithm The algorithm to use
-     * @param blockMode The block mode to use to ciphering data
-     * @param padding The padding to apply to ciphering data
-     *
-     * @return the transformation value as [String]
-     */
-    @Assembler
-    private fun resolveTransformation(
-        algorithm: String,
-        blockMode: BlockMode?,
-        padding: EncryptionPadding?,
-    ): String {
-        return serviceImpl.resolveTransformation(
-            algorithm = algorithm,
-            blockMode = blockMode,
-            padding = padding
-        )
     }
 
     /**

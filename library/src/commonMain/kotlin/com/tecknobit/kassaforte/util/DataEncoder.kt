@@ -91,5 +91,6 @@ fun decode(
 @Returner
 fun Any.encodeForKeyOperation(): ByteArray {
     checkIfIsSupportedType(this)
+
     return this.toString().encodeToByteArray()
 }

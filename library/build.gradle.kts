@@ -15,18 +15,16 @@ group = "com.tecknobit.kassaforte"
 version = "1.0.0beta-04"
 
 kotlin {
-    androidLibrary {
+    android {
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
         namespace = "com.tecknobit.kassaforte"
-        experimentalProperties["android.experimental.kmp.enableAndroidResources"] = true
 
         compilations {
             compilerOptions {
                 jvmTarget.set(JvmTarget.JVM_18)
             }
         }
-
     }
 
     listOf(

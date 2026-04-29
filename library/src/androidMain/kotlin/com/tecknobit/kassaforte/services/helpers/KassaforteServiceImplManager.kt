@@ -3,6 +3,12 @@ package com.tecknobit.kassaforte.services.helpers
 import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
+import android.security.keystore.KeyProperties.PURPOSE_AGREE_KEY
+import android.security.keystore.KeyProperties.PURPOSE_DECRYPT
+import android.security.keystore.KeyProperties.PURPOSE_ENCRYPT
+import android.security.keystore.KeyProperties.PURPOSE_SIGN
+import android.security.keystore.KeyProperties.PURPOSE_VERIFY
+import android.security.keystore.KeyProperties.PURPOSE_WRAP_KEY
 import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.kassaforte.key.genspec.KassaforteKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
@@ -53,7 +59,7 @@ internal class KassaforteServiceImplManager : KassaforteServiceManager<Key> {
         keyGenSpec: KassaforteKeyGenSpec,
         purposes: KeyPurposes,
     ): KeyGenParameterSpec.Builder {
-        return KeyGenParameterSpec.Builder(
+        val genSpec = KeyGenParameterSpec.Builder(
             alias,
             resolvePurposes(
                 keyPurposes = purposes
@@ -61,6 +67,15 @@ internal class KassaforteServiceImplManager : KassaforteServiceManager<Key> {
         ).run {
             setKeySize(keyGenSpec.keySize.bitCount)
         }
+
+        if (purposes.canWrapKey) {
+            genSpec.apply {
+                setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+            }
+        }
+
+        return genSpec
     }
 
     /**
@@ -77,20 +92,23 @@ internal class KassaforteServiceImplManager : KassaforteServiceManager<Key> {
         keyPurposes: KeyPurposes,
     ): Int {
         var purposes = 0
+
         if (keyPurposes.canEncrypt)
-            purposes = purposes or KeyProperties.PURPOSE_ENCRYPT
+            purposes = purposes or PURPOSE_ENCRYPT
         if (keyPurposes.canDecrypt)
-            purposes = purposes or KeyProperties.PURPOSE_DECRYPT
+            purposes = purposes or PURPOSE_DECRYPT
         if (keyPurposes.canSign)
-            purposes = purposes or KeyProperties.PURPOSE_SIGN
+            purposes = purposes or PURPOSE_SIGN
         if (keyPurposes.canVerify)
-            purposes = purposes or KeyProperties.PURPOSE_VERIFY
+            purposes = purposes or PURPOSE_VERIFY
         if (keyPurposes.canWrapKey && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
-            purposes = purposes or KeyProperties.PURPOSE_WRAP_KEY
+            purposes = purposes or PURPOSE_WRAP_KEY or PURPOSE_ENCRYPT or PURPOSE_DECRYPT
         if (keyPurposes.canAgree && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-            purposes = purposes or KeyProperties.PURPOSE_AGREE_KEY
+            purposes = purposes or PURPOSE_AGREE_KEY
+
         if (purposes == 0)
-            throw IllegalStateException("Key purposes not valid")
+            throw IllegalStateException("Key purposes are not valid")
+
         return purposes
     }
 

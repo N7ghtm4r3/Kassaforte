@@ -15,6 +15,8 @@ import com.tecknobit.kassaforte.key.usages.KeyDetailsSheet
 import com.tecknobit.kassaforte.key.usages.KeyOperation
 import com.tecknobit.kassaforte.key.usages.KeyOperation.*
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
+import com.tecknobit.kassaforte.services.KassaforteSymmetricService.sign
+import com.tecknobit.kassaforte.services.KassaforteSymmetricService.verify
 import com.tecknobit.kassaforte.services.helpers.KassaforteSymmetricServiceManager
 import com.tecknobit.kassaforte.util.decode
 import com.tecknobit.kassaforte.util.encode
@@ -502,16 +504,16 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     actual suspend fun wrap(
         kekAlias: String,
         kekAlgorithm: Algorithm,
-        dekAlias: String
-    ): ByteArray {
+        dekBytes: ByteArray,
+    ): String {
         TODO("Not yet implemented")
     }
 
     actual suspend fun unwrap(
         kekAlias: String,
         kekAlgorithm: Algorithm,
-        wrappedDek: ByteArray,
-        dekAlgorithm: Algorithm
+        wrappedDek: String,
+        dekAlgorithm: Algorithm,
     ): ByteArray {
         TODO("Not yet implemented")
     }

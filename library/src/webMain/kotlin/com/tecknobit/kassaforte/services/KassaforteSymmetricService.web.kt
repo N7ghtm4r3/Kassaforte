@@ -328,16 +328,16 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     actual suspend fun wrap(
         kekAlias: String,
         kekAlgorithm: Algorithm,
-        dekAlias: String
-    ): ByteArray {
+        dekBytes: ByteArray,
+    ): String {
         TODO("Not yet implemented")
     }
 
     actual suspend fun unwrap(
         kekAlias: String,
         kekAlgorithm: Algorithm,
-        wrappedDek: ByteArray,
-        dekAlgorithm: Algorithm
+        wrappedDek: String,
+        dekAlgorithm: Algorithm,
     ): ByteArray {
         TODO("Not yet implemented")
     }

@@ -13,6 +13,7 @@ import com.tecknobit.kassaforte.services.KassaforteKeysService
 import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.KEY_CANNOT_PERFORM_OPERATION_ERROR
 import com.tecknobit.kassaforte.services.helpers.KassaforteServiceImplManager
 import com.tecknobit.kassaforte.services.helpers.KassaforteServiceImplManager.Companion.encode64
+import com.tecknobit.kassaforte.services.impls.KassaforteSymmetricServiceImpl.Companion.PKCS5
 import com.tecknobit.kassaforte.util.decode
 import kotlinx.serialization.Serializable
 import java.security.Key
@@ -63,10 +64,13 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() : Kass
     ) {
         if (aliasExists(alias))
             throw IllegalAccessException(KassaforteKeysService.ALIAS_ALREADY_TAKEN_ERROR)
+
         val algorithmValue = algorithm.value
-        val keyGenerator = KeyGenerator.getInstance(algorithmValue)
+
+        val keyGenerator = KeyGenerator.getInstance(algorithm.value)
         keyGenerator.init(keyGenSpec.keySize.bitCount)
         val key = keyGenerator.generateKey()
+
         serviceImplManager.storeKeyData(
             alias = alias,
             keyInfo = KeyInfo(
