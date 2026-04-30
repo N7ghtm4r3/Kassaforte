@@ -10,10 +10,10 @@ import com.tecknobit.kassaforte.helpers.toByteArray
 import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.Algorithm.*
 import com.tecknobit.kassaforte.key.genspec.BlockMode
-import com.tecknobit.kassaforte.key.genspec.BlockMode.CBC
-import com.tecknobit.kassaforte.key.genspec.BlockMode.CTR
+import com.tecknobit.kassaforte.key.genspec.BlockMode.*
 import com.tecknobit.kassaforte.key.genspec.Digest.Companion.resolveHash
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
+import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.NONE
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.KassaforteSymmetricService.generateKey
@@ -72,12 +72,19 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         keyGenSpec: SymmetricKeyGenSpec,
         purposes: KeyPurposes,
     ) {
+        val genSpec = if (purposes.canWrapKey) {
+            keyGenSpec.copy(
+                blockMode = GCM
+            )
+        } else
+            keyGenSpec
+
         serviceManager.generateKey(
             alias = alias,
             genSpec = {
                 resolveGenSpec(
                     algorithm = algorithm,
-                    keyGenSpec = keyGenSpec
+                    keyGenSpec = genSpec
                 )
             },
             purposes = purposes
@@ -165,6 +172,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
                 encode(iv + encryptedDataBytes)
             }
         )
+
         return encryptedData
     }
 
@@ -212,6 +220,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
                 plainText
             }
         )
+
         return decryptedData
     }
 
@@ -303,61 +312,39 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         return algorithm.unsafeCast<HmacKeyGenParams>().hash
     }
 
+    // TODO: TO DOCU SINCE, SPECIFIC THE EnvelopeEncryption where needed the approach used
     actual suspend fun wrap(
         kekAlias: String,
         kekAlgorithm: Algorithm,
-        dekAlias: String?,
         dekBytes: ByteArray,
     ): String {
-        require(dekAlias != null) { "The alias of the Data Encryption Key (DEK) is required" }
-
-        val rawKek: RawCryptoKey = serviceManager.retrieveKeyData(
-            alias = kekAlias
-        )
-        val rawDek: RawCryptoKey = serviceManager.retrieveKeyData(
-            alias = dekAlias
-        )
-
-        val result = serviceManager.useKey(
-            rawKey = rawKek.key,
-            rawKeyData = rawKek,
-            format = RAW,
-            usage = { kek ->
-                val algorithm = when (kekAlgorithm) {
-                    AES -> kek.resolveAesParams().first
-                    AES_KW, AES_KWP -> {
-                        resolveAesKWGenSpec()
-                    }
-
-                    else -> throw IllegalArgumentException("Invalid algorithm to perform key wrapping")
-                }
-
-                serviceManager.useKey(
-                    rawKey = rawDek.key,
-                    rawKeyData = rawDek,
-                    format = RAW,
-                    usage = { dek ->
-                        serviceManager.wrap(
-                            format = RAW,
-                            kek = kek,
-                            dek = dek,
-                            algorithm = algorithm
-                        )
-                    }
-                )
-            }
+        // TODO: TO BLOCK IF WRAP USAGE IS NOT PRESENT
+        val wrappedDek = encrypt(
+            alias = kekAlias,
+            blockMode = GCM,
+            padding = NONE,
+            data = encode(dekBytes)
         )
 
-        return encode(result)
+        return wrappedDek
     }
 
+    // TODO: TO DOCU SINCE
     actual suspend fun unwrap(
         kekAlias: String,
         kekAlgorithm: Algorithm,
         wrappedDek: String,
         dekAlgorithm: Algorithm,
     ): ByteArray {
-        TODO("Not yet implemented")
+        // TODO: TO BLOCK IF WRAP USAGE IS NOT PRESENT
+        val unwrappedDek = decrypt(
+            alias = kekAlias,
+            blockMode = GCM,
+            padding = NONE,
+            data = wrappedDek
+        )
+
+        return decode(unwrappedDek)
     }
 
     /**
@@ -452,15 +439,3 @@ private external fun resolveAESKeyGenSpec(
 private external fun resolveHMACKeyGenSpec(
     hash: String,
 ): HmacKeyGenParams
-
-
-// TODO: TO DOCU SINCE 
-@JsFun(
-    """
-    () => ({
-        name: `AES-KW`
-    })
-    """
-)
-@Assembler
-private external fun resolveAesKWGenSpec(): KeyGenSpec

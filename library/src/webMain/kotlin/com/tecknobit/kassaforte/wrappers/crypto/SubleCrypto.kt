@@ -136,14 +136,6 @@ external interface SubtleCrypto : JsAny {
         data: Uint8Array,
     ): Promise<JsBoolean>
 
-    // TODO: TO DOCU SINCE
-    fun wrapKey(
-        format: String,
-        key: CryptoKey,
-        wrappingKey: CryptoKey,
-        wrapAlgo: JsAny,
-    ): Promise<ArrayBuffer>
-    
 }
 
 /**

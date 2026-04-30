@@ -111,11 +111,10 @@ expect object KassaforteSymmetricService: KassaforteKeysService<SymmetricKeyGenS
         signature: String,
     ): Boolean
 
-    // TODO: TO DOCU SINCE, SPECIFIC THE dekAlias PURPOSE
+    // TODO: TO DOCU SINCE, SPECIFIC THE EnvelopeEncryption where needed the approach used
     suspend fun wrap(
         kekAlias: String,
         kekAlgorithm: Algorithm,
-        dekAlias: String?,
         dekBytes: ByteArray,
     ): String
 

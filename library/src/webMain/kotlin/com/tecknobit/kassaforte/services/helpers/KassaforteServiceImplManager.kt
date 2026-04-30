@@ -91,7 +91,7 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
      *
      * @param purposes The purposes the key can be used
      *
-     * @return the usages for the keys as [kotlin.js.JsArray] of [kotlin.js.JsString]
+     * @return the usages for the keys as [JsArray] of [JsString]
      *
      * @throws IllegalStateException when the combination of the usages is not valid
      */
@@ -112,6 +112,8 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
         if (purposes.canWrapKey) {
             keyUsages.add("wrapKey")
             keyUsages.add("unwrapKey")
+            keyUsages.add("encrypt")
+            keyUsages.add("decrypt")
         }
         if (purposes.canAgree)
             keyUsages.add("deriveKey")
@@ -347,23 +349,6 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
         ).await()
 
         return result.toBoolean()
-    }
-
-    // TODO: TO DOCU SINCE
-    suspend fun wrap(
-        format: ExportFormat,
-        kek: CryptoKey,
-        dek: CryptoKey,
-        algorithm: JsAny,
-    ): ArrayBuffer {
-        val result = subtleCrypto.wrapKey(
-            format = format.value,
-            key = dek,
-            wrappingKey = kek,
-            wrapAlgo = algorithm
-        ).await()
-
-        return result
     }
 
     /**
