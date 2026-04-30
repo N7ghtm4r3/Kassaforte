@@ -157,6 +157,7 @@ object KassaforteSymmetricServiceJvm {
         KassaforteSymmetricService.wrap(
             kekAlias = kekAlias,
             kekAlgorithm = kekAlgorithm,
+            dekAlias = null,
             dekBytes = dekBytes
         )
     }

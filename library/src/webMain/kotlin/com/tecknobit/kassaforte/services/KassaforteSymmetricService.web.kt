@@ -146,6 +146,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         val rawKey: RawCryptoKey = serviceManager.retrieveKeyData(
             alias = alias
         )
+
         val encryptedData = serviceManager.useKey(
             rawKey = rawKey.key,
             rawKeyData = rawKey,
@@ -160,6 +161,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
                 )
                 val iv = aesParams.second.toByteArray()
                 val encryptedDataBytes = encryptedData.toByteArray()
+
                 encode(iv + encryptedDataBytes)
             }
         )
@@ -185,6 +187,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         val rawKey: RawCryptoKey = serviceManager.retrieveKeyData(
             alias = alias
         )
+
         val decryptedData = serviceManager.useKey(
             rawKey = rawKey.key,
             rawKeyData = rawKey,
@@ -205,41 +208,11 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
                 val plainText = decryptedData.asPlainText(
                     blockMode = blockMode
                 )
+
                 plainText
             }
         )
         return decryptedData
-    }
-
-    /**
-     * Method used to resolve which [EncryptionParams] it is required to perform the encryption or the decryption
-     *
-     * @param iv The initialization vector to adopt in the decryption, during the encryption will be automatically generated
-     * by the library
-     *
-     * @return the encryption params and the related initialization vector as [Pair] of [EncryptionParams] and [ArrayBuffer]
-     */
-    @Returner
-    private fun CryptoKey.resolveAesParams(
-        iv: ArrayBuffer = ArrayBuffer(0),
-    ): Pair<EncryptionParams, ArrayBuffer> {
-        val algorithm = algorithm.name
-        return when {
-            algorithm.endsWith(CBC.value) -> {
-                val aesCbcParams: AesCbcParams = aesCbcParams(algorithm, iv)
-                Pair(aesCbcParams, aesCbcParams.iv)
-            }
-
-            algorithm.endsWith(CTR.value) -> {
-                val aesCtrParams: AesCtrParams = aesCtrParams(algorithm, iv)
-                Pair(aesCtrParams, aesCtrParams.counter)
-            }
-
-            else -> {
-                val aesGcmParams: AesGcmParams = aesGcmParams(algorithm, iv)
-                Pair(aesGcmParams, aesGcmParams.iv)
-            }
-        }
     }
 
     /**
@@ -259,6 +232,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         val rawKey: RawCryptoKey = serviceManager.retrieveKeyData(
             alias = alias
         )
+
         val signedMessage = serviceManager.useKey(
             rawKey = rawKey.key,
             rawKeyData = rawKey,
@@ -271,9 +245,11 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
                     key = key,
                     message = message
                 ).toByteArray()
+
                 encode(signature)
             }
         )
+
         return signedMessage
     }
 
@@ -296,6 +272,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         val rawKey: RawCryptoKey = serviceManager.retrieveKeyData(
             alias = alias
         )
+
         val result = serviceManager.useKey(
             rawKey = rawKey.key,
             rawKeyData = rawKey,
@@ -311,6 +288,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
                 )
             }
         )
+
         return result
     }
 
@@ -328,9 +306,49 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     actual suspend fun wrap(
         kekAlias: String,
         kekAlgorithm: Algorithm,
+        dekAlias: String?,
         dekBytes: ByteArray,
     ): String {
-        TODO("Not yet implemented")
+        require(dekAlias != null) { "The alias of the Data Encryption Key (DEK) is required" }
+
+        val rawKek: RawCryptoKey = serviceManager.retrieveKeyData(
+            alias = kekAlias
+        )
+        val rawDek: RawCryptoKey = serviceManager.retrieveKeyData(
+            alias = dekAlias
+        )
+
+        val result = serviceManager.useKey(
+            rawKey = rawKek.key,
+            rawKeyData = rawKek,
+            format = RAW,
+            usage = { kek ->
+                val algorithm = when (kekAlgorithm) {
+                    AES -> kek.resolveAesParams().first
+                    AES_KW, AES_KWP -> {
+                        resolveAesKWGenSpec()
+                    }
+
+                    else -> throw IllegalArgumentException("Invalid algorithm to perform key wrapping")
+                }
+
+                serviceManager.useKey(
+                    rawKey = rawDek.key,
+                    rawKeyData = rawDek,
+                    format = RAW,
+                    usage = { dek ->
+                        serviceManager.wrap(
+                            format = RAW,
+                            kek = kek,
+                            dek = dek,
+                            algorithm = algorithm
+                        )
+                    }
+                )
+            }
+        )
+
+        return encode(result)
     }
 
     actual suspend fun unwrap(
@@ -340,6 +358,38 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         dekAlgorithm: Algorithm,
     ): ByteArray {
         TODO("Not yet implemented")
+    }
+
+    /**
+     * Method used to resolve which [EncryptionParams] it is required to perform the encryption or the decryption
+     *
+     * @param iv The initialization vector to adopt in the decryption, during the encryption will be automatically generated
+     * by the library
+     *
+     * @return the encryption params and the related initialization vector as [Pair] of [EncryptionParams] and [ArrayBuffer]
+     */
+    @Returner
+    private fun CryptoKey.resolveAesParams(
+        iv: ArrayBuffer = ArrayBuffer(0),
+    ): Pair<EncryptionParams, ArrayBuffer> {
+        val algorithm = algorithm.name
+
+        return when {
+            algorithm.endsWith(CBC.value) -> {
+                val aesCbcParams: AesCbcParams = aesCbcParams(iv)
+                Pair(aesCbcParams, aesCbcParams.iv)
+            }
+
+            algorithm.endsWith(CTR.value) -> {
+                val aesCtrParams: AesCtrParams = aesCtrParams(iv)
+                Pair(aesCtrParams, aesCtrParams.counter)
+            }
+
+            else -> {
+                val aesGcmParams: AesGcmParams = aesGcmParams(iv)
+                Pair(aesGcmParams, aesGcmParams.iv)
+            }
+        }
     }
 
     /**
@@ -402,3 +452,15 @@ private external fun resolveAESKeyGenSpec(
 private external fun resolveHMACKeyGenSpec(
     hash: String,
 ): HmacKeyGenParams
+
+
+// TODO: TO DOCU SINCE 
+@JsFun(
+    """
+    () => ({
+        name: `AES-KW`
+    })
+    """
+)
+@Assembler
+private external fun resolveAesKWGenSpec(): KeyGenSpec

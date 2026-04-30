@@ -286,6 +286,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     actual suspend fun wrap(
         kekAlias: String,
         kekAlgorithm: Algorithm,
+        dekAlias: String?,
         dekBytes: ByteArray,
     ): String {
         val dek = SecretKeySpec(dekBytes, Algorithm.AES.value)

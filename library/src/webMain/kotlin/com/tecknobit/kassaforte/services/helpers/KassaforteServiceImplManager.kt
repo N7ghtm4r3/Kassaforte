@@ -100,6 +100,7 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
         purposes: KeyPurposes,
     ): JsArray<JsString> {
         val keyUsages = mutableListOf<String>()
+
         if (purposes.canEncrypt)
             keyUsages.add("encrypt")
         if (purposes.canDecrypt)
@@ -108,12 +109,16 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
             keyUsages.add("sign")
         if (purposes.canVerify)
             keyUsages.add("verify")
-        if (purposes.canWrapKey)
+        if (purposes.canWrapKey) {
             keyUsages.add("wrapKey")
+            keyUsages.add("unwrapKey")
+        }
         if (purposes.canAgree)
             keyUsages.add("deriveKey")
+
         if (keyUsages.isEmpty())
             throw IllegalStateException("Key usages not valid")
+
         return keyUsages.map { it.toJsString() }.toJsArray()
     }
 
@@ -134,6 +139,7 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
             extractable = true,
             keyUsages = usages
         ).await() as K
+
         store(
             alias = alias,
             algorithm = genSpec,
@@ -195,7 +201,7 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
     }
 
     /**
-     * Method used to work and to use a key to perform encryption or decryption of the data
+     * Method used to work and to use a key to perform operations with a [CryptoKey]
      *
      * @param rawKey The raw key to use to encrypt or decrypt data
      * (when is an asymmetric algorithm must be specified which key to use)
@@ -224,6 +230,7 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
             extractable = rawKeyData.extractable,
             keyUsages = usages
         ).await() as CryptoKey
+
         return usage(key)
     }
 
@@ -338,7 +345,25 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
             signature = signature.toUint8Array(),
             data = data.toUint8Array()
         ).await()
+
         return result.toBoolean()
+    }
+
+    // TODO: TO DOCU SINCE
+    suspend fun wrap(
+        format: ExportFormat,
+        kek: CryptoKey,
+        dek: CryptoKey,
+        algorithm: JsAny,
+    ): ArrayBuffer {
+        val result = subtleCrypto.wrapKey(
+            format = format.value,
+            key = dek,
+            wrappingKey = kek,
+            wrapAlgo = algorithm
+        ).await()
+
+        return result
     }
 
     /**

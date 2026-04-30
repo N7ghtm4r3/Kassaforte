@@ -136,6 +136,14 @@ external interface SubtleCrypto : JsAny {
         data: Uint8Array,
     ): Promise<JsBoolean>
 
+    // TODO: TO DOCU SINCE
+    fun wrapKey(
+        format: String,
+        key: CryptoKey,
+        wrappingKey: CryptoKey,
+        wrapAlgo: JsAny,
+    ): Promise<ArrayBuffer>
+    
 }
 
 /**
@@ -150,7 +158,6 @@ external fun subtleCrypto(): SubtleCrypto
 /**
  * Method used to assemble the parameters to use with `AES-CBC` algorithm
  *
- * @param name The name of the algorithm to use
  * @param iv The initialization vector. Must be 16 bytes, unpredictable, and preferably cryptographically random.
  * However, it need not be secret (for example, it may be transmitted unencrypted along with the ciphertext)
  *
@@ -158,9 +165,9 @@ external fun subtleCrypto(): SubtleCrypto
  */
 @JsFun(
     """
-    (name, iv) => (
+    (iv) => (
        {
-          name: name,
+          name: "AES-CBC",
           iv: (() => {
              if(iv.byteLength === 0) {
                 const array = new Uint8Array(16);
@@ -175,14 +182,12 @@ external fun subtleCrypto(): SubtleCrypto
 )
 @Assembler
 external fun aesCbcParams(
-    name: String,
     iv: ArrayBuffer,
 ): AesCbcParams
 
 /**
  * Method used to assemble the parameters to use with `AES-CTR` algorithm
  *
- * @param name The name of the algorithm to use
  * @param counter The initial value of the counter block. This must be 16 bytes long (the AES block size). The rightmost
  * length bits of this block are used for the counter, and the rest is used for the nonce.
  * For example, if [kotlin.js.length] is set to `64`, then the first half of counter is the nonce and the second half is used for
@@ -192,9 +197,9 @@ external fun aesCbcParams(
  */
 @JsFun(
     """
-    (name, counter) => (
+    (counter) => (
        {
-          name: name,
+          name: "AES-CTR",
           counter: (() => {
              if(counter.byteLength === 0) {
                 const array = new Uint8Array(16);
@@ -210,25 +215,24 @@ external fun aesCbcParams(
 )
 @Assembler
 external fun aesCtrParams(
-    name: String,
     counter: ArrayBuffer,
 ): AesCtrParams
 
 /**
  * Method used to assemble the parameters to use with `AES-GCM` algorithm
  *
- * @param name The name of the algorithm to use
  * @param iv This must be unique for every encryption operation carried out with a given key. Put another way: never
  * reuse an `IV` with the same key. The `AES-GCM` specification recommends that the `IV` should be `96` bits long, and
- * typically contains bits from a random number generator
+ * typically contains bits from a random number generator. If the [iv] is passed as empty array will be generated an `iv`
+ * internally by the method
  *
  * @return the `GCM` params as [AesGcmParams]
  */
 @JsFun(
     """
-    (name, iv) => (
+    (iv) => (
        {
-          name: name,
+          name: "AES-GCM",
           iv: (() => {
              if(iv.byteLength === 0) {
                 const array = new Uint8Array(12);
@@ -243,7 +247,6 @@ external fun aesCtrParams(
 )
 @Assembler
 external fun aesGcmParams(
-    name: String,
     iv: ArrayBuffer,
 ): AesGcmParams
 
@@ -254,7 +257,7 @@ external fun aesGcmParams(
  */
 @JsFun(
     """
-    (name) => (
+    () => (
        {
           name: "RSA-OAEP"
        }
@@ -273,7 +276,7 @@ external fun rsaOaepParams(): EncryptionParams
  */
 @JsFun(
     """
-    (name) => (
+    () => (
        {
           name: "RSASSA-PKCS1-v1_5"
        }
@@ -318,7 +321,7 @@ external fun ecdsaParams(
  */
 @JsFun(
     """
-    (name, hash) => (
+    (hash) => (
        {
           name: "HMAC",
           hash: hash
