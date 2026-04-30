@@ -71,9 +71,12 @@ internal class KassaforteAsymmetricServiceManager : KassaforteServiceImplManager
                 else -> throw RuntimeException(IMPOSSIBLE_TO_RETRIEVE_KEY_ERROR)
             }
         )
-        return retrieveFromKeychain(
-            query = query
-        ) ?: throw RuntimeException(IMPOSSIBLE_TO_RETRIEVE_KEY_ERROR)
+
+        TODO("TO REIMPLEMENT retrieveFromKeychain")
+
+//        return retrieveFromKeychain(
+//            query = query
+//        ) ?: throw RuntimeException(IMPOSSIBLE_TO_RETRIEVE_KEY_ERROR)
     }
 
     /**

@@ -6,6 +6,10 @@ import kotlinx.cinterop.*
 import platform.CoreFoundation.CFMutableDictionaryRef
 import platform.CoreFoundation.CFTypeRefVar
 import platform.Foundation.CFBridgingRelease
+import platform.Foundation.NSData
+import platform.Foundation.NSString
+import platform.Foundation.NSUTF8StringEncoding
+import platform.Foundation.create
 import platform.Security.SecItemCopyMatching
 import platform.Security.SecItemDelete
 import platform.Security.errSecSuccess
@@ -15,23 +19,27 @@ import platform.Security.errSecSuccess
  *
  * @param query The query to retrieve the requested item
  *
- * @return the retrieved item as nullable [T]
+ * @return the retrieved item as nullable [String]
  */
 @Suppress("UNCHECKED_CAST")
-fun <T> retrieveFromKeychain(
+fun retrieveFromKeychain(
     query: CFMutableDictionaryRef,
-): T? {
+): String? {
     return memScoped {
         val resultContainer = alloc<CFTypeRefVar>()
         val resultStatus = SecItemCopyMatching(
             query = query,
             result = resultContainer.ptr
         )
-        val storedData = CFBridgingRelease(resultContainer.value)
-        if (resultStatus == errSecSuccess)
-            storedData as T
-        else
-            null
+        if (resultStatus != errSecSuccess)
+            return null
+
+        val storedData = CFBridgingRelease(resultContainer.value) as NSData
+
+        NSString.create(
+            data = storedData,
+            encoding = NSUTF8StringEncoding
+        )?.toString()
     }
 }
 

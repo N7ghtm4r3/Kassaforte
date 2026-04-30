@@ -30,5 +30,6 @@ fun kassaforteDictionary(
         valueCallBacks = kCFTypeDictionaryValueCallBacks.ptr
     )!!
     dictionary.addEntries()
+
     return dictionary
 }

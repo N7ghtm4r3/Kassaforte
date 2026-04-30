@@ -77,7 +77,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
                 bytes = pinned.addressOf(0)
             )
         }
-        if (status != 0)
+        if (status != kCCSuccess)
             throw RuntimeException("Error during the creation of the key")
 
         storeKeyData(
