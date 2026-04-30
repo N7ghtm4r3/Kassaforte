@@ -503,41 +503,31 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         kekAlgorithm: Algorithm,
         dekBytes: ByteArray,
     ): String {
-        val kekInfo = getKeyInfo(
-            alias = kekAlias,
-            keyOperation = WRAP
-        )
-        val kek = kekInfo.key
         val wrappedDek = ByteArray(dekBytes.size + 8)
 
-        val wrappedDekLength = memScoped {
-            val wrappedDekLength = alloc<size_tVar>()
-            wrappedDekLength.value = wrappedDek.size.toULong()
+        val wrappedDekLength = keyWrappingOperation(
+           kekAlias = kekAlias,
+            dek = dekBytes,
+            output = wrappedDek,
+            wrapOperation = { kek, kekLength, dek, dekLength, output, outputLength ->
+                val status = CCSymmetricKeyWrap(
+                    algorithm = kCCWRAPAES,
+                    iv = CCrfc3394_iv,
+                    ivLen = CCrfc3394_ivLen,
+                    kek = kek,
+                    kekLen = kekLength,
+                    rawKey = dek,
+                    rawKeyLen = dekLength,
+                    wrappedKey = output,
+                    wrappedKeyLen = outputLength.ptr,
+                )
 
-            kek.usePinned { pinnedKek ->
-                dekBytes.usePinned { pinnedDek ->
-                    wrappedDek.usePinned { pinnedWrappedDek ->
-                        val status = CCSymmetricKeyWrap(
-                            algorithm = kCCWRAPAES,
-                            iv = CCrfc3394_iv,
-                            ivLen = CCrfc3394_ivLen,
-                            kek = pinnedKek.addressOf(0).reinterpret(),
-                            kekLen = kek.size.toULong(),
-                            rawKey = pinnedDek.addressOf(0).reinterpret(),
-                            rawKeyLen = dekBytes.size.toULong(),
-                            wrappedKey = pinnedWrappedDek.addressOf(0).reinterpret(),
-                            wrappedKeyLen = wrappedDekLength.ptr,
-                        )
+                if (status != kCCSuccess)
+                    throw RuntimeException("Error performing wrapping of a key")
 
-                        if (status != kCCSuccess)
-                            throw RuntimeException("Error performing wrapping of a key")
-
-                    }
-                }
+                outputLength.value
             }
-
-            wrappedDekLength.value
-        }
+        )
 
         return encode(wrappedDek.copyOf(wrappedDekLength.toInt()))
     }
@@ -549,38 +539,67 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         wrappedDek: String,
         dekAlgorithm: Algorithm,
     ): ByteArray {
+        val wrappedDekBytes = decode(wrappedDek)
+        val dekOutput = ByteArray(wrappedDekBytes.size - 8)
+
+        keyWrappingOperation(
+            kekAlias = kekAlias,
+            dek = wrappedDekBytes,
+            output = dekOutput,
+            wrapOperation = { kek, kekLength, dek, dekLength, output, outputLength ->
+                val status = CCSymmetricKeyUnwrap(
+                    algorithm = kCCWRAPAES,
+                    iv = CCrfc3394_iv,
+                    ivLen = CCrfc3394_ivLen,
+                    kek = kek,
+                    kekLen = kekLength,
+                    wrappedKey = dek,
+                    wrappedKeyLen = dekLength,
+                    rawKey = output,
+                    rawKeyLen = outputLength.ptr
+                )
+
+                if (status != kCCSuccess)
+                    throw RuntimeException("Error performing wrapping of a key")
+            }
+        )
+
+        return dekOutput
+    }
+
+    //TODO: TO DOCU SINCE
+    private fun <T> keyWrappingOperation(
+        kekAlias: String,
+        dek: ByteArray,
+        output: ByteArray,
+        wrapOperation: (CValuesRef<UByteVarOf<UByte>>?,  ULong,  CValuesRef<UByteVarOf<UByte>>?, ULong,
+                        CValuesRef<UByteVarOf<UByte>>?,  size_tVar) -> T
+    ): T {
         val keyInfo = getKeyInfo(
             alias = kekAlias,
             keyOperation = WRAP
         )
         val kek = keyInfo.key
-        val wrappedDekBytes = decode(wrappedDek)
-        val dekOutput = ByteArray(wrappedDekBytes.size - 8)
 
-        memScoped {
-            val dekOutputLength = alloc<size_tVar>()
-            dekOutputLength.value = dekOutput.size.toULong()
+        return memScoped {
+            val outputLength = alloc<size_tVar>()
+            outputLength.value = output.size.toULong()
 
             kek.usePinned { pinnedKek ->
-                wrappedDekBytes.usePinned { pinnedWrappedDek ->
-                    dekOutput.usePinned { pinnedDekOut ->
-                        CCSymmetricKeyUnwrap(
-                            algorithm = kCCWRAPAES,
-                            iv = CCrfc3394_iv,
-                            ivLen = CCrfc3394_ivLen,
-                            kek = pinnedKek.addressOf(0).reinterpret(),
-                            kekLen = kek.size.toULong(),
-                            wrappedKey = pinnedWrappedDek.addressOf(0).reinterpret(),
-                            wrappedKeyLen = wrappedDekBytes.size.toULong(),
-                            rawKey = pinnedDekOut.addressOf(0).reinterpret(),
-                            rawKeyLen = dekOutputLength.ptr
+                dek.usePinned { pinnedDek ->
+                    output.usePinned { pinnedOutput ->
+                        wrapOperation(
+                            pinnedKek.addressOf(0).reinterpret(),
+                            kek.size.toULong(),
+                            pinnedDek.addressOf(0).reinterpret(),
+                            dek.size.toULong(),
+                            pinnedOutput.addressOf(0).reinterpret(),
+                            outputLength
                         )
                     }
                 }
             }
         }
-
-        return dekOutput
     }
 
     /**
