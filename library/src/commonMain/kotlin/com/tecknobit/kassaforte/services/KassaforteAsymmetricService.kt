@@ -110,6 +110,15 @@ expect object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         signature: String,
     ): Boolean
 
+    //TODO: TO DOCU SINCE
+    suspend fun wrap(
+        kekAlias: String,
+        kekAlgorithm: Algorithm,
+        padding: EncryptionPadding,
+        digest: Digest,
+        dekBytes: ByteArray
+    )
+
     /**
      * Method used to delete a generated key
      *

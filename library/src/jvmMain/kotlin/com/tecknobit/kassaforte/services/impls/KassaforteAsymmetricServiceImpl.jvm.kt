@@ -100,6 +100,7 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
         )
         if (!keyInfo.canPerform(keyOperation))
             throw RuntimeException(KEY_CANNOT_PERFORM_OPERATION_ERROR.format(keyOperation))
+
         return if (keyOperation.checkIfRequiresPublicKey())
             keyInfo.resolvePublicKey()
         else

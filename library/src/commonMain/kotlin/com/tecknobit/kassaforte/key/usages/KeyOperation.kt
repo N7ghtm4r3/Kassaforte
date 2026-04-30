@@ -54,7 +54,7 @@ enum class KeyOperation {
         @Returner
         fun KeyOperation.checkIfRequiresPublicKey(): Boolean {
             return when (this) {
-                ENCRYPT, VERIFY -> true
+                ENCRYPT, VERIFY, WRAP -> true
                 else -> false
             }
         }

@@ -303,6 +303,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
      *
      * @since Revision Three
      */
+    //TODO: TO REDESIGN TO AVOID FALLBACK
     actual suspend fun wrap(
         kekAlias: String,
         kekAlgorithm: Algorithm,
@@ -375,6 +376,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
      *
      * @since Revision Three
      */
+    //TODO: TO REDESIGN TO AVOID FALLBACK
     actual suspend fun unwrap(
         kekAlias: String,
         kekAlgorithm: Algorithm,

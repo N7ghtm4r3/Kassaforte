@@ -21,6 +21,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.security.*
 import javax.crypto.Cipher
+import javax.crypto.spec.SecretKeySpec
 
 /**
  * The `KassaforteAsymmetricService` object allows to generate and to use asymmetric keys and managing their persistence.
@@ -110,10 +111,12 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             digest = digest,
             usage = { cipher, key ->
                 cipher.init(Cipher.ENCRYPT_MODE, key)
+
                 val plainText = data.encodeForKeyOperation()
                 cipher.doFinal(plainText)
             }
         )
+
         return encode(cipherText)
     }
 
@@ -140,76 +143,13 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             digest = digest,
             usage = { cipher, key ->
                 cipher.init(Cipher.DECRYPT_MODE, key)
+
                 val cipherText = decode(data)
                 cipher.doFinal(cipherText)
             }
         )
+
         return plainText.decodeToString()
-    }
-
-    /**
-     * Method used to work and to use a [Cipher] instance to perform encryption or decryption of the data
-     *
-     * @param alias The alias which identify the key to use
-     * @param keyOperation The operation the key have to perform
-     * @param padding The padding to apply to ciphering data
-     * @param digest The digest to apply to ciphering data
-     * @param usage The routine the cipher have to perform
-     *
-     * @return the ciphered data as [ByteArray]
-     */
-    private inline fun useCipher(
-        alias: String,
-        keyOperation: KeyOperation,
-        padding: EncryptionPadding?,
-        digest: Digest?,
-        usage: (Cipher, Key) -> ByteArray,
-    ): ByteArray {
-        val key = serviceImpl.getKey(
-            alias = alias,
-            keyOperation = keyOperation
-        )
-        val algorithm = key.algorithm
-        checkIfIsSupportedCipherAlgorithm(
-            algorithm = algorithm
-        )
-        val cipher = Cipher.getInstance(
-            resolveTransformation(
-                algorithm = algorithm,
-                padding = padding,
-                digest = digest
-            )
-        )
-        return usage(cipher, key)
-    }
-
-    /**
-     * Method used to resolve the transformation value to obtain a [Cipher] instance
-     *
-     * @param algorithm The algorithm to use
-     * @param padding The padding to apply to ciphering data
-     * @param digest The digest to apply to ciphering data
-     *
-     * @return the transformation value as [String]
-     */
-    @Assembler
-    private fun resolveTransformation(
-        algorithm: String,
-        padding: EncryptionPadding?,
-        digest: Digest?,
-    ): String {
-        var transformation = "$algorithm/ECB"
-        transformation += "/" + when (padding) {
-            RSA_OAEP -> {
-                if (digest == null)
-                    throw IllegalStateException("The OAEPPadding padding mode requires to specify the digest to use")
-                digest.oaepWithValue().value
-            }
-
-            RSA_PKCS1 -> padding.value
-            else -> throw IllegalArgumentException("Invalid padding value")
-        }
-        return transformation
     }
 
     /**
@@ -234,6 +174,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             digest = digest,
             usage = { key ->
                 initSign(key as PrivateKey)
+
                 update(message.encodeForKeyOperation())
                 encode(sign())
             }
@@ -265,6 +206,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             digest = digest,
             usage = { key ->
                 initVerify(key as PublicKey)
+
                 update(message.encodeForKeyOperation())
                 verify(decode(signature))
             }
@@ -301,6 +243,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             keyAlgorithm = key.algorithm
         )
         val signature = Signature.getInstance(signatureAlgorithm)
+
         return usage(signature, key)
     }
 
@@ -321,7 +264,100 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             ECDSA
         else
             keyAlgorithm
+
         return "${digest.name}with$algorithm"
+    }
+
+    //TODO: TO DOCU SINCE
+    actual suspend fun wrap(
+        kekAlias: String,
+        kekAlgorithm: Algorithm,
+        padding: EncryptionPadding,
+        digest: Digest,
+        dekBytes: ByteArray
+    ) {
+        val dek = SecretKeySpec(dekBytes, )
+
+        useCipher(
+            alias = kekAlias,
+            keyOperation = WRAP,
+            padding = padding,
+            digest = digest,
+            usage = { cipher, key ->
+                cipher.init(Cipher.WRAP_MODE, key)
+
+                cipher.wrap()
+            }
+        )
+
+    }
+
+    /**
+     * Method used to work and to use a [Cipher] instance to perform encryption or decryption of the data
+     *
+     * @param alias The alias which identify the key to use
+     * @param keyOperation The operation the key have to perform
+     * @param padding The padding to apply to ciphering data
+     * @param digest The digest to apply to ciphering data
+     * @param usage The routine the cipher have to perform
+     *
+     * @return the ciphered data as [ByteArray]
+     */
+    private inline fun useCipher(
+        alias: String,
+        keyOperation: KeyOperation,
+        padding: EncryptionPadding?,
+        digest: Digest?,
+        usage: (Cipher, Key) -> ByteArray,
+    ): ByteArray {
+        val key = serviceImpl.getKey(
+            alias = alias,
+            keyOperation = keyOperation
+        )
+        val algorithm = key.algorithm
+        checkIfIsSupportedCipherAlgorithm(
+            algorithm = algorithm
+        )
+
+        val cipher = Cipher.getInstance(
+            resolveTransformation(
+                algorithm = algorithm,
+                padding = padding,
+                digest = digest
+            )
+        )
+
+        return usage(cipher, key)
+    }
+
+    /**
+     * Method used to resolve the transformation value to obtain a [Cipher] instance
+     *
+     * @param algorithm The algorithm to use
+     * @param padding The padding to apply to ciphering data
+     * @param digest The digest to apply to ciphering data
+     *
+     * @return the transformation value as [String]
+     */
+    @Assembler
+    private fun resolveTransformation(
+        algorithm: String,
+        padding: EncryptionPadding?,
+        digest: Digest?,
+    ): String {
+        var transformation = "$algorithm/ECB"
+        transformation += "/" + when (padding) {
+            RSA_OAEP -> {
+                if (digest == null)
+                    throw IllegalStateException("The OAEPPadding padding mode requires to specify the digest to use")
+                digest.oaepWithValue().value
+            }
+
+            RSA_PKCS1 -> padding.value
+            else -> throw IllegalArgumentException("Invalid padding value")
+        }
+
+        return transformation
     }
 
     /**

@@ -302,6 +302,16 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         }
     }
 
+    //TODO: TO DOCU SINCE
+    actual suspend fun wrap(
+        kekAlias: String,
+        kekAlgorithm: Algorithm,
+        padding: EncryptionPadding,
+        digest: Digest,
+        dekBytes: ByteArray
+    ) {
+    }
+
     /**
      * Method used to delete a generated key
      *
