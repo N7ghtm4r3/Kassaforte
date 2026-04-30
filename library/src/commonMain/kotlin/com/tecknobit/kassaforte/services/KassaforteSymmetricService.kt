@@ -111,14 +111,35 @@ expect object KassaforteSymmetricService: KassaforteKeysService<SymmetricKeyGenS
         signature: String,
     ): Boolean
 
-    // TODO: TO DOCU SINCE, SPECIFIC THE EnvelopeEncryption where needed the approach used
+    /**
+     * Method used to perform wrapping of a `Data Encryption Key (DEK)` using a specified `Key Encryption Key (KEK)`
+     *
+     * @param kekAlias The alias which identify the `KEK` key to use
+     * @param kekAlgorithm The algorithm associated to the `KEK` key used during the wrapping
+     * @param dekBytes Arbitrary bytes representing the `DEK` material to wrap
+     *
+     * @return the [dekBytes] wrapped using the specified KEK key as `Base64` [String]
+     *
+     * @since Revision Three
+     */
     suspend fun wrap(
         kekAlias: String,
         kekAlgorithm: Algorithm,
         dekBytes: ByteArray,
     ): String
 
-    // TODO: TO DOCU SINCE
+    /**
+     * Method used to perform unwrapping of a `Data Encryption Key (DEK)` using a specified `Key Encryption Key (KEK)`
+     *
+     * @param kekAlias The alias which identify the `KEK` key to use
+     * @param kekAlgorithm The algorithm associated to the `KEK` key used during the wrapping to correctly perform the unwrapping
+     * @param wrappedDek The wrapped `DEK` material to unwrap
+     * @param dekAlgorithm The algorithm that will be used to build the unwrapped key
+     *
+     * @return the bytes of the unwrapped key as [ByteArray]
+     *
+     * @since Revision Three
+     */
     suspend fun unwrap(
         kekAlias: String,
         kekAlgorithm: Algorithm,

@@ -16,7 +16,10 @@ import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.NONE
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
+import com.tecknobit.kassaforte.services.KassaforteSymmetricService.decrypt
+import com.tecknobit.kassaforte.services.KassaforteSymmetricService.encrypt
 import com.tecknobit.kassaforte.services.KassaforteSymmetricService.generateKey
+import com.tecknobit.kassaforte.services.helpers.KassaforteServiceImplManager.Companion.WRAP_KEY_USAGE
 import com.tecknobit.kassaforte.services.helpers.KassaforteSymmetricServiceManager
 import com.tecknobit.kassaforte.util.decode
 import com.tecknobit.kassaforte.util.encode
@@ -36,6 +39,8 @@ import com.tecknobit.kassaforte.wrappers.crypto.params.AesGcmParams
 import com.tecknobit.kassaforte.wrappers.crypto.params.EncryptionParams
 import org.khronos.webgl.ArrayBuffer
 import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.toJsString
+import kotlin.js.toList
 import kotlin.js.unsafeCast
 
 /**
@@ -225,6 +230,38 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     }
 
     /**
+     * Method used to resolve which [EncryptionParams] it is required to perform the encryption or the decryption
+     *
+     * @param iv The initialization vector to adopt in the decryption, during the encryption will be automatically generated
+     * by the library
+     *
+     * @return the encryption params and the related initialization vector as [Pair] of [EncryptionParams] and [ArrayBuffer]
+     */
+    @Returner
+    private fun CryptoKey.resolveAesParams(
+        iv: ArrayBuffer = ArrayBuffer(0),
+    ): Pair<EncryptionParams, ArrayBuffer> {
+        val algorithm = algorithm.name
+
+        return when {
+            algorithm.endsWith(CBC.value) -> {
+                val aesCbcParams: AesCbcParams = aesCbcParams(iv)
+                Pair(aesCbcParams, aesCbcParams.iv)
+            }
+
+            algorithm.endsWith(CTR.value) -> {
+                val aesCtrParams: AesCtrParams = aesCtrParams(iv)
+                Pair(aesCtrParams, aesCtrParams.counter)
+            }
+
+            else -> {
+                val aesGcmParams: AesGcmParams = aesGcmParams(iv)
+                Pair(aesGcmParams, aesGcmParams.iv)
+            }
+        }
+    }
+
+    /**
      * Method used to sign message with the key specified by the [alias] value
      *
      * @param alias The alias which identify the key to use
@@ -312,13 +349,28 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         return algorithm.unsafeCast<HmacKeyGenParams>().hash
     }
 
-    // TODO: TO DOCU SINCE, SPECIFIC THE EnvelopeEncryption where needed the approach used
+    /**
+     * Method used to perform wrapping of a `Data Encryption Key (DEK)` using a specified `Key Encryption Key (KEK)`.
+     *
+     * For an implementation more portable and compatible with the cross-platform philosophy this method perform an
+     * Enveloped encryption via [encrypt] API, producing an encoded [String] as output.
+     *
+     * @param kekAlias The alias which identify the `KEK` key to use
+     * @param kekAlgorithm The algorithm associated to the `KEK` key used during the wrapping
+     * @param dekBytes Arbitrary bytes representing the `DEK` material to wrap
+     *
+     * @return the [dekBytes] wrapped using the specified KEK key as `Base64` [String]
+     *
+     * @since Revision Three
+     */
     actual suspend fun wrap(
         kekAlias: String,
         kekAlgorithm: Algorithm,
         dekBytes: ByteArray,
     ): String {
-        // TODO: TO BLOCK IF WRAP USAGE IS NOT PRESENT
+        if (!canPerformWrapping(kekAlias))
+            throw IllegalStateException("Cannot perform wrap operation with this key")
+
         val wrappedDek = encrypt(
             alias = kekAlias,
             blockMode = GCM,
@@ -329,14 +381,30 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         return wrappedDek
     }
 
-    // TODO: TO DOCU SINCE
+    /**
+     * Method used to perform unwrapping of a `Data Encryption Key (DEK)` using a specified `Key Encryption Key (KEK)`.
+     *
+     * For an implementation more portable and compatible with the cross-platform philosophy this method perform an
+     * Enveloped Encryption via [decrypt] API, producing a raw bytes as output.
+     *
+     * @param kekAlias The alias which identify the `KEK` key to use
+     * @param kekAlgorithm The algorithm associated to the `KEK` key used during the wrapping to correctly perform the unwrapping
+     * @param wrappedDek The wrapped `DEK` material to unwrap
+     * @param dekAlgorithm The algorithm that will be used to build the unwrapped key
+     *
+     * @return the bytes of the unwrapped key as [ByteArray]
+     *
+     * @since Revision Three
+     */
     actual suspend fun unwrap(
         kekAlias: String,
         kekAlgorithm: Algorithm,
         wrappedDek: String,
         dekAlgorithm: Algorithm,
     ): ByteArray {
-        // TODO: TO BLOCK IF WRAP USAGE IS NOT PRESENT
+        if (!canPerformWrapping(kekAlias))
+            throw IllegalStateException("Cannot perform unwrap operation with this key")
+
         val unwrappedDek = decrypt(
             alias = kekAlias,
             blockMode = GCM,
@@ -348,35 +416,25 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     }
 
     /**
-     * Method used to resolve which [EncryptionParams] it is required to perform the encryption or the decryption
+     * Method used to check whether the specified [kekAlias] indicates a key that can perform the `wrapping` and `unwrapping`
+     * operations
      *
-     * @param iv The initialization vector to adopt in the decryption, during the encryption will be automatically generated
-     * by the library
+     * @param kekAlias The alias for the kek
      *
-     * @return the encryption params and the related initialization vector as [Pair] of [EncryptionParams] and [ArrayBuffer]
+     * @return whether the specified key can perform the wrapping operation as [Boolean]
+     *
+     * @since Revision Three
      */
     @Returner
-    private fun CryptoKey.resolveAesParams(
-        iv: ArrayBuffer = ArrayBuffer(0),
-    ): Pair<EncryptionParams, ArrayBuffer> {
-        val algorithm = algorithm.name
+    private suspend fun canPerformWrapping(
+        kekAlias: String,
+    ): Boolean {
+        val kek = serviceManager.retrieveKeyData(
+            alias = kekAlias
+        )
+        val usages = kek.usages.toList()
 
-        return when {
-            algorithm.endsWith(CBC.value) -> {
-                val aesCbcParams: AesCbcParams = aesCbcParams(iv)
-                Pair(aesCbcParams, aesCbcParams.iv)
-            }
-
-            algorithm.endsWith(CTR.value) -> {
-                val aesCtrParams: AesCtrParams = aesCtrParams(iv)
-                Pair(aesCtrParams, aesCtrParams.counter)
-            }
-
-            else -> {
-                val aesGcmParams: AesGcmParams = aesGcmParams(iv)
-                Pair(aesGcmParams, aesGcmParams.iv)
-            }
-        }
+        return usages.contains(WRAP_KEY_USAGE.toJsString())
     }
 
     /**

@@ -16,7 +16,9 @@ import com.tecknobit.kassaforte.key.usages.KeyOperation
 import com.tecknobit.kassaforte.key.usages.KeyOperation.*
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.KassaforteSymmetricService.sign
+import com.tecknobit.kassaforte.services.KassaforteSymmetricService.unwrap
 import com.tecknobit.kassaforte.services.KassaforteSymmetricService.verify
+import com.tecknobit.kassaforte.services.KassaforteSymmetricService.wrap
 import com.tecknobit.kassaforte.services.helpers.KassaforteSymmetricServiceManager
 import com.tecknobit.kassaforte.util.decode
 import com.tecknobit.kassaforte.util.encode
@@ -497,7 +499,17 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         return result == 0
     }
 
-    // TODO: TO DOCU SINCE
+    /**
+     * Method used to perform wrapping of a `Data Encryption Key (DEK)` using a specified `Key Encryption Key (KEK)`
+     *
+     * @param kekAlias The alias which identify the `KEK` key to use
+     * @param kekAlgorithm The algorithm associated to the `KEK` key used during the wrapping
+     * @param dekBytes Arbitrary bytes representing the `DEK` material to wrap
+     *
+     * @return the [dekBytes] wrapped using the specified KEK key as `Base64` [String]
+     *
+     * @since Revision Three
+     */
     actual suspend fun wrap(
         kekAlias: String,
         kekAlgorithm: Algorithm,
@@ -532,7 +544,18 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         return encode(wrappedDek.copyOf(wrappedDekLength.toInt()))
     }
 
-    // TODO: TO DOCU SINCE
+    /**
+     * Method used to perform unwrapping of a `Data Encryption Key (DEK)` using a specified `Key Encryption Key (KEK)`
+     *
+     * @param kekAlias The alias which identify the `KEK` key to use
+     * @param kekAlgorithm The algorithm associated to the `KEK` key used during the wrapping to correctly perform the unwrapping
+     * @param wrappedDek The wrapped `DEK` material to unwrap
+     * @param dekAlgorithm The algorithm that will be used to build the unwrapped key
+     *
+     * @return the bytes of the unwrapped key as [ByteArray]
+     *
+     * @since Revision Three
+     */
     actual suspend fun unwrap(
         kekAlias: String,
         kekAlgorithm: Algorithm,
@@ -567,13 +590,28 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         return dekOutput
     }
 
-    //TODO: TO DOCU SINCE
-    private fun <T> keyWrappingOperation(
+    /**
+     * Helper method provides easy access and easy in-memory management for the arrays used by [wrap] and [unwrap] methods
+     *
+     * @param kekAlias The alias which identify the `KEK` key to use
+     * @param dek The array container of `DEK` material
+     * @param output The array container where will be copied the data to return
+     * @param wrapOperation The wrapping routine to perform
+     *
+     * @param T Type parameter of the [wrapOperation] computed output
+     *
+     * @return the result computed by the [wrapOperation] routine as [T]
+     *
+     * @since Revision Three
+     */
+    private inline fun <T> keyWrappingOperation(
         kekAlias: String,
         dek: ByteArray,
         output: ByteArray,
-        wrapOperation: (CValuesRef<UByteVarOf<UByte>>?,  ULong,  CValuesRef<UByteVarOf<UByte>>?, ULong,
-                        CValuesRef<UByteVarOf<UByte>>?,  size_tVar) -> T
+        wrapOperation: (
+            CValuesRef<UByteVarOf<UByte>>?, ULong, CValuesRef<UByteVarOf<UByte>>?, ULong,
+            CValuesRef<UByteVarOf<UByte>>?, size_tVar
+        ) -> T,
     ): T {
         val keyInfo = getKeyInfo(
             alias = kekAlias,

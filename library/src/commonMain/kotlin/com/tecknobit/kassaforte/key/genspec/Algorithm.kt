@@ -25,10 +25,20 @@ enum class Algorithm(
      */
     AES("AES"),
 
-    // TODO: TO DOCU SINCE
+    /**
+     * `AES_KW` Key Wrap (AES-KW) algorithm for secure wrapping of cryptographic keys,
+     * as defined in `RFC 3394`
+     *
+     * @since Revision Three
+     */
     AES_KW("AES/KW"),
 
-    // TODO: TO DOCU SINCE
+    /**
+     * `AES_KWP` Key Wrap with Padding (AES-KWP) algorithm for secure wrapping of cryptographic keys
+     *  that may not be a multiple of the block size, as defined in `RFC 5649`
+     *
+     * @since Revision Three
+     */
     AES_KWP("AES/KWP"),
 
     /**

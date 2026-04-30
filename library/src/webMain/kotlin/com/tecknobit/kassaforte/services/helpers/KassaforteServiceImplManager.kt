@@ -45,6 +45,17 @@ import kotlin.js.*
 @Structure
 internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> : KassaforteServiceManager<K> {
 
+    companion object {
+
+        /**
+         * `subtleCrypto` the instance which handles the keys generation and usages
+         *
+         * @since Revision Three
+         */
+        const val WRAP_KEY_USAGE = "wrapKey"
+
+    }
+
     /**
      * `subtleCrypto` the instance which handles the keys generation and usages
      */
