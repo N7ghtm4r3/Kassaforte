@@ -14,7 +14,12 @@ import com.tecknobit.kassaforte.services.helpers.KassaforteServiceImplManager.Co
 import com.tecknobit.kassaforte.util.decode
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import java.security.*
+import java.security.Key
+import java.security.KeyFactory
+import java.security.KeyPair
+import java.security.KeyPairGenerator
+import java.security.PrivateKey
+import java.security.PublicKey
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
 
@@ -52,15 +57,25 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
     ) {
         if (aliasExists(alias))
             throw IllegalAccessException(ALIAS_ALREADY_TAKEN_ERROR)
+
+        val keyPurposes = if (purposes.canWrapKey) {
+            purposes.copy(
+                canEncrypt = true,
+                canDecrypt = true
+            )
+        } else
+            purposes
+
         val algorithmName = algorithm.value
         val keyPairGenerator = KeyPairGenerator.getInstance(algorithmName)
         keyPairGenerator.initialize(keyGenSpec.keySize.bitCount)
         val keyPair = keyPairGenerator.genKeyPair()
+
         serviceImplManager.storeKeyData(
             alias = alias,
             keyInfo = KeyInfo(
                 algorithm = algorithmName,
-                keyPurposes = purposes,
+                keyPurposes = keyPurposes,
                 keyPair = keyPair
             )
         )

@@ -15,7 +15,14 @@ import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.NONE
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.RSA_PKCS1
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.helpers.KassaforteAsymmetricServiceManager
-import com.tecknobit.kassaforte.util.*
+import com.tecknobit.kassaforte.util.convertToCFData
+import com.tecknobit.kassaforte.util.decode
+import com.tecknobit.kassaforte.util.encode
+import com.tecknobit.kassaforte.util.encodeForKeyOperation
+import com.tecknobit.kassaforte.util.errorScoped
+import com.tecknobit.kassaforte.util.kassaforteDictionary
+import com.tecknobit.kassaforte.util.toByteArray
+import com.tecknobit.kassaforte.util.toCFData
 import kotlinx.cinterop.CValuesRef
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ptr
@@ -24,7 +31,28 @@ import platform.CoreFoundation.CFDictionaryGetValue
 import platform.CoreFoundation.CFMutableDictionaryRef
 import platform.CoreFoundation.kCFBooleanTrue
 import platform.Foundation.CFBridgingRetain
-import platform.Security.*
+import platform.Security.SecKeyAlgorithm
+import platform.Security.SecKeyCopyAttributes
+import platform.Security.SecKeyCreateDecryptedData
+import platform.Security.SecKeyCreateEncryptedData
+import platform.Security.SecKeyCreateRandomKey
+import platform.Security.SecKeyCreateSignature
+import platform.Security.SecKeyRef
+import platform.Security.SecKeyVerifySignature
+import platform.Security.kSecAttrApplicationTag
+import platform.Security.kSecAttrCanDecrypt
+import platform.Security.kSecAttrCanDerive
+import platform.Security.kSecAttrCanEncrypt
+import platform.Security.kSecAttrCanSign
+import platform.Security.kSecAttrCanUnwrap
+import platform.Security.kSecAttrCanVerify
+import platform.Security.kSecAttrCanWrap
+import platform.Security.kSecAttrIsPermanent
+import platform.Security.kSecAttrKeySizeInBits
+import platform.Security.kSecAttrKeyType
+import platform.Security.kSecAttrKeyTypeEC
+import platform.Security.kSecPrivateKeyAttrs
+import platform.Security.kSecPublicKeyAttrs
 
 /**
  * The `KassaforteAsymmetricService` class allows to generate and to use asymmetric keys and managing their persistence.
@@ -469,8 +497,22 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         kekAlgorithm: Algorithm,
         padding: EncryptionPadding,
         digest: Digest,
-        dekBytes: ByteArray
-    ) {
+        dekBytes: ByteArray,
+    ): String {
+
+        return ""
+
+    }
+
+    //TODO: TO DOCU SINCE
+    actual suspend fun unwrap(
+        kekAlias: String,
+        kekAlgorithm: Algorithm,
+        padding: EncryptionPadding,
+        digest: Digest,
+        wrappedDek: String,
+    ): ByteArray {
+        TODO("Not yet implemented")
     }
 
     /**

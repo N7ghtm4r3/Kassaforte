@@ -168,6 +168,7 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
         val storedKey = serviceImplManager.retrieveKey(
             alias = alias
         )
+
         return if (requiresPublicKey) {
             retrievePublicKey(
                 alias = alias
@@ -175,6 +176,7 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
         } else
             storedKey
     }
+
 
     /**
      * Method used to retrieve a public from the specified alias

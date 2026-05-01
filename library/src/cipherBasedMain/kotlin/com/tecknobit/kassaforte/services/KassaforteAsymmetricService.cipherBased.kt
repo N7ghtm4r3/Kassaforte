@@ -1,6 +1,7 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
+import com.tecknobit.equinoxcore.annotations.Implementation
 import com.tecknobit.kassaforte.ECDSA
 import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
@@ -9,7 +10,12 @@ import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.RSA_OAEP
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.RSA_PKCS1
 import com.tecknobit.kassaforte.key.usages.KeyOperation
-import com.tecknobit.kassaforte.key.usages.KeyOperation.*
+import com.tecknobit.kassaforte.key.usages.KeyOperation.DECRYPT
+import com.tecknobit.kassaforte.key.usages.KeyOperation.ENCRYPT
+import com.tecknobit.kassaforte.key.usages.KeyOperation.SIGN
+import com.tecknobit.kassaforte.key.usages.KeyOperation.UNWRAP
+import com.tecknobit.kassaforte.key.usages.KeyOperation.VERIFY
+import com.tecknobit.kassaforte.key.usages.KeyOperation.WRAP
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.impls.KassaforteAsymmetricServiceImpl
 import com.tecknobit.kassaforte.util.checkIfIsSupportedCipherAlgorithm
@@ -19,9 +25,12 @@ import com.tecknobit.kassaforte.util.encodeForKeyOperation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.security.*
+import java.security.Key
+import java.security.KeyPairGenerator
+import java.security.PrivateKey
+import java.security.PublicKey
+import java.security.Signature
 import javax.crypto.Cipher
-import javax.crypto.spec.SecretKeySpec
 
 /**
  * The `KassaforteAsymmetricService` object allows to generate and to use asymmetric keys and managing their persistence.
@@ -104,20 +113,13 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         digest: Digest?,
         data: Any,
     ): String {
-        val cipherText = useCipher(
+        return encryptImpl(
             alias = alias,
             keyOperation = ENCRYPT,
             padding = padding,
             digest = digest,
-            usage = { cipher, key ->
-                cipher.init(Cipher.ENCRYPT_MODE, key)
-
-                val plainText = data.encodeForKeyOperation()
-                cipher.doFinal(plainText)
-            }
+            data = data
         )
-
-        return encode(cipherText)
     }
 
     /**
@@ -136,20 +138,13 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         digest: Digest?,
         data: String,
     ): String {
-        val plainText = useCipher(
+        return decryptImpl(
             alias = alias,
             keyOperation = DECRYPT,
             padding = padding,
             digest = digest,
-            usage = { cipher, key ->
-                cipher.init(Cipher.DECRYPT_MODE, key)
-
-                val cipherText = decode(data)
-                cipher.doFinal(cipherText)
-            }
+            data = data
         )
-
-        return plainText.decodeToString()
     }
 
     /**
@@ -179,6 +174,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                 encode(sign())
             }
         )
+
         return signedMessage
     }
 
@@ -211,6 +207,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                 verify(decode(signature))
             }
         )
+
         return result
     }
 
@@ -274,22 +271,84 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         kekAlgorithm: Algorithm,
         padding: EncryptionPadding,
         digest: Digest,
-        dekBytes: ByteArray
-    ) {
-        val dek = SecretKeySpec(dekBytes, )
-
-        useCipher(
+        dekBytes: ByteArray,
+    ): String {
+        return encryptImpl(
             alias = kekAlias,
             keyOperation = WRAP,
             padding = padding,
             digest = digest,
-            usage = { cipher, key ->
-                cipher.init(Cipher.WRAP_MODE, key)
+            data = encode(dekBytes)
+        )
+    }
 
-                cipher.wrap()
+    //TODO: TO DOCU SINCE
+    actual suspend fun unwrap(
+        kekAlias: String,
+        kekAlgorithm: Algorithm,
+        padding: EncryptionPadding,
+        digest: Digest,
+        wrappedDek: String,
+    ): ByteArray {
+        val unwrappedDek = decryptImpl(
+            alias = kekAlias,
+            keyOperation = UNWRAP,
+            padding = padding,
+            digest = digest,
+            data = wrappedDek
+        )
+
+        return decode(unwrappedDek)
+    }
+
+    // TODO: TO DOCU SINCE
+    @Implementation
+    private fun encryptImpl(
+        alias: String,
+        keyOperation: KeyOperation,
+        padding: EncryptionPadding?,
+        digest: Digest?,
+        data: Any,
+    ): String {
+        val cipherText = useCipher(
+            alias = alias,
+            keyOperation = keyOperation,
+            padding = padding,
+            digest = digest,
+            usage = { cipher, key ->
+                cipher.init(Cipher.ENCRYPT_MODE, key)
+
+                val plainText = data.encodeForKeyOperation()
+                cipher.doFinal(plainText)
             }
         )
 
+        return encode(cipherText)
+    }
+
+    // TODO: TO DOCU SINCE
+    @Implementation
+    private fun decryptImpl(
+        alias: String,
+        keyOperation: KeyOperation,
+        padding: EncryptionPadding?,
+        digest: Digest?,
+        data: String,
+    ): String {
+        val plainText = useCipher(
+            alias = alias,
+            keyOperation = keyOperation,
+            padding = padding,
+            digest = digest,
+            usage = { cipher, key ->
+                cipher.init(Cipher.DECRYPT_MODE, key)
+
+                val cipherText = decode(data)
+                cipher.doFinal(cipherText)
+            }
+        )
+
+        return plainText.decodeToString()
     }
 
     /**

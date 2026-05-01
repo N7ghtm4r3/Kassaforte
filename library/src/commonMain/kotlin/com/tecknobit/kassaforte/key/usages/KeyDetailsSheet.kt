@@ -1,7 +1,14 @@
 package com.tecknobit.kassaforte.key.usages
 
 import com.tecknobit.equinoxcore.annotations.Validator
-import com.tecknobit.kassaforte.key.usages.KeyOperation.*
+import com.tecknobit.kassaforte.key.usages.KeyOperation.AGREE
+import com.tecknobit.kassaforte.key.usages.KeyOperation.DECRYPT
+import com.tecknobit.kassaforte.key.usages.KeyOperation.ENCRYPT
+import com.tecknobit.kassaforte.key.usages.KeyOperation.OBTAIN_KEY
+import com.tecknobit.kassaforte.key.usages.KeyOperation.SIGN
+import com.tecknobit.kassaforte.key.usages.KeyOperation.UNWRAP
+import com.tecknobit.kassaforte.key.usages.KeyOperation.VERIFY
+import com.tecknobit.kassaforte.key.usages.KeyOperation.WRAP
 
 /**
  * The `KeyDetailsSheet` interface allows to store with the generated key extra information related to it such as the
@@ -77,7 +84,7 @@ interface KeyDetailsSheet<T> {
             SIGN -> canSign
             VERIFY -> canVerify
             AGREE -> canAgree
-            WRAP -> canWrapKey
+            WRAP, UNWRAP -> canWrapKey
             OBTAIN_KEY -> true
         }
     }

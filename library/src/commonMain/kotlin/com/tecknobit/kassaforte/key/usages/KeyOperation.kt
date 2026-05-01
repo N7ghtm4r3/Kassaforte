@@ -39,6 +39,13 @@ enum class KeyOperation {
     WRAP,
 
     /**
+     * `UNWRAP` the operation where the key is used to unwrap wrapped dek key
+     *
+     * @since Revision Three
+     */
+    UNWRAP,
+
+    /**
      * `OBTAIN_KEY` the operation where is requested the key
      */
     OBTAIN_KEY;

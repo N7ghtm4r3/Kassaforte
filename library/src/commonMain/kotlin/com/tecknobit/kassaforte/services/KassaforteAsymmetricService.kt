@@ -1,6 +1,10 @@
 package com.tecknobit.kassaforte.services
 
-import com.tecknobit.kassaforte.key.genspec.*
+import com.tecknobit.kassaforte.key.genspec.Algorithm
+import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
+import com.tecknobit.kassaforte.key.genspec.Digest
+import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
+import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 
 /**
@@ -116,8 +120,17 @@ expect object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         kekAlgorithm: Algorithm,
         padding: EncryptionPadding,
         digest: Digest,
-        dekBytes: ByteArray
-    )
+        dekBytes: ByteArray,
+    ): String
+
+    //TODO: TO DOCU SINCE
+    suspend fun unwrap(
+        kekAlias: String,
+        kekAlgorithm: Algorithm,
+        padding: EncryptionPadding,
+        digest: Digest,
+        wrappedDek: String,
+    ): ByteArray
 
     /**
      * Method used to delete a generated key

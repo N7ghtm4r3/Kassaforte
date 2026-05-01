@@ -308,8 +308,20 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         kekAlgorithm: Algorithm,
         padding: EncryptionPadding,
         digest: Digest,
-        dekBytes: ByteArray
-    ) {
+        dekBytes: ByteArray,
+    ): String {
+        return ""
+    }
+
+    //TODO: TO DOCU SINCE
+    actual suspend fun unwrap(
+        kekAlias: String,
+        kekAlgorithm: Algorithm,
+        padding: EncryptionPadding,
+        digest: Digest,
+        wrappedDek: String,
+    ): ByteArray {
+        TODO("Not yet implemented")
     }
 
     /**

@@ -113,6 +113,7 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() : Kass
         )
         if (!keyInfo.canPerform(keyOperation))
             throw RuntimeException(KEY_CANNOT_PERFORM_OPERATION_ERROR.format(keyOperation))
+
         return keyInfo.resolveKey()
     }
 
@@ -138,6 +139,7 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() : Kass
         padding?.let {
             transformation += padding.adapt()
         }
+
         return transformation
     }
 
