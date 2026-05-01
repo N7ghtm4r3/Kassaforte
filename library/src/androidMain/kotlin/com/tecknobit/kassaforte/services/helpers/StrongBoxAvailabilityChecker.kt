@@ -15,6 +15,7 @@ import com.tecknobit.equinoxcore.utilities.AppContext
 fun isStrongBoxAvailable(): Boolean {
     val context = AppContext.get()
     val packageManager = context.packageManager
+
     return if (SDK_INT >= P)
         packageManager.hasSystemFeature(FEATURE_STRONGBOX_KEYSTORE)
     else
