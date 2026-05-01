@@ -2,11 +2,13 @@
 
 package com.tecknobit.kassaforte.enums
 
+import cnames.structs.__CFString
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.key.genspec.Algorithm
 import com.tecknobit.kassaforte.key.genspec.Algorithm.EC
 import com.tecknobit.kassaforte.key.genspec.Algorithm.RSA
 import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.INVALID_ASYMETRIC_ALGORITHM
+import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.CoreFoundation.CFStringRef
 import platform.Security.kSecAttrKeyTypeECSECPrimeRandom
@@ -18,18 +20,18 @@ import platform.Security.kSecAttrKeyTypeRSA
  * @param type The native type of the key
  */
 enum class KeyType(
-    val type: CFStringRef?,
+    val typeProvider: () -> CFStringRef
 ) {
 
     /**
      * `kAttrKeyRSA` a key that is based on the `RSA` algorithm
      */
-    kAttrKeyRSA(kSecAttrKeyTypeRSA),
+    kAttrKeyRSA({ kSecAttrKeyTypeRSA!! }),
 
     /**
      * `kAttrKeyECSEC` a key that is based on the `EC` algorithm (`ECSEC` spec)
      */
-    kAttrKeyECSEC(kSecAttrKeyTypeECSECPrimeRandom);
+    kAttrKeyECSEC({ kSecAttrKeyTypeECSECPrimeRandom!! });
 
     companion object {
 
@@ -43,9 +45,7 @@ enum class KeyType(
             return when (this) {
                 RSA -> kAttrKeyRSA
                 EC -> kAttrKeyECSEC
-                else -> {
-                    throw IllegalArgumentException(INVALID_ASYMETRIC_ALGORITHM)
-                }
+                else -> throw IllegalArgumentException(INVALID_ASYMETRIC_ALGORITHM)
             }
         }
 

@@ -13,6 +13,7 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.alloc
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
+import kotlinx.cinterop.value
 import platform.CoreFoundation.*
 import platform.Foundation.CFBridgingRetain
 import platform.Security.*
@@ -41,12 +42,14 @@ internal class KassaforteAsymmetricServiceManager : KassaforteServiceImplManager
             alias = alias,
             keyClass = kSecAttrKeyClassPrivate
         )
+
         return memScoped {
             val resultContainer = alloc<CFTypeRefVar>()
             val resultStatus = SecItemCopyMatching(
                 query = query,
                 result = resultContainer.ptr
             )
+
             resultStatus == errSecSuccess
         }
     }
@@ -72,11 +75,17 @@ internal class KassaforteAsymmetricServiceManager : KassaforteServiceImplManager
             }
         )
 
-        TODO("TO REIMPLEMENT retrieveFromKeychain")
+        return memScoped {
+            val result = alloc<CFTypeRefVar>()
+            val status = SecItemCopyMatching(
+                query = query,
+                result = result.ptr
+            )
+            if (status != errSecSuccess)
+                throw RuntimeException(IMPOSSIBLE_TO_RETRIEVE_KEY_ERROR)
 
-//        return retrieveFromKeychain(
-//            query = query
-//        ) ?: throw RuntimeException(IMPOSSIBLE_TO_RETRIEVE_KEY_ERROR)
+            result.value as SecKeyRef
+        }
     }
 
     /**

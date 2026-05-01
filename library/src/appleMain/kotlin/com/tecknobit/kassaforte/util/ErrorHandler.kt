@@ -4,6 +4,8 @@ package com.tecknobit.kassaforte.util
 
 import kotlinx.cinterop.*
 import platform.CoreFoundation.CFErrorCopyDescription
+import platform.CoreFoundation.CFErrorGetCode
+import platform.CoreFoundation.CFErrorGetDomain
 import platform.CoreFoundation.CFErrorRefVar
 
 /**
@@ -39,8 +41,12 @@ private fun handleError(
     errorVar: CFErrorRefVar,
 ) {
     val cfError = errorVar.value
-    val description = cfError?.let { error ->
-        CFErrorCopyDescription(error)?.toString()
-    } ?: "Unknown error"
-    throw Exception(description)
+    val domain = cfError?.let { CFErrorGetDomain(it)?.toString() }
+    val code = cfError?.let { CFErrorGetCode(it) }
+
+    val desc = cfError?.let {
+        CFErrorCopyDescription(it)?.toString()
+    }
+
+    throw Exception("KeyGen failed -> domain=$domain code=$code desc=$desc")
 }
