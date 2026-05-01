@@ -7,6 +7,16 @@ import kotlinx.cinterop.*
 import platform.CoreFoundation.*
 
 /**
+ * Method used to convert a string into a native [CFDataRef] object
+ *
+ * @return the converted string as nullable [CFDataRef]
+ */
+@Returner
+fun String?.toCFData(): CFDataRef? {
+    return this?.encodeToByteArray().toCFData()
+}
+
+/**
  * Method used to convert a byte array into a native [CFDataRef] object
  *
  * @return the converted byte array as nullable [CFDataRef]

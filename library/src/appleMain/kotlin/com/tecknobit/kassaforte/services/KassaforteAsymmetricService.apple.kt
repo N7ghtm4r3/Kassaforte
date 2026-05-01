@@ -15,59 +15,12 @@ import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.NONE
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.RSA_PKCS1
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.helpers.KassaforteAsymmetricServiceManager
-import com.tecknobit.kassaforte.util.convertToCFData
-import com.tecknobit.kassaforte.util.decode
-import com.tecknobit.kassaforte.util.encode
-import com.tecknobit.kassaforte.util.encodeForKeyOperation
-import com.tecknobit.kassaforte.util.errorScoped
-import com.tecknobit.kassaforte.util.kassaforteDictionary
-import com.tecknobit.kassaforte.util.toByteArray
-import com.tecknobit.kassaforte.util.toCFData
-import kotlinx.cinterop.CValuesRef
+import com.tecknobit.kassaforte.util.*
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.IntVar
-import kotlinx.cinterop.alloc
-import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
-import kotlinx.cinterop.value
-import platform.CoreFoundation.CFAllocatorGetDefault
-import platform.CoreFoundation.CFDictionaryAddValue
-import platform.CoreFoundation.CFDictionaryGetValue
-import platform.CoreFoundation.CFMutableDictionaryRef
-import platform.CoreFoundation.CFNumberCreate
-import platform.CoreFoundation.kCFBooleanFalse
-import platform.CoreFoundation.kCFBooleanTrue
-import platform.CoreFoundation.kCFNumberSInt32Type
+import platform.CoreFoundation.*
 import platform.Foundation.CFBridgingRetain
-import platform.Security.SecKeyAlgorithm
-import platform.Security.SecKeyCopyAttributes
-import platform.Security.SecKeyCreateDecryptedData
-import platform.Security.SecKeyCreateEncryptedData
-import platform.Security.SecKeyCreateRandomKey
-import platform.Security.SecKeyCreateSignature
-import platform.Security.SecKeyRef
-import platform.Security.SecKeyVerifySignature
-import platform.Security.kSecAttrAccessible
-import platform.Security.kSecAttrAccessibleWhenUnlocked
-import platform.Security.kSecAttrApplicationTag
-import platform.Security.kSecAttrCanDecrypt
-import platform.Security.kSecAttrCanDerive
-import platform.Security.kSecAttrCanEncrypt
-import platform.Security.kSecAttrCanSign
-import platform.Security.kSecAttrCanUnwrap
-import platform.Security.kSecAttrCanVerify
-import platform.Security.kSecAttrCanWrap
-import platform.Security.kSecAttrIsPermanent
-import platform.Security.kSecAttrKeyClass
-import platform.Security.kSecAttrKeyClassPrivate
-import platform.Security.kSecAttrKeyClassPublic
-import platform.Security.kSecAttrKeySizeInBits
-import platform.Security.kSecAttrKeyType
-import platform.Security.kSecAttrKeyTypeEC
-import platform.Security.kSecPrivateKeyAttrs
-import platform.Security.kSecPublicKeyAttrs
-import platform.posix.size_t
-import platform.posix.size_tVar
+import platform.Security.*
 
 /**
  * The `KassaforteAsymmetricService` class allows to generate and to use asymmetric keys and managing their persistence.
@@ -149,7 +102,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         purposes: KeyPurposes,
     ): Pair<CFMutableDictionaryRef, CFMutableDictionaryRef> {
         val privateKeyAttrs = keyAttrsDictionary(
-            tag = "$alias$PRIVATE_KEY_TAG",
+            tag = resolvePrivateKeyAlias(alias),
             usages = {
                 CFDictionaryAddValue(
                     theDict = this,
@@ -174,23 +127,22 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                 )
                 CFDictionaryAddValue(
                     theDict = this,
+                    key = kSecAttrCanWrap,
+                    value = if (purposes.canWrapKey)
+                        kCFBooleanTrue
+                    else
+                        kCFBooleanFalse
+                )
+                CFDictionaryAddValue(
+                    theDict = this,
                     key = kSecAttrAccessible,
                     value = kSecAttrAccessibleWhenUnlocked
                 )
-
-//                CFDictionaryAddValue(
-//                    theDict = this,
-//                    key = kSecAttrCanWrap,
-//                    value = if (purposes.canWrapKey)
-//                        kCFBooleanTrue
-//                    else
-//                        kCFBooleanFalse
-//                )
             }
         )
 
         val publicKeyAttrs = keyAttrsDictionary(
-            tag = "$alias$PUBLIC_KEY_TAG",
+            tag = resolvePublicKeyAlias(alias),
             usages = {
                 CFDictionaryAddValue(
                     theDict = this,
@@ -237,16 +189,6 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         val privateKeyAttrs = usages.first
         val publicKeyAttrs = usages.second
 
-        val cfSize = CFNumberCreate(
-            allocator = CFAllocatorGetDefault(),
-            theType = kCFNumberSInt32Type,
-            valuePtr = memScoped {
-                val v = alloc<IntVar>()
-                v.value = keyGenSpec.keySize.bitCount
-                v.ptr
-            }
-        )
-
         return kassaforteDictionary(
             capacity = 4,
             addEntries = {
@@ -258,7 +200,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                 CFDictionaryAddValue(
                     theDict = this,
                     key = kSecAttrKeySizeInBits,
-                    value = cfSize
+                    value = CFBridgingRetain(keyGenSpec.keySize.bitCount)
                 )
                 CFDictionaryAddValue(
                     theDict = this,
@@ -287,8 +229,6 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         tag: String,
         usages: CFMutableDictionaryRef.() -> Unit,
     ): CFMutableDictionaryRef {
-        val tagData = tag.encodeToByteArray().toCFData()
-
         return kassaforteDictionary(
             capacity = 6,
             addEntries = {
@@ -300,7 +240,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                 CFDictionaryAddValue(
                     theDict = this,
                     key = kSecAttrApplicationTag,
-                    value = tagData
+                    value = tag.toCFData()
                 )
                 usages()
             }

@@ -3,19 +3,15 @@
 package com.tecknobit.kassaforte.services.helpers
 
 import com.tecknobit.equinoxcore.annotations.Assembler
+import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.services.KassaforteAsymmetricService.PRIVATE_KEY_TAG
 import com.tecknobit.kassaforte.services.KassaforteAsymmetricService.PUBLIC_KEY_TAG
 import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.IMPOSSIBLE_TO_RETRIEVE_KEY_ERROR
 import com.tecknobit.kassaforte.util.deleteFromKeychain
 import com.tecknobit.kassaforte.util.kassaforteDictionary
-import com.tecknobit.kassaforte.util.retrieveFromKeychain
-import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.alloc
-import kotlinx.cinterop.memScoped
-import kotlinx.cinterop.ptr
-import kotlinx.cinterop.value
+import com.tecknobit.kassaforte.util.toCFData
+import kotlinx.cinterop.*
 import platform.CoreFoundation.*
-import platform.Foundation.CFBridgingRetain
 import platform.Security.*
 
 /**
@@ -39,8 +35,7 @@ internal class KassaforteAsymmetricServiceManager : KassaforteServiceImplManager
         alias: String,
     ): Boolean {
         val query = searchingDictionary(
-            alias = alias,
-            keyClass = kSecAttrKeyClassPrivate
+            alias = alias
         )
 
         return memScoped {
@@ -68,11 +63,7 @@ internal class KassaforteAsymmetricServiceManager : KassaforteServiceImplManager
     ): SecKeyRef {
         val query = searchingDictionary(
             alias = alias,
-            keyClass = when {
-                alias.endsWith(PRIVATE_KEY_TAG) -> kSecAttrKeyClassPrivate
-                alias.endsWith(PUBLIC_KEY_TAG) -> kSecAttrKeyClassPublic
-                else -> throw RuntimeException(IMPOSSIBLE_TO_RETRIEVE_KEY_ERROR)
-            }
+            keyClass = alias.resolveKeyClassByAlias()
         )
 
         return memScoped {
@@ -84,6 +75,7 @@ internal class KassaforteAsymmetricServiceManager : KassaforteServiceImplManager
             if (status != errSecSuccess)
                 throw RuntimeException(IMPOSSIBLE_TO_RETRIEVE_KEY_ERROR)
 
+            @Suppress("UNCHECKED_CAST")
             result.value as SecKeyRef
         }
     }
@@ -99,7 +91,7 @@ internal class KassaforteAsymmetricServiceManager : KassaforteServiceImplManager
     @Assembler
     private fun searchingDictionary(
         alias: String,
-        keyClass: CFStringRef?,
+        keyClass: CFStringRef? = null,
     ): CFMutableDictionaryRef {
         return kassaforteDictionary(
             capacity = 3,
@@ -107,7 +99,7 @@ internal class KassaforteAsymmetricServiceManager : KassaforteServiceImplManager
                 CFDictionaryAddValue(
                     theDict = this,
                     key = kSecAttrApplicationTag,
-                    value = CFBridgingRetain(alias)
+                    value = alias.toCFData()
                 )
                 CFDictionaryAddValue(
                     theDict = this,
@@ -121,9 +113,16 @@ internal class KassaforteAsymmetricServiceManager : KassaforteServiceImplManager
                 )
                 CFDictionaryAddValue(
                     theDict = this,
-                    key = kSecAttrKeyClass,
-                    value = keyClass
+                    key = kSecClass,
+                    value = kSecClassKey
                 )
+                keyClass?.let {
+                    CFDictionaryAddValue(
+                        theDict = this,
+                        key = kSecAttrKeyClass,
+                        value = keyClass
+                    )
+                }
             }
         )
     }
@@ -137,11 +136,29 @@ internal class KassaforteAsymmetricServiceManager : KassaforteServiceImplManager
         alias: String,
     ) {
         val query = deletingDictionary(
-            alias = alias
+            alias = alias,
+            keyClass = alias.resolveKeyClassByAlias()
         )
+
         deleteFromKeychain(
             query = query
         )
+    }
+
+    /**
+     * Method used to resolve the class type of the requested key using related alias
+     *
+     * @return The class type of the key as nullable [CFStringRef]
+     *
+     * @since Revision Three
+     */
+    @Returner
+    private fun String.resolveKeyClassByAlias(): CFStringRef? {
+        return when {
+            endsWith(PRIVATE_KEY_TAG) -> kSecAttrKeyClassPrivate
+            endsWith(PUBLIC_KEY_TAG) -> kSecAttrKeyClassPublic
+            else -> throw RuntimeException(IMPOSSIBLE_TO_RETRIEVE_KEY_ERROR)
+        }
     }
 
     /**
@@ -154,14 +171,26 @@ internal class KassaforteAsymmetricServiceManager : KassaforteServiceImplManager
     @Assembler
     private fun deletingDictionary(
         alias: String,
+        keyClass: CFStringRef?,
     ): CFMutableDictionaryRef {
+
         return kassaforteDictionary(
-            capacity = 1,
+            capacity = 2,
             addEntries = {
                 CFDictionaryAddValue(
                     theDict = this,
+                    key = kSecClass,
+                    value = kSecClassKey
+                )
+                CFDictionaryAddValue(
+                    theDict = this,
+                    key = kSecAttrKeyClass,
+                    value = keyClass
+                )
+                CFDictionaryAddValue(
+                    theDict = this,
                     key = kSecAttrApplicationTag,
-                    value = CFBridgingRetain(alias)
+                    value = alias.toCFData()
                 )
             }
         )
