@@ -151,6 +151,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         val rawCryptoKeyPair: RawCryptoKeyPair = serviceManager.retrieveKeyData(
             alias = alias
         )
+
         val encryptedData = serviceManager.useKey(
             rawKey = rawCryptoKeyPair.publicKey,
             rawKeyData = rawCryptoKeyPair,
@@ -165,6 +166,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                 encode(encryptedData.toByteArray())
             }
         )
+
         return encryptedData
     }
 
@@ -187,6 +189,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         val rawCryptoKeyPair: RawCryptoKeyPair = serviceManager.retrieveKeyData(
             alias = alias
         )
+
         val decryptedData = serviceManager.useKey(
             rawKey = rawCryptoKeyPair.privateKey,
             rawKeyData = rawCryptoKeyPair,
@@ -201,6 +204,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                 decryptedData.asPlainText()
             }
         )
+
         return decryptedData
     }
 
@@ -223,6 +227,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         val rawCryptoKeyPair: RawCryptoKeyPair = serviceManager.retrieveKeyData(
             alias = alias
         )
+
         val signedMessage = serviceManager.useKey(
             rawKey = rawCryptoKeyPair.privateKey,
             rawKeyData = rawCryptoKeyPair,
@@ -238,6 +243,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                 encode(signature)
             }
         )
+
         return signedMessage
     }
 
@@ -262,6 +268,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         val rawCryptoKeyPair: RawCryptoKeyPair = serviceManager.retrieveKeyData(
             alias = alias
         )
+
         val result = serviceManager.useKey(
             rawKey = rawCryptoKeyPair.publicKey,
             rawKeyData = rawCryptoKeyPair,
@@ -278,6 +285,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                 )
             }
         )
+
         return result
     }
 
@@ -293,6 +301,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         digest: Digest,
     ): EncryptionParams {
         val algorithm = algorithm.name
+
         return if (algorithm.contains(RSASSA_PKCS1_v1_5.value))
             rsaPKCS1Params()
         else {
@@ -305,23 +314,33 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     //TODO: TO DOCU SINCE
     actual suspend fun wrap(
         kekAlias: String,
-        kekAlgorithm: Algorithm,
         padding: EncryptionPadding,
         digest: Digest,
         dekBytes: ByteArray,
     ): String {
-        return ""
+        return encrypt(
+            alias = kekAlias,
+            padding = padding,
+            digest = digest,
+            data = encode(dekBytes)
+        )
     }
 
     //TODO: TO DOCU SINCE
     actual suspend fun unwrap(
         kekAlias: String,
-        kekAlgorithm: Algorithm,
         padding: EncryptionPadding,
         digest: Digest,
         wrappedDek: String,
     ): ByteArray {
-        TODO("Not yet implemented")
+        val unwrappedDek = decrypt(
+            alias = kekAlias,
+            padding = padding,
+            digest = digest,
+            data = wrappedDek
+        )
+
+        return decode(unwrappedDek)
     }
 
     /**

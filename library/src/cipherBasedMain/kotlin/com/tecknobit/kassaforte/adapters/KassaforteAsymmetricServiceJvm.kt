@@ -168,7 +168,6 @@ object KassaforteAsymmetricServiceJvm {
     ) = runBlocking {
         KassaforteAsymmetricService.wrap(
             kekAlias = kekAlias,
-            kekAlgorithm = kekAlgorithm,
             padding = padding,
             digest = digest,
             dekBytes = dekBytes
@@ -187,7 +186,6 @@ object KassaforteAsymmetricServiceJvm {
     ) = runBlocking {
         KassaforteAsymmetricService.unwrap(
             kekAlias = kekAlias,
-            kekAlgorithm = kekAlgorithm,
             padding = padding,
             digest = digest,
             wrappedDek = wrappedDek

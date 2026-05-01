@@ -10,12 +10,7 @@ import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.RSA_OAEP
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.RSA_PKCS1
 import com.tecknobit.kassaforte.key.usages.KeyOperation
-import com.tecknobit.kassaforte.key.usages.KeyOperation.DECRYPT
-import com.tecknobit.kassaforte.key.usages.KeyOperation.ENCRYPT
-import com.tecknobit.kassaforte.key.usages.KeyOperation.SIGN
-import com.tecknobit.kassaforte.key.usages.KeyOperation.UNWRAP
-import com.tecknobit.kassaforte.key.usages.KeyOperation.VERIFY
-import com.tecknobit.kassaforte.key.usages.KeyOperation.WRAP
+import com.tecknobit.kassaforte.key.usages.KeyOperation.*
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.impls.KassaforteAsymmetricServiceImpl
 import com.tecknobit.kassaforte.util.checkIfIsSupportedCipherAlgorithm
@@ -25,11 +20,7 @@ import com.tecknobit.kassaforte.util.encodeForKeyOperation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.security.Key
-import java.security.KeyPairGenerator
-import java.security.PrivateKey
-import java.security.PublicKey
-import java.security.Signature
+import java.security.*
 import javax.crypto.Cipher
 
 /**
@@ -268,7 +259,6 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     //TODO: TO DOCU SINCE
     actual suspend fun wrap(
         kekAlias: String,
-        kekAlgorithm: Algorithm,
         padding: EncryptionPadding,
         digest: Digest,
         dekBytes: ByteArray,
@@ -285,7 +275,6 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     //TODO: TO DOCU SINCE
     actual suspend fun unwrap(
         kekAlias: String,
-        kekAlgorithm: Algorithm,
         padding: EncryptionPadding,
         digest: Digest,
         wrappedDek: String,

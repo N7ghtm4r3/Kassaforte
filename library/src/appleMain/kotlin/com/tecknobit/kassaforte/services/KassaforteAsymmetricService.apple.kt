@@ -462,7 +462,6 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     //TODO: TO DOCU SINCE
     actual suspend fun wrap(
         kekAlias: String,
-        kekAlgorithm: Algorithm,
         padding: EncryptionPadding,
         digest: Digest,
         dekBytes: ByteArray,
@@ -478,7 +477,6 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     //TODO: TO DOCU SINCE
     actual suspend fun unwrap(
         kekAlias: String,
-        kekAlgorithm: Algorithm,
         padding: EncryptionPadding,
         digest: Digest,
         wrappedDek: String,
