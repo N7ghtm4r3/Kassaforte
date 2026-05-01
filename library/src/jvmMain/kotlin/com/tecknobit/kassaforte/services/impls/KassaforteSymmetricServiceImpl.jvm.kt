@@ -67,7 +67,7 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() : Kass
 
         val algorithmValue = algorithm.value
 
-        val keyGenerator = KeyGenerator.getInstance(algorithm.value)
+        val keyGenerator = KeyGenerator.getInstance(algorithmValue)
         keyGenerator.init(keyGenSpec.keySize.bitCount)
         val key = keyGenerator.generateKey()
 

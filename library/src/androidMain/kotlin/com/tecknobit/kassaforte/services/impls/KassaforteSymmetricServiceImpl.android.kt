@@ -8,8 +8,10 @@ import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyOperation
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.KassaforteKeysService
+import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.KEY_CANNOT_PERFORM_OPERATION_ERROR
 import com.tecknobit.kassaforte.services.helpers.KassaforteServiceImplManager
 import com.tecknobit.kassaforte.services.helpers.KassaforteServiceImplManager.Companion.ANDROID_KEYSTORE
+import com.tecknobit.kassaforte.services.helpers.canPerform
 import java.security.Key
 import javax.crypto.KeyGenerator
 
@@ -55,15 +57,19 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() : Kass
             alias = alias,
             keyGenSpec = keyGenSpec,
             purposes = purposes
-        ).run {
-            val blockMode = keyGenSpec.blockMode
-            if (blockMode != BlockMode.NONE)
-                setBlockModes(blockMode.value)
-            setEncryptionPaddings(keyGenSpec.encryptionPadding.value)
-            build()
+        )
+
+        if (!purposes.canWrapKey) {
+            genSpec.apply {
+                val blockMode = keyGenSpec.blockMode
+                if (blockMode != BlockMode.NONE)
+                    setBlockModes(blockMode.value)
+
+                setEncryptionPaddings(keyGenSpec.encryptionPadding.value)
+            }
         }
 
-        keyGenerator.init(genSpec)
+        keyGenerator.init(genSpec.build())
         keyGenerator.generateKey()
     }
 
@@ -94,9 +100,13 @@ internal actual class KassaforteSymmetricServiceImpl actual constructor() : Kass
         alias: String,
         keyOperation: KeyOperation,
     ): Key {
-        return serviceImplManager.retrieveKey(
+        val key = serviceImplManager.retrieveKey(
             alias = alias
         )
+        if (!key.canPerform(keyOperation))
+            throw RuntimeException(KEY_CANNOT_PERFORM_OPERATION_ERROR.format(keyOperation))
+
+        return key
     }
 
     /**
