@@ -202,21 +202,15 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     }
 
     /**
-     * Method used to perform wrapping of a `Data Encryption Key (DEK)` using a specified `Key Encryption Key (KEK)`.
-     *
-     * In the case where the device does not support natively the wrap and unwrap flow, for example on `Android`, will
-     * be used a fallback mechanism via [fallbackWrap] method to perform the wrapping operation creating an
-     * `Enveloped Encryption` workflow
+     * Method to perform an `Envelopment Encryption` for wrapping a `DEK` material
      *
      * @param kekAlias The alias which identify the `KEK` key to use
-     * @param kekAlgorithm The algorithm associated to the `KEK` key used during the wrapping
      * @param dekBytes Arbitrary bytes representing the `DEK` material to wrap
      *
      * @return the [dekBytes] wrapped using the specified KEK key as `Base64` [String]
      *
      * @since Revision Three
      */
-    // TODO: TO REDOCU
     actual suspend fun wrap(
         kekAlias: String,
         kekAlgorithm: Algorithm,
@@ -232,23 +226,16 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     }
 
     /**
-     * Method used to perform unwrapping of a `Data Encryption Key (DEK)` using a specified `Key Encryption Key (KEK)`.
-     *
-     *
-     * In the case where the device does not support natively the wrap and unwrap flow, for example on `Android`, will
-     * be used a fallback mechanism via [fallbackUnwrap] method to perform the unwrapping operation creating an
-     * `Enveloped Encryption` workflow.
+     * Method to perform an `Envelopment Decryption` for unwrapping a `DEK` material previously
+     * wrapped
      *
      * @param kekAlias The alias which identify the `KEK` key to use
-     * @param kekAlgorithm The algorithm associated to the `KEK` key used during the wrapping to correctly perform the unwrapping
-     * @param wrappedDek The wrapped `DEK` material to unwrap
-     * @param dekAlgorithm The algorithm that will be used to build the unwrapped key
+     * @param wrappedDek The wrapped material, `Base64` encoded, to unwrap
      *
-     * @return the bytes of the unwrapped key as [ByteArray]
+     * @return the material unwrapped using the specified KEK key as [ByteArray]
      *
      * @since Revision Three
      */
-    // TODO: TO REDOCU
     actual suspend fun unwrap(
         kekAlias: String,
         kekAlgorithm: Algorithm,
@@ -266,7 +253,19 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         return decode(unwrappedDek)
     }
 
-    // TODO: TO DOCU SINCE
+    /**
+     * Implementation method used to encrypt data with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param keyOperation [KeyOperation.ENCRYPT] or [KeyOperation.WRAP]
+     * @param blockMode The block mode to use to encrypt data
+     * @param padding The padding to apply to encrypt data
+     * @param data The data to encrypt
+     *
+     * @return the encrypted data as [String]
+     *
+     * @since Revision Three
+     */
     @Implementation
     private fun encryptImpl(
         alias: String,
@@ -293,7 +292,17 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         return encode(encryptedData)
     }
 
-    // TODO: TO DOCU SINCE
+    /**
+     * Implementation method used to decrypt encrypted data with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param keyOperation [KeyOperation.DECRYPT] or [KeyOperation.UNWRAP]
+     * @param blockMode The block mode to use to decrypt data
+     * @param padding The padding to apply to decrypt data
+     * @param data The data to decrypt
+     *
+     * @return the decrypted data as [String]
+     */
     @Implementation
     private fun decryptImpl(
         alias: String,

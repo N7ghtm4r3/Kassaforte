@@ -25,7 +25,15 @@ import java.security.KeyFactory
 import javax.crypto.SecretKey
 import javax.crypto.SecretKeyFactory
 
-// TODO: TO DOCU SINCE
+/**
+ * Method used to check whether the specified key can perform the indicated [keyOperation]
+ *
+ * @param keyOperation The operation that the key have to perform
+ *
+ * @return Whether the key can perform the specified [keyOperation] as [Boolean]
+ *
+ * @since Revision Three
+ */
 fun Key.canPerform(
     keyOperation: KeyOperation,
 ): Boolean {
@@ -41,6 +49,15 @@ fun Key.canPerform(
     )
 }
 
+/**
+ * Method used to check whether the specified key can perform the indicated [keyOperation]
+ *
+ * @param keyOperation The operation that the key have to perform
+ *
+ * @return Whether the key can perform the specified [keyOperation] as [Boolean]
+ *
+ * @since Revision Three
+ */
 private fun SecretKey.canPerform(
     keyOperation: KeyOperation,
 ): Boolean {
@@ -53,6 +70,16 @@ private fun SecretKey.canPerform(
     )
 }
 
+/**
+ * This method check whether the purposes associated with the key allows to perform the [keyOperation]
+ *
+ * @param purposes The purposes associated with the key
+ * @param keyOperation The operation that the key have to perform
+ *
+ * @return Whether the key can perform the specified [keyOperation] as [Boolean]
+ *
+ * @since Revision Three
+ */
 @Returner
 private fun checkResult(
     purposes: Int,

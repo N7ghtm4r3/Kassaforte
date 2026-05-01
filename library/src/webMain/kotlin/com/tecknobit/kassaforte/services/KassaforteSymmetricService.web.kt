@@ -16,8 +16,6 @@ import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.NONE
 import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
-import com.tecknobit.kassaforte.services.KassaforteSymmetricService.decrypt
-import com.tecknobit.kassaforte.services.KassaforteSymmetricService.encrypt
 import com.tecknobit.kassaforte.services.KassaforteSymmetricService.generateKey
 import com.tecknobit.kassaforte.services.helpers.KassaforteServiceImplManager.Companion.WRAP_KEY_USAGE
 import com.tecknobit.kassaforte.services.helpers.KassaforteSymmetricServiceManager
@@ -350,13 +348,9 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     }
 
     /**
-     * Method used to perform wrapping of a `Data Encryption Key (DEK)` using a specified `Key Encryption Key (KEK)`.
-     *
-     * For an implementation more portable and compatible with the cross-platform philosophy this method perform an
-     * Enveloped encryption via [encrypt] API, producing an encoded [String] as output.
+     * Method to perform an `Envelopment Encryption` for wrapping a `DEK` material
      *
      * @param kekAlias The alias which identify the `KEK` key to use
-     * @param kekAlgorithm The algorithm associated to the `KEK` key used during the wrapping
      * @param dekBytes Arbitrary bytes representing the `DEK` material to wrap
      *
      * @return the [dekBytes] wrapped using the specified KEK key as `Base64` [String]
@@ -382,17 +376,13 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     }
 
     /**
-     * Method used to perform unwrapping of a `Data Encryption Key (DEK)` using a specified `Key Encryption Key (KEK)`.
-     *
-     * For an implementation more portable and compatible with the cross-platform philosophy this method perform an
-     * Enveloped Encryption via [decrypt] API, producing a raw bytes as output.
+     * Method to perform an `Envelopment Decryption` for unwrapping a `DEK` material previously
+     * wrapped
      *
      * @param kekAlias The alias which identify the `KEK` key to use
-     * @param kekAlgorithm The algorithm associated to the `KEK` key used during the wrapping to correctly perform the unwrapping
-     * @param wrappedDek The wrapped `DEK` material to unwrap
-     * @param dekAlgorithm The algorithm that will be used to build the unwrapped key
+     * @param wrappedDek The wrapped material, `Base64` encoded, to unwrap
      *
-     * @return the bytes of the unwrapped key as [ByteArray]
+     * @return the material unwrapped using the specified KEK key as [ByteArray]
      *
      * @since Revision Three
      */

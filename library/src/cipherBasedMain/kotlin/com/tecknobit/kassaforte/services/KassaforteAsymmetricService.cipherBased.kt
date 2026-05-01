@@ -256,7 +256,18 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         return "${digest.name}with$algorithm"
     }
 
-    //TODO: TO DOCU SINCE
+    /**
+     * Method to perform an `Envelopment Encryption` for wrapping a `DEK` material
+     *
+     * @param kekAlias The alias which identify the `KEK` key to use
+     * @param padding The padding to apply to wrap the material
+     * @param digest The digest to apply to wrap material
+     * @param dekBytes Arbitrary bytes representing the `DEK` material to wrap
+     *
+     * @return the [dekBytes] wrapped using the specified KEK key as `Base64` [String]
+     *
+     * @since Revision Three
+     */
     actual suspend fun wrap(
         kekAlias: String,
         padding: EncryptionPadding,
@@ -272,7 +283,19 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         )
     }
 
-    //TODO: TO DOCU SINCE
+    /**
+     * Method to perform an `Envelopment Decryption` for unwrapping a `DEK` material previously
+     * wrapped
+     *
+     * @param kekAlias The alias which identify the `KEK` key to use
+     * @param padding The padding to apply to unwrap the material
+     * @param digest The digest to apply to unwrap the material
+     * @param wrappedDek The wrapped material, `Base64` encoded, to unwrap
+     *
+     * @return the material unwrapped using the specified KEK key as [ByteArray]
+     *
+     * @since Revision Three
+     */
     actual suspend fun unwrap(
         kekAlias: String,
         padding: EncryptionPadding,
@@ -290,7 +313,19 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         return decode(unwrappedDek)
     }
 
-    // TODO: TO DOCU SINCE
+    /**
+     * Implementation method used to encrypt data with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param keyOperation [KeyOperation.ENCRYPT] or [KeyOperation.WRAP]
+     * @param padding The padding to apply to encrypt data
+     * @param digest The digest to apply to encrypt data
+     * @param data The data to encrypt
+     *
+     * @return the encrypted data as [String]
+     *
+     * @since Revision Three
+     */
     @Implementation
     private fun encryptImpl(
         alias: String,
@@ -315,7 +350,19 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         return encode(cipherText)
     }
 
-    // TODO: TO DOCU SINCE
+    /**
+     * Implementation method used to decrypt the encrypted data with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param keyOperation [KeyOperation.DECRYPT] or [KeyOperation.UNWRAP]
+     * @param padding The padding to apply to decrypt data
+     * @param digest The digest to apply to decrypt data
+     * @param data The data to decrypt
+     *
+     * @return the decrypted data as [String
+     *
+     * @since Revision Three
+     */
     @Implementation
     private fun decryptImpl(
         alias: String,

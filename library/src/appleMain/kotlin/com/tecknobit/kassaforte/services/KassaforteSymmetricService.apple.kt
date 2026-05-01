@@ -500,10 +500,9 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     }
 
     /**
-     * Method used to perform wrapping of a `Data Encryption Key (DEK)` using a specified `Key Encryption Key (KEK)`
+     * Method to perform an `Envelopment Encryption` for wrapping a `DEK` material
      *
      * @param kekAlias The alias which identify the `KEK` key to use
-     * @param kekAlgorithm The algorithm associated to the `KEK` key used during the wrapping
      * @param dekBytes Arbitrary bytes representing the `DEK` material to wrap
      *
      * @return the [dekBytes] wrapped using the specified KEK key as `Base64` [String]
@@ -545,14 +544,13 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     }
 
     /**
-     * Method used to perform unwrapping of a `Data Encryption Key (DEK)` using a specified `Key Encryption Key (KEK)`
+     * Method to perform an `Envelopment Decryption` for unwrapping a `DEK` material previously
+     * wrapped
      *
      * @param kekAlias The alias which identify the `KEK` key to use
-     * @param kekAlgorithm The algorithm associated to the `KEK` key used during the wrapping to correctly perform the unwrapping
-     * @param wrappedDek The wrapped `DEK` material to unwrap
-     * @param dekAlgorithm The algorithm that will be used to build the unwrapped key
+     * @param wrappedDek The wrapped material, `Base64` encoded, to unwrap
      *
-     * @return the bytes of the unwrapped key as [ByteArray]
+     * @return the material unwrapped using the specified KEK key as [ByteArray]
      *
      * @since Revision Three
      */
