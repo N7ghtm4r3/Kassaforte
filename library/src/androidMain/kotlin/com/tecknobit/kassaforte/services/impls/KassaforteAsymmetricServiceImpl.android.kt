@@ -1,8 +1,13 @@
 package com.tecknobit.kassaforte.services.impls
 
+import android.os.Build
 import android.os.Build.VERSION.SDK_INT
 import android.os.Build.VERSION_CODES.P
 import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyInfo
+import android.security.keystore.KeyProperties
+import android.security.keystore.KeyProperties.*
+import android.security.keystore.KeyProperties.PURPOSE_ENCRYPT
 import android.security.keystore.KeyProperties.SIGNATURE_PADDING_RSA_PKCS1
 import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.equinoxcore.annotations.Returner
@@ -17,13 +22,16 @@ import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.RSA_OAEP
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.RSA_PKCS1
 import com.tecknobit.kassaforte.key.usages.KeyOperation
+import com.tecknobit.kassaforte.key.usages.KeyOperation.*
 import com.tecknobit.kassaforte.key.usages.KeyOperation.Companion.checkIfRequiresPublicKey
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.ALIAS_ALREADY_TAKEN_ERROR
+import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.KEY_CANNOT_PERFORM_OPERATION_ERROR
 import com.tecknobit.kassaforte.services.helpers.KassaforteServiceImplManager
 import com.tecknobit.kassaforte.services.helpers.KassaforteServiceImplManager.Companion.ANDROID_KEYSTORE
 import com.tecknobit.kassaforte.services.helpers.isStrongBoxAvailable
 import java.security.Key
+import java.security.KeyFactory
 import java.security.KeyPairGenerator
 import java.security.PublicKey
 
@@ -59,6 +67,7 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
     ) {
         if (aliasExists(alias))
             throw IllegalAccessException(ALIAS_ALREADY_TAKEN_ERROR)
+
         val keyPairGenerator = KeyPairGenerator.getInstance(
             algorithm.value,
             ANDROID_KEYSTORE
@@ -75,6 +84,7 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
                 keyPurposes = purposes
             )
         }
+
         keyPairGenerator.initialize(genSpec)
         keyPairGenerator.genKeyPair()
     }
@@ -159,6 +169,8 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
      * @param keyOperation The operation for what the key is being getting
      *
      * @return the specified key as [Key]
+     *
+     * @throws RuntimeException When the operation requested cannot be formed with the specified key
      */
     actual override fun getKey(
         alias: String,
@@ -168,6 +180,8 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
         val storedKey = serviceImplManager.retrieveKey(
             alias = alias
         )
+        if (!canPerform(storedKey, keyOperation))
+            throw RuntimeException(KEY_CANNOT_PERFORM_OPERATION_ERROR.format(keyOperation))
 
         return if (requiresPublicKey) {
             retrievePublicKey(
@@ -177,6 +191,33 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
             storedKey
     }
 
+    // TODO: TO DOCU SINCE
+    private fun canPerform(
+        key: Key,
+        keyOperation: KeyOperation
+    ): Boolean {
+        val keyFactory = KeyFactory.getInstance(key.algorithm)
+        val keyInfo = keyFactory.getKeySpec(key, KeyInfo::class.java)
+        val purposes = keyInfo.purposes
+
+        return when(keyOperation) {
+            ENCRYPT -> purposes and PURPOSE_ENCRYPT != 0
+            DECRYPT -> purposes and PURPOSE_DECRYPT != 0
+            SIGN -> purposes and PURPOSE_SIGN != 0
+            VERIFY -> purposes and PURPOSE_VERIFY != 0
+            AGREE -> if (SDK_INT >= Build.VERSION_CODES.S)
+                purposes and PURPOSE_AGREE_KEY != 0
+            else
+                false
+
+            WRAP, UNWRAP -> if (SDK_INT >= P)
+                purposes and PURPOSE_WRAP_KEY != 0
+            else
+                false
+
+            OBTAIN_KEY -> true
+        }
+    }
 
     /**
      * Method used to retrieve a public from the specified alias
