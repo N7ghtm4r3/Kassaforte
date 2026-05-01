@@ -123,7 +123,6 @@ expect object KassaforteSymmetricService: KassaforteKeysService<SymmetricKeyGenS
      */
     suspend fun wrap(
         kekAlias: String,
-        kekAlgorithm: Algorithm,
         dekBytes: ByteArray,
     ): String
 
@@ -140,9 +139,7 @@ expect object KassaforteSymmetricService: KassaforteKeysService<SymmetricKeyGenS
      */
     suspend fun unwrap(
         kekAlias: String,
-        kekAlgorithm: Algorithm,
         wrappedDek: String,
-        dekAlgorithm: Algorithm,
     ): ByteArray
 
     /**

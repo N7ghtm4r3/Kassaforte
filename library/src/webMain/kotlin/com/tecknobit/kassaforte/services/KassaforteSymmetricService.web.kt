@@ -359,7 +359,6 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
      */
     actual suspend fun wrap(
         kekAlias: String,
-        kekAlgorithm: Algorithm,
         dekBytes: ByteArray,
     ): String {
         if (!canPerformWrapping(kekAlias))
@@ -388,9 +387,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
      */
     actual suspend fun unwrap(
         kekAlias: String,
-        kekAlgorithm: Algorithm,
         wrappedDek: String,
-        dekAlgorithm: Algorithm,
     ): ByteArray {
         if (!canPerformWrapping(kekAlias))
             throw IllegalStateException("Cannot perform unwrap operation with this key")

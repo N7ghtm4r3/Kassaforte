@@ -213,7 +213,6 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
      */
     actual suspend fun wrap(
         kekAlias: String,
-        kekAlgorithm: Algorithm,
         dekBytes: ByteArray,
     ): String {
         return encryptImpl(
@@ -238,9 +237,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
      */
     actual suspend fun unwrap(
         kekAlias: String,
-        kekAlgorithm: Algorithm,
         wrappedDek: String,
-        dekAlgorithm: Algorithm,
     ): ByteArray {
         val unwrappedDek = decryptImpl(
             alias = kekAlias,

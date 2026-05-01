@@ -166,7 +166,6 @@ object KassaforteSymmetricServiceJvm {
     ) = runBlocking {
         KassaforteSymmetricService.wrap(
             kekAlias = kekAlias,
-            kekAlgorithm = kekAlgorithm,
             dekBytes = dekBytes
         )
     }
@@ -193,9 +192,7 @@ object KassaforteSymmetricServiceJvm {
     ) = runBlocking {
         KassaforteSymmetricService.unwrap(
             kekAlias = kekAlias,
-            kekAlgorithm = kekAlgorithm,
             wrappedDek = wrappedDek,
-            dekAlgorithm = dekAlgorithm,
         )
     }
 
