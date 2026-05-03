@@ -6,6 +6,7 @@ import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.key.genspec.Digest
 import com.tecknobit.kassaforte.key.genspec.Digest.*
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
+import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.NONE
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.RSA_OAEP
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.RSA_PKCS1
 import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.INVALID_ENCRYPTION_PADDING
@@ -120,7 +121,10 @@ enum class SecKeyAlgorithmType(
      *
      * @since Revision Two
      */
-    ecdsaSignatureMessageX962SHA512(kSecKeyAlgorithmECDSASignatureMessageX962SHA512);
+    ecdsaSignatureMessageX962SHA512(kSecKeyAlgorithmECDSASignatureMessageX962SHA512),
+
+    // TODO: TO DOCU SINCE
+    ecdhKeyExchangeStandard(kSecKeyAlgorithmECDHKeyExchangeStandard);
 
     companion object {
 
@@ -160,20 +164,18 @@ enum class SecKeyAlgorithmType(
                     }
                 }
 
-                EncryptionPadding.NONE -> {
+                NONE -> {
                     when (digest) {
                         SHA1 -> ecdsaSignatureMessageX962SHA1
                         SHA224 -> ecdsaSignatureMessageX962SHA224
                         SHA256 -> ecdsaSignatureMessageX962SHA256
                         SHA384 -> ecdsaSignatureMessageX962SHA384
                         SHA512 -> ecdsaSignatureMessageX962SHA512
-                        else -> throw IllegalArgumentException("Invalid digest type")
+                        else -> ecdhKeyExchangeStandard
                     }
                 }
 
-                else -> {
-                    throw IllegalArgumentException(INVALID_ENCRYPTION_PADDING)
-                }
+                else -> throw IllegalArgumentException(INVALID_ENCRYPTION_PADDING)
             }
         }
 

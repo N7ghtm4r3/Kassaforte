@@ -13,8 +13,7 @@ import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.RSA_PKCS1
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.helpers.KassaforteAsymmetricServiceManager
 import com.tecknobit.kassaforte.util.*
-import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.ptr
+import kotlinx.cinterop.*
 import platform.CoreFoundation.*
 import platform.Foundation.CFBridgingRetain
 import platform.Security.*
@@ -295,6 +294,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                         error = errorVar.ptr
                     )
                 }
+
                 encryptedData.toByteArray()
             }
         )
@@ -334,6 +334,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                         error = errorVar.ptr
                     )
                 }
+
                 decryptedData.toByteArray()
             }
         )
@@ -371,6 +372,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                         error = error.ptr
                     )
                 }
+
                 signature.toByteArray()
             }
         )
@@ -415,45 +417,6 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         )
 
         return result
-    }
-
-    /**
-     * Method used to work and to use a key (private or public) to perform encryption or decryption of the data
-     *
-     * @param alias The alias which identify the key to use
-     * @param padding The padding to apply to ciphering data
-     * @param digest The digest to apply to ciphering data
-     * @param usage The ciphering routine to perform
-     *
-     * @return the result from [usage] as [T]
-     *
-     * @param T The type of the result obtained using the key
-     */
-    private inline fun <reified T> useKey(
-        alias: String,
-        padding: EncryptionPadding?,
-        digest: Digest?,
-        usage: (SecKeyRef, SecKeyAlgorithm) -> T,
-    ): T {
-        val key = serviceManager.retrieveKey(
-            alias = alias
-        )
-        val attributes = SecKeyCopyAttributes(
-            key = key
-        )
-        val keyType = CFDictionaryGetValue(
-            theDict = attributes,
-            key = kSecAttrKeyType
-        )
-        val encryptionPadding = if (keyType == kSecAttrKeyTypeEC)
-            NONE
-        else
-            padding
-        val algorithmType = encryptionPadding.toSecKeyAlgorithm(
-            digest = digest
-        ).algorithm!!
-
-        return usage(key, algorithmType)
     }
 
     /**
@@ -518,7 +481,114 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         publicKeyLength: KeySize,
         secretLength: KeySize,
     ): String {
-        TODO("Not yet implemented")
+        val publicKey = resolvePublicKey(
+            peerPublicKey = peerPublicKey,
+            keySize = publicKeyLength
+        )
+
+        val secret = useKey(
+            alias = resolvePrivateKeyAlias(
+                alias = alias
+            ),
+            padding = null,
+            digest = null,
+            usage = { privateKey, _ ->
+                errorScoped { errorVar ->
+                    SecKeyCopyKeyExchangeResult(
+                        privateKey = privateKey,
+                        algorithm = kSecKeyAlgorithmECDHKeyExchangeStandard,
+                        publicKey = publicKey,
+                        parameters = null,
+                        error = errorVar.ptr
+                    )
+                }
+            }
+        )
+
+        return encode(secret.toByteArray())
+    }
+
+    //TODO: TO DOCU SINCE
+    @Returner
+    private fun resolvePublicKey(
+        peerPublicKey: ByteArray,
+        keySize: KeySize,
+    ): SecKeyRef {
+        val data = peerPublicKey.usePinned { pinnedPublicKey ->
+            CFDataCreate(
+                allocator = kCFAllocatorDefault,
+                bytes = pinnedPublicKey.addressOf(0).reinterpret(),
+                length = peerPublicKey.size.toLong()
+            )
+        }
+
+        val attributes = kassaforteDictionary(
+            capacity = 3,
+            addEntries = {
+                CFDictionaryAddValue(
+                    theDict = this,
+                    key = kSecAttrKeyType,
+                    value = kSecAttrKeyTypeECSECPrimeRandom
+                )
+                CFDictionaryAddValue(
+                    theDict = this,
+                    key = kSecAttrKeyClass,
+                    value = kSecAttrKeyClassPublic
+                )
+                CFDictionaryAddValue(
+                    theDict = this,
+                    key = kSecAttrKeySizeInBits,
+                    value = CFBridgingRetain(keySize.bitCount)
+                )
+            }
+        )
+
+        return errorScoped { errorVar ->
+            SecKeyCreateWithData(
+                keyData = data,
+                attributes = attributes,
+                error = errorVar.ptr
+            )
+        }
+    }
+
+    /**
+     * Method used to work and to use a key (private or public) to perform encryption or decryption of the data
+     *
+     * @param alias The alias which identify the key to use
+     * @param padding The padding to apply to ciphering data
+     * @param digest The digest to apply to ciphering data
+     * @param usage The ciphering routine to perform
+     *
+     * @return the result from [usage] as [T]
+     *
+     * @param T The type of the result obtained using the key
+     */
+    private inline fun <reified T> useKey(
+        alias: String,
+        padding: EncryptionPadding?,
+        digest: Digest?,
+        usage: (SecKeyRef, SecKeyAlgorithm) -> T,
+    ): T {
+        val key = serviceManager.retrieveKey(
+            alias = alias
+        )
+        val attributes = SecKeyCopyAttributes(
+            key = key
+        )
+        val keyType = CFDictionaryGetValue(
+            theDict = attributes,
+            key = kSecAttrKeyType
+        )
+        val encryptionPadding = if (keyType == kSecAttrKeyTypeEC)
+            NONE
+        else
+            padding
+        val algorithmType = encryptionPadding.toSecKeyAlgorithm(
+            digest = digest
+        ).algorithm!!
+
+        return usage(key, algorithmType)
     }
 
     /**
