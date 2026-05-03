@@ -21,7 +21,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.security.*
+import java.security.spec.X509EncodedKeySpec
 import javax.crypto.Cipher
+import javax.crypto.KeyAgreement
 
 /**
  * The `KassaforteAsymmetricService` object allows to generate and to use asymmetric keys and managing their persistence.
@@ -453,6 +455,30 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         }
 
         return transformation
+    }
+
+    // TODO: TO DOCU SINCE
+    actual suspend fun agree(
+        alias: String,
+        peerPublicKey: ByteArray,
+    ): String {
+        val key = serviceImpl.getKey(
+            alias = alias,
+            keyOperation = AGREE
+        )
+        val keyAgreement = KeyAgreement.getInstance(Algorithm.ECDH.value)
+        keyAgreement.init(key)
+
+        keyAgreement.doPhase(peerPublicKey.toPublicKey(), true)
+
+        return encode(keyAgreement.generateSecret())
+    }
+
+    // TODO: TO DOCU SINCE
+    private fun ByteArray.toPublicKey(): PublicKey {
+        val keyFactory = KeyFactory.getInstance(Algorithm.EC.value)
+
+        return keyFactory.generatePublic(X509EncodedKeySpec(this))
     }
 
     /**

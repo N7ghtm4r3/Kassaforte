@@ -149,6 +149,12 @@ expect object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         wrappedDek: String,
     ): ByteArray
 
+    // TODO: TO DOCU SINCE
+    suspend fun agree(
+        alias: String,
+        peerPublicKey: ByteArray,
+    ): String
+
     /**
      * Method used to delete a generated key
      *

@@ -62,6 +62,9 @@ enum class Algorithm(
      *
      * @since Revision Three
      */
-    PBKDF2("PBKDF2WithHmac")
+    PBKDF2("PBKDF2WithHmac"),
+
+    // TODO: TO DOCU SINCE 
+    ECDH("ECDH")
     
 }

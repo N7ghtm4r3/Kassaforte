@@ -366,6 +366,14 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         return decode(unwrappedDek)
     }
 
+    // TODO: TO DOCU SINCE
+    actual suspend fun agree(
+        alias: String,
+        peerPublicKey: ByteArray,
+    ): String {
+        TODO("Not yet implemented")
+    }
+
     /**
      * Method used to delete a generated key
      *
