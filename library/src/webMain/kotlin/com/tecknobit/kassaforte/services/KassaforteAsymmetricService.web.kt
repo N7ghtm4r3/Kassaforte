@@ -71,7 +71,8 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             genSpec = {
                 resolveKeyGenSpec(
                     algorithm = algorithm,
-                    keyGenSpec = keyGenSpec
+                    keyGenSpec = keyGenSpec,
+                    purposes = purposes
                 )
             },
             purposes = purposes
@@ -83,6 +84,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
      *
      * @param algorithm The algorithm the key will use
      * @param keyGenSpec The generation spec to use to generate the key
+     * @param purposes The purposes the key can be used
      *
      * @return the gen spec as [KeyGenSpec]
      */
@@ -90,6 +92,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     private fun resolveKeyGenSpec(
         algorithm: Algorithm,
         keyGenSpec: AsymmetricKeyGenSpec,
+        purposes: KeyPurposes,
     ): KeyGenSpec {
         return when (algorithm) {
             RSA -> {
@@ -104,8 +107,19 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             }
 
             EC, ECDH, ECDSA -> {
+                val genAlgorithm = when (algorithm) {
+                    EC -> {
+                        if (purposes.canAgree)
+                            ECDH
+                        else
+                            ECDSA
+                    }
+
+                    else -> algorithm
+                }
+
                 resolveEcKeyGenParams(
-                    name = algorithm.value,
+                    name = genAlgorithm.value,
                     namedCurve = keyGenSpec.keySize
                         .toNamedCurve()
                         .value
