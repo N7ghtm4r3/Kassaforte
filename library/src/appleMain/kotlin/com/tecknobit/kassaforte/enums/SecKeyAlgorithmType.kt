@@ -123,7 +123,11 @@ enum class SecKeyAlgorithmType(
      */
     ecdsaSignatureMessageX962SHA512(kSecKeyAlgorithmECDSASignatureMessageX962SHA512),
 
-    // TODO: TO DOCU SINCE
+    /**
+     * `ecdhKeyExchangeStandard` ECDH exchanged standard
+     *
+     * @since Revision Three
+     */
     ecdhKeyExchangeStandard(kSecKeyAlgorithmECDHKeyExchangeStandard);
 
     companion object {

@@ -252,7 +252,20 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
         return usage(key)
     }
 
-    // TODO: TO DOCU SINCE
+    /**
+     * Method used to import a key: that is, it takes as input a key in an external, portable format and gives you a
+     * [CryptoKey]
+     *
+     * @param format Describes the data format of the key to import
+     * @param keyData Contains the key in the given format
+     * @param algorithm Defines the type of key to import and providing extra algorithm-specific parameters
+     * @param extractable Whether it will be possible to export the key using
+     * @param purposes Indicates what can be done with the key
+     *
+     * @return the imported key as [CryptoKey]
+     *
+     * @since Revision Three
+     */
     suspend fun importKey(
         format: ExportFormat,
         keyData: ArrayBuffer,
@@ -271,7 +284,20 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
         )
     }
 
-    // TODO: TO DOCU SINCE
+    /**
+     * Method used to import a key: that is, it takes as input a key in an external, portable format and gives you a
+     * [CryptoKey]
+     *
+     * @param format Describes the data format of the key to import
+     * @param keyData Contains the key in the given format
+     * @param algorithm Defines the type of key to import and providing extra algorithm-specific parameters
+     * @param extractable Whether it will be possible to export the key using
+     * @param keyUsages Indicates what can be done with the key
+     *
+     * @return the imported key as [CryptoKey]
+     *
+     * @since Revision Three
+     */
     suspend fun importKey(
         format: ExportFormat,
         keyData: ArrayBuffer,

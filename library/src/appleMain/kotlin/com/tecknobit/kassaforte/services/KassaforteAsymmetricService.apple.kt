@@ -474,7 +474,18 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         return decode(unwrappedDek)
     }
 
-    // TODO: TO DOCU SINCE
+    /**
+     * Method to perform a key agreement and obtain a shared secret
+     *
+     * @param alias The alias of the private key used in the agreement
+     * @param peerPublicKey The remote peer public key used to compute the shared secret
+     * @param publicKeyLength The length of the public key
+     * @param secretLength The length the shared secret must have
+     *
+     * @return the shared secret generated with the agreement as `Base64` encoded [String]
+     *
+     * @since Revision Three
+     */
     actual suspend fun agree(
         alias: String,
         peerPublicKey: ByteArray,
@@ -508,7 +519,14 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         return encode(secret.toByteArray())
     }
 
-    //TODO: TO DOCU SINCE
+    /**
+     * Method used to resolve a valid public key from a raw [ByteArray]
+     *
+     * @param peerPublicKey The bytes of the peer public key
+     * @param keySize The size of the public key
+     *
+     * @since Revision Three
+     */
     @Returner
     private fun resolvePublicKey(
         peerPublicKey: ByteArray,

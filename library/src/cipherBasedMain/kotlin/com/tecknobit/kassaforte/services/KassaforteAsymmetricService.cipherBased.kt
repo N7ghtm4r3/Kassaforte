@@ -2,6 +2,7 @@ package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.equinoxcore.annotations.Implementation
+import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.ECDSA
 import com.tecknobit.kassaforte.key.genspec.*
 import com.tecknobit.kassaforte.key.genspec.Algorithm.EC
@@ -456,7 +457,18 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         return transformation
     }
 
-    // TODO: TO DOCU SINCE
+    /**
+     * Method to perform a key agreement and obtain a shared secret
+     *
+     * @param alias The alias of the private key used in the agreement
+     * @param peerPublicKey The remote peer public key used to compute the shared secret
+     * @param publicKeyLength The length of the public key
+     * @param secretLength The length the shared secret must have
+     *
+     * @return the shared secret generated with the agreement as `Base64` encoded [String]
+     *
+     * @since Revision Three
+     */
     actual suspend fun agree(
         alias: String,
         peerPublicKey: ByteArray,
@@ -475,7 +487,14 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         return encode(keyAgreement.generateSecret())
     }
 
-    // TODO: TO DOCU SINCE
+    /**
+     * Method used to convert a raw [ByteArray] into a valid [PublicKey]
+     *
+     * @return the public key converted as [PublicKey]
+     *
+     * @since Revision Three
+     */
+    @Returner
     private fun ByteArray.toPublicKey(): PublicKey {
         val keyFactory = KeyFactory.getInstance(EC.value)
         val publicKeySpec = X509EncodedKeySpec(this)

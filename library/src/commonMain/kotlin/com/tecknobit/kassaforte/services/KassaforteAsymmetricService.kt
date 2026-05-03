@@ -149,7 +149,18 @@ expect object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         wrappedDek: String,
     ): ByteArray
 
-    // TODO: TO DOCU SINCE
+    /**
+     * Method to perform a key agreement and obtain a shared secret
+     *
+     * @param alias The alias of the private key used in the agreement
+     * @param peerPublicKey The remote peer public key used to compute the shared secret
+     * @param publicKeyLength The length of the public key
+     * @param secretLength The length the shared secret must have
+     *
+     * @return the shared secret generated with the agreement as `Base64` encoded [String]
+     *
+     * @since Revision Three
+     */
     suspend fun agree(
         alias: String,
         peerPublicKey: ByteArray,

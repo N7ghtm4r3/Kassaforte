@@ -64,10 +64,20 @@ enum class Algorithm(
      */
     PBKDF2("PBKDF2WithHmac"),
 
-    // TODO: TO DOCU SINCE
+    /**
+     * ECDSA (Elliptic Curve Digital Signature Algorithm)
+     * Used for digital signatures and verification with elliptic curve keys.
+     *
+     * @since Revision Three
+     */
     ECDSA("ECDSA"),
 
-    // TODO: TO DOCU SINCE 
+    /**
+     * ECDH (Elliptic Curve Diffie-Hellman)
+     * Used for key agreement to derive a shared secret between two parties.
+     *
+     * @since Revision Three
+     */
     ECDH("ECDH")
     
 }
