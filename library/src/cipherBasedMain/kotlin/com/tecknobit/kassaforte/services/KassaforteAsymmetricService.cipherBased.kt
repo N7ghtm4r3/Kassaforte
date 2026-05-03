@@ -3,10 +3,9 @@ package com.tecknobit.kassaforte.services
 import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.equinoxcore.annotations.Implementation
 import com.tecknobit.kassaforte.ECDSA
-import com.tecknobit.kassaforte.key.genspec.Algorithm
-import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
-import com.tecknobit.kassaforte.key.genspec.Digest
-import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
+import com.tecknobit.kassaforte.key.genspec.*
+import com.tecknobit.kassaforte.key.genspec.Algorithm.EC
+import com.tecknobit.kassaforte.key.genspec.Algorithm.ECDH
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.RSA_OAEP
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.RSA_PKCS1
 import com.tecknobit.kassaforte.key.usages.KeyOperation
@@ -250,7 +249,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         digest: Digest,
         keyAlgorithm: String,
     ): String {
-        val algorithm = if (keyAlgorithm == Algorithm.EC.value)
+        val algorithm = if (keyAlgorithm == EC.value)
             ECDSA
         else
             keyAlgorithm
@@ -461,12 +460,14 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     actual suspend fun agree(
         alias: String,
         peerPublicKey: ByteArray,
+        publicKeyLength: KeySize,
+        secretLength: KeySize,
     ): String {
         val key = serviceImpl.getKey(
             alias = alias,
             keyOperation = AGREE
         )
-        val keyAgreement = KeyAgreement.getInstance(Algorithm.ECDH.value)
+        val keyAgreement = KeyAgreement.getInstance(ECDH.value)
         keyAgreement.init(key)
 
         keyAgreement.doPhase(peerPublicKey.toPublicKey(), true)
@@ -476,9 +477,10 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
 
     // TODO: TO DOCU SINCE
     private fun ByteArray.toPublicKey(): PublicKey {
-        val keyFactory = KeyFactory.getInstance(Algorithm.EC.value)
+        val keyFactory = KeyFactory.getInstance(EC.value)
+        val publicKeySpec = X509EncodedKeySpec(this)
 
-        return keyFactory.generatePublic(X509EncodedKeySpec(this))
+        return keyFactory.generatePublic(publicKeySpec)
     }
 
     /**

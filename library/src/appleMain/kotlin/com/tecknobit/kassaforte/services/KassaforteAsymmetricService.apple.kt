@@ -7,10 +7,7 @@ import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.equinoxcore.annotations.Wrapper
 import com.tecknobit.kassaforte.enums.KeyType.Companion.toKeyType
 import com.tecknobit.kassaforte.enums.SecKeyAlgorithmType.Companion.toSecKeyAlgorithm
-import com.tecknobit.kassaforte.key.genspec.Algorithm
-import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
-import com.tecknobit.kassaforte.key.genspec.Digest
-import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
+import com.tecknobit.kassaforte.key.genspec.*
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.NONE
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.RSA_PKCS1
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
@@ -518,6 +515,8 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     actual suspend fun agree(
         alias: String,
         peerPublicKey: ByteArray,
+        publicKeyLength: KeySize,
+        secretLength: KeySize,
     ): String {
         TODO("Not yet implemented")
     }

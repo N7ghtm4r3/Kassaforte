@@ -108,7 +108,7 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
      * @throws IllegalStateException when the combination of the usages is not valid
      */
     @Assembler
-    fun resolveUsages(
+    private fun resolveUsages(
         purposes: KeyPurposes,
     ): JsArray<JsString> {
         val keyUsages = mutableListOf<String>()
@@ -241,15 +241,51 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
         usage: (CryptoKey) -> T,
     ): T {
         val keyData = rawKey.toDecodedKeyData()
-        val key: CryptoKey = subtleCrypto.importKey(
-            format = format.value,
+        val key = importKey(
+            format = format,
             keyData = keyData,
             algorithm = rawKeyData.algorithm,
             extractable = rawKeyData.extractable,
             keyUsages = usages
-        ).await()
+        )
 
         return usage(key)
+    }
+
+    // TODO: TO DOCU SINCE
+    suspend fun importKey(
+        format: ExportFormat,
+        keyData: ArrayBuffer,
+        algorithm: KeyGenSpec,
+        extractable: Boolean,
+        purposes: KeyPurposes,
+    ): CryptoKey {
+        return importKey(
+            format = format,
+            keyData = keyData,
+            algorithm = algorithm,
+            extractable = extractable,
+            keyUsages = resolveUsages(
+                purposes = purposes
+            )
+        )
+    }
+
+    // TODO: TO DOCU SINCE
+    suspend fun importKey(
+        format: ExportFormat,
+        keyData: ArrayBuffer,
+        algorithm: KeyGenSpec,
+        extractable: Boolean,
+        keyUsages: JsArray<JsString>,
+    ): CryptoKey {
+        return subtleCrypto.importKey(
+            format = format.value,
+            keyData = keyData,
+            algorithm = algorithm,
+            extractable = extractable,
+            keyUsages = keyUsages
+        ).await()
     }
 
     /**

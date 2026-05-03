@@ -21,8 +21,10 @@ import com.tecknobit.kassaforte.util.decode
 import com.tecknobit.kassaforte.util.encode
 import com.tecknobit.kassaforte.util.encodeForKeyOperation
 import com.tecknobit.kassaforte.utils.asPlainText
-import com.tecknobit.kassaforte.utils.await
-import com.tecknobit.kassaforte.wrappers.crypto.*
+import com.tecknobit.kassaforte.wrappers.crypto.aesCbcParams
+import com.tecknobit.kassaforte.wrappers.crypto.aesCtrParams
+import com.tecknobit.kassaforte.wrappers.crypto.aesGcmParams
+import com.tecknobit.kassaforte.wrappers.crypto.hmacParams
 import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.HmacKeyGenParams
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.KeyGenSpec
@@ -441,8 +443,16 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         keySize: KeySize,
         digest: Digest,
     ): KassaforteDerivedKey {
-        val derivationKey = importDerivationKey(
-            password = password
+        val derivationKey = serviceManager.importKey(
+            format = RAW,
+            keyData = password.concatToString()
+                .encodeToByteArray()
+                .toArrayBuffer(),
+            algorithm = resolvePbkdf2Params(),
+            extractable = false,
+            purposes = KeyPurposes(
+                canDerive = true
+            )
         )
 
         val derivedKey = serviceManager.deriveKey(
@@ -462,31 +472,6 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             keySize = keySize,
             digest = digest
         )
-    }
-
-    @Returner
-    private suspend fun importDerivationKey(
-        password: CharArray,
-    ): CryptoKey {
-        val subtleCrypto = subtleCrypto()
-        val keyData = password.concatToString()
-            .encodeToByteArray()
-            .toArrayBuffer()
-        val keyUsages = serviceManager.resolveUsages(
-            purposes = KeyPurposes(
-                canDerive = true
-            )
-        )
-
-        val derivationKey = subtleCrypto.importKey(
-            format = RAW.value,
-            keyData = keyData,
-            algorithm = resolvePbkdf2Params(),
-            extractable = false,
-            keyUsages = keyUsages
-        ).await()
-
-        return derivationKey
     }
 
     /**

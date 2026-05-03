@@ -153,6 +153,8 @@ expect object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     suspend fun agree(
         alias: String,
         peerPublicKey: ByteArray,
+        publicKeyLength: KeySize,
+        secretLength: KeySize = publicKeyLength,
     ): String
 
     /**

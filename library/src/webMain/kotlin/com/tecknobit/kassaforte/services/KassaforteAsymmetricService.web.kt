@@ -9,13 +9,10 @@ import com.tecknobit.kassaforte.enums.ExportFormat.SPKI
 import com.tecknobit.kassaforte.enums.NamedCurve.Companion.toNamedCurve
 import com.tecknobit.kassaforte.enums.RsaAlgorithmName.Companion.toRsaAlgorithmName
 import com.tecknobit.kassaforte.enums.RsaAlgorithmName.RSASSA_PKCS1_v1_5
+import com.tecknobit.kassaforte.helpers.toArrayBuffer
 import com.tecknobit.kassaforte.helpers.toByteArray
-import com.tecknobit.kassaforte.key.genspec.Algorithm
-import com.tecknobit.kassaforte.key.genspec.Algorithm.EC
-import com.tecknobit.kassaforte.key.genspec.Algorithm.RSA
-import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
-import com.tecknobit.kassaforte.key.genspec.Digest
-import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
+import com.tecknobit.kassaforte.key.genspec.*
+import com.tecknobit.kassaforte.key.genspec.Algorithm.*
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.helpers.KassaforteAsymmetricServiceManager
 import com.tecknobit.kassaforte.util.decode
@@ -25,6 +22,7 @@ import com.tecknobit.kassaforte.utils.asPlainText
 import com.tecknobit.kassaforte.wrappers.crypto.ecdsaParams
 import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.EcKeyGenParams
+import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.EcdhKeyDeriveParams
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.KeyGenSpec
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.RsaHashedKeyGenParams
 import com.tecknobit.kassaforte.wrappers.crypto.key.raw.RawCryptoKeyPair
@@ -32,6 +30,7 @@ import com.tecknobit.kassaforte.wrappers.crypto.params.EncryptionParams
 import com.tecknobit.kassaforte.wrappers.crypto.rsaOaepParams
 import com.tecknobit.kassaforte.wrappers.crypto.rsaPKCS1Params
 import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.JsArray
 
 /**
  * The `KassaforteAsymmetricService` class allows to generate and to use asymmetric keys and managing their persistence.
@@ -47,12 +46,6 @@ import kotlin.js.ExperimentalWasmJsInterop
  */
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyGenSpec>() {
-
-    /**
-     * `DEFAULT_EC_NAME` constant value to represent the [Algorithm.EC]'s `ECDSA` type
-     */
-    // TODO: PROVIDE ALSO ECDH WHEN INTEGRATED THE AGREEMENT
-    private const val DEFAULT_EC_NAME = "ECDSA"
 
     /**
      * `serviceManager` instance of the manager which helps the service to perform the operations with the keys
@@ -110,9 +103,9 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                 )
             }
 
-            EC -> {
+            EC, ECDH, ECDSA -> {
                 resolveEcKeyGenParams(
-                    name = DEFAULT_EC_NAME,
+                    name = algorithm.value,
                     namedCurve = keyGenSpec.keySize
                         .toNamedCurve()
                         .value
@@ -370,8 +363,42 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     actual suspend fun agree(
         alias: String,
         peerPublicKey: ByteArray,
+        publicKeyLength: KeySize,
+        secretLength: KeySize,
     ): String {
-        TODO("Not yet implemented")
+        val rawCryptoKeyPair = serviceManager.retrieveKeyData(
+            alias = alias
+        )
+
+        val publicKey = serviceManager.importKey(
+            format = SPKI,
+            keyData = peerPublicKey.toArrayBuffer(),
+            algorithm = resolveEcKeyGenParams(
+                name = ECDH.value,
+                namedCurve = publicKeyLength
+                    .toNamedCurve()
+                    .value
+            ),
+            extractable = false,
+            keyUsages = JsArray()
+        )
+
+        val secret = serviceManager.useKey(
+            rawKey = rawCryptoKeyPair.privateKey,
+            rawKeyData = rawCryptoKeyPair,
+            format = PKCS8,
+            usage = { privateKey ->
+                serviceManager.deriveKey(
+                    algorithm = resolveEcdhKeyDeriveParams(
+                        public = publicKey
+                    ),
+                    baseKey = privateKey,
+                    keySize = secretLength
+                )
+            }
+        )
+
+        return encode(secret)
     }
 
     /**
@@ -436,3 +463,17 @@ private external fun resolveEcKeyGenParams(
     name: String,
     namedCurve: String,
 ): EcKeyGenParams
+
+// TODO: TO DOCU SINCE
+@JsFun(
+    """
+    (publicKey) => ({
+        name: `ECDH`,
+        public: publicKey
+    })
+    """
+)
+@Assembler
+private external fun resolveEcdhKeyDeriveParams(
+    public: CryptoKey,
+): EcdhKeyDeriveParams

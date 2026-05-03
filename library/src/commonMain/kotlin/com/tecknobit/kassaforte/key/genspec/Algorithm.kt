@@ -64,6 +64,9 @@ enum class Algorithm(
      */
     PBKDF2("PBKDF2WithHmac"),
 
+    // TODO: TO DOCU SINCE
+    ECDSA("ECDSA"),
+
     // TODO: TO DOCU SINCE 
     ECDH("ECDH")
     
