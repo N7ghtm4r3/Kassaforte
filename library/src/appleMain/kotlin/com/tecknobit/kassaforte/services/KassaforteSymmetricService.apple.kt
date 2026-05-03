@@ -644,10 +644,10 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         keySize: KeySize,
         digest: Digest,
     ): KassaforteDerivedKey {
-        val passwordStringed = password.concatToString()
         val keyLength = keySize.bytes
 
-        return memScoped {
+        val derivedKeyResult = memScoped {
+            val passwordStringed = password.concatToString()
             val derivedKey = allocArray<UByteVar>(keyLength)
 
             salt.usePinned { pinnedSalt ->
@@ -667,16 +667,16 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
                     throw RuntimeException("Error during key derivation")
             }
 
-            val derivedKeyResult = derivedKey.readBytes(keyLength)
-
-            KassaforteDerivedKey(
-                key = encode(derivedKeyResult),
-                salt = salt,
-                iterationCount = iterationCount,
-                keySize = keySize,
-                digest = digest
-            )
+            derivedKey.readBytes(keyLength)
         }
+
+        return KassaforteDerivedKey(
+            key = encode(derivedKeyResult),
+            salt = salt,
+            iterationCount = iterationCount,
+            keySize = keySize,
+            digest = digest
+        )
     }
 
     // TODO: TO DOCU SINCE
