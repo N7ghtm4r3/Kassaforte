@@ -7,14 +7,12 @@ import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.enums.ExportFormat.RAW
 import com.tecknobit.kassaforte.helpers.toArrayBuffer
 import com.tecknobit.kassaforte.helpers.toByteArray
-import com.tecknobit.kassaforte.key.genspec.Algorithm
+import com.tecknobit.kassaforte.key.KassaforteDerivedKey
+import com.tecknobit.kassaforte.key.genspec.*
 import com.tecknobit.kassaforte.key.genspec.Algorithm.*
-import com.tecknobit.kassaforte.key.genspec.BlockMode
 import com.tecknobit.kassaforte.key.genspec.BlockMode.*
 import com.tecknobit.kassaforte.key.genspec.Digest.Companion.resolveHash
-import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.NONE
-import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.KassaforteSymmetricService.generateKey
 import com.tecknobit.kassaforte.services.helpers.KassaforteServiceImplManager.Companion.WRAP_KEY_USAGE
@@ -422,6 +420,17 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         val usages = kek.usages.toList()
 
         return usages.contains(WRAP_KEY_USAGE.toJsString())
+    }
+
+    // TODO: TO DOCU SINCE
+    actual suspend fun deriveKey(
+        password: CharArray,
+        salt: ByteArray,
+        iterationCount: Int,
+        keySize: KeySize,
+        digest: Digest,
+    ): KassaforteDerivedKey {
+        TODO()
     }
 
     /**

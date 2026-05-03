@@ -6,13 +6,11 @@ import com.tecknobit.equinoxcore.annotations.Implementation
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.equinoxcore.annotations.Validator
 import com.tecknobit.kassaforte.Kassaforte
-import com.tecknobit.kassaforte.key.genspec.Algorithm
+import com.tecknobit.kassaforte.key.KassaforteDerivedKey
+import com.tecknobit.kassaforte.key.genspec.*
 import com.tecknobit.kassaforte.key.genspec.Algorithm.*
-import com.tecknobit.kassaforte.key.genspec.BlockMode
 import com.tecknobit.kassaforte.key.genspec.BlockMode.*
-import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.PKCS7
-import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyDetailsSheet
 import com.tecknobit.kassaforte.key.usages.KeyOperation
 import com.tecknobit.kassaforte.key.usages.KeyOperation.*
@@ -635,6 +633,17 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             throw RuntimeException(KEY_CANNOT_PERFORM_OPERATION_ERROR.replace("%s", keyOperation.name))
 
         return keyInfo
+    }
+
+    // TODO: TO DOCU SINCE
+    actual suspend fun deriveKey(
+        password: CharArray,
+        salt: ByteArray,
+        iterationCount: Int,
+        keySize: KeySize,
+        digest: Digest,
+    ): KassaforteDerivedKey {
+        TODO()
     }
 
     /**

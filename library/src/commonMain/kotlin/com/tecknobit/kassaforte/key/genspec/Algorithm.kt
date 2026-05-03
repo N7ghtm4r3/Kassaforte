@@ -55,6 +55,9 @@ enum class Algorithm(
      *
      * @since Revision Two
      */
-    HMAC_SHA512("HmacSHA512")
+    HMAC_SHA512("HmacSHA512"),
 
+    // TODO: TO DOCU SINCE
+    PBKDF2("PBKDF2WithHmac")
+    
 }

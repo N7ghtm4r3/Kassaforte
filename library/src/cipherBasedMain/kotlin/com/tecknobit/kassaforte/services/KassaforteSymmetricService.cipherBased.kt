@@ -2,12 +2,10 @@ package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
 import com.tecknobit.equinoxcore.annotations.Implementation
-import com.tecknobit.kassaforte.key.genspec.Algorithm
-import com.tecknobit.kassaforte.key.genspec.BlockMode
+import com.tecknobit.kassaforte.key.KassaforteDerivedKey
+import com.tecknobit.kassaforte.key.genspec.*
 import com.tecknobit.kassaforte.key.genspec.BlockMode.GCM
-import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.NONE
-import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyOperation
 import com.tecknobit.kassaforte.key.usages.KeyOperation.*
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
@@ -20,8 +18,10 @@ import java.security.MessageDigest
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.Mac
+import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.PBEKeySpec
 
 /**
  * The `KassaforteKeysService` object allows to generate and to use symmetric keys and managing their persistence.
@@ -395,6 +395,33 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     ) {
         serviceImpl.deleteKey(
             alias = alias
+        )
+    }
+
+    // TODO: TO DOCU SINCE
+    actual suspend fun deriveKey(
+        password: CharArray,
+        salt: ByteArray,
+        iterationCount: Int,
+        keySize: KeySize,
+        digest: Digest,
+    ): KassaforteDerivedKey {
+        val spec = PBEKeySpec(
+            password,
+            salt,
+            iterationCount,
+            keySize.bitCount
+        )
+
+        val factory = SecretKeyFactory.getInstance(Algorithm.PBKDF2.value + digest)
+        val secretKey = factory.generateSecret(spec)
+
+        return KassaforteDerivedKey(
+            key = encode(secretKey.encoded),
+            salt = salt,
+            iterationCount = iterationCount,
+            keySize = keySize,
+            digest = digest
         )
     }
 

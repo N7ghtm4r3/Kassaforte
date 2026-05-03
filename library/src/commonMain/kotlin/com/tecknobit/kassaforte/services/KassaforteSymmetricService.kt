@@ -1,10 +1,8 @@
 package com.tecknobit.kassaforte.services
 
-import com.tecknobit.kassaforte.key.genspec.Algorithm
-import com.tecknobit.kassaforte.key.genspec.BlockMode
-import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
+import com.tecknobit.kassaforte.key.KassaforteDerivedKey
+import com.tecknobit.kassaforte.key.genspec.*
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.NONE
-import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 
 /**
@@ -141,6 +139,15 @@ expect object KassaforteSymmetricService: KassaforteKeysService<SymmetricKeyGenS
         kekAlias: String,
         wrappedDek: String,
     ): ByteArray
+
+    // TODO: TO DOCU SINCE
+    suspend fun deriveKey(
+        password: CharArray,
+        salt: ByteArray,
+        iterationCount: Int = 600_000,
+        keySize: KeySize,
+        digest: Digest = Digest.SHA256,
+    ): KassaforteDerivedKey
 
     /**
      * Method used to delete a generated key
