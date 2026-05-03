@@ -636,7 +636,19 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         return keyInfo
     }
 
-    // TODO: TO DOCU SINCE
+    /**
+     * Method used to derive a key from the specified [password]
+     *
+     * @param password The password used as material to derive a result key
+     * @param salt The salt used during the key derivation
+     * @param iterationCount The number of iteration used to derive the key
+     * @param keySize The size of the derived key
+     * @param digest The digest used to derive the key
+     *
+     * @return the derived key as [KassaforteDerivedKey]
+     *
+     * @since Revision Three
+     */
     actual suspend fun deriveKey(
         password: CharArray,
         salt: ByteArray,
@@ -679,7 +691,13 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         )
     }
 
-    // TODO: TO DOCU SINCE
+    /**
+     * Method used to resolve from a [Digest] the related [CCPseudoRandomAlgorithm]
+     *
+     * @return the pseudo random algorithm as [CCPseudoRandomAlgorithm]
+     *
+     * @since Revision Three
+     */
     @Returner
     private fun Digest.resolvePseudoRandomAlgorithm(): CCPseudoRandomAlgorithm {
         return when (this) {

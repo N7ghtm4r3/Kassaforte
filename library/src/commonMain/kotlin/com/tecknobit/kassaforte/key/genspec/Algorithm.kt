@@ -57,7 +57,11 @@ enum class Algorithm(
      */
     HMAC_SHA512("HmacSHA512"),
 
-    // TODO: TO DOCU SINCE
+    /**
+     * `PBKDF2` (Password-Based Key Derivation Function 2) algorithm used to derive a cryptographic key from a password
+     *
+     * @since Revision Three
+     */
     PBKDF2("PBKDF2WithHmac")
     
 }

@@ -136,7 +136,17 @@ external interface SubtleCrypto : JsAny {
         data: Uint8Array,
     ): Promise<JsBoolean>
 
-    // TODO: TO DOCU SINCE 
+    /**
+     * Method used to derive bits from the specified [baseKey]
+     *
+     * @param algorithm The algorithm to use to derive the key
+     * @param baseKey The key used to derive the result key
+     * @param length The length of the derived key
+     *
+     * @return the bits of the derived key as [Promise] of [ArrayBuffer]
+     *
+     * @since Revision Three
+     */
     fun deriveBits(
         algorithm: JsAny,
         baseKey: CryptoKey,

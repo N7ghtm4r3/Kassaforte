@@ -53,7 +53,11 @@ interface KeyDetailsSheet<T> {
     val canWrapKey: Boolean
         get() = keyPurposes.canWrapKey
 
-    // TODO: TO DOCU SINCE
+    /**
+     * `canDerive` whether the key can be used to derive another key
+     *
+     * @since Revision Three
+     */
     val canDerive: Boolean
         get() = keyPurposes.canDerive
 

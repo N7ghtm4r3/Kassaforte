@@ -27,7 +27,11 @@ enum class KeyOperation {
      */
     VERIFY,
 
-    // TODO: TO DOCU SINCE 
+    /**
+     * `DERIVE` the operation where the key is used to derive other key
+     *
+     * @since Revision Three
+     */
     DERIVE,
     
     /**

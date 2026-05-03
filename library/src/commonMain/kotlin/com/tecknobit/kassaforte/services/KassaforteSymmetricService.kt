@@ -1,6 +1,7 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.kassaforte.key.KassaforteDerivedKey
+import com.tecknobit.kassaforte.key.KassaforteDerivedKey.Companion.DEFAULT_ITERATION_COUNT
 import com.tecknobit.kassaforte.key.genspec.*
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.NONE
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
@@ -140,11 +141,23 @@ expect object KassaforteSymmetricService: KassaforteKeysService<SymmetricKeyGenS
         wrappedDek: String,
     ): ByteArray
 
-    // TODO: TO DOCU SINCE
+    /**
+     * Method used to derive a key from the specified [password]
+     *
+     * @param password The password used as material to derive a result key
+     * @param salt The salt used during the key derivation
+     * @param iterationCount The number of iteration used to derive the key
+     * @param keySize The size of the derived key
+     * @param digest The digest used to derive the key
+     *
+     * @return the derived key as [KassaforteDerivedKey]
+     *
+     * @since Revision Three
+     */
     suspend fun deriveKey(
         password: CharArray,
         salt: ByteArray,
-        iterationCount: Int = 600_000,
+        iterationCount: Int = DEFAULT_ITERATION_COUNT,
         keySize: KeySize,
         digest: Digest = Digest.SHA256,
     ): KassaforteDerivedKey

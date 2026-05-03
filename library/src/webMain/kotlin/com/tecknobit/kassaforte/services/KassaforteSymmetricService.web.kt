@@ -421,7 +421,19 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         return usages.contains(WRAP_KEY_USAGE.toJsString())
     }
 
-    // TODO: TO DOCU SINCE
+    /**
+     * Method used to derive a key from the specified [password]
+     *
+     * @param password The password used as material to derive a result key
+     * @param salt The salt used during the key derivation
+     * @param iterationCount The number of iteration used to derive the key
+     * @param keySize The size of the derived key
+     * @param digest The digest used to derive the key
+     *
+     * @return the derived key as [KassaforteDerivedKey]
+     *
+     * @since Revision Three
+     */
     actual suspend fun deriveKey(
         password: CharArray,
         salt: ByteArray,
@@ -538,7 +550,13 @@ private external fun resolveHMACKeyGenSpec(
     hash: String,
 ): HmacKeyGenParams
 
-// TODO: TO DOCU SINCE
+/**
+ * Method used to assemble a native [Pbkdf2Params] object
+ *
+ * @return the key gen params as [Pbkdf2Params]
+ *
+ * @since Revision Three
+ */
 @JsFun(
     """
     () => ({
@@ -549,7 +567,17 @@ private external fun resolveHMACKeyGenSpec(
 @Assembler
 private external fun resolvePbkdf2Params(): Pbkdf2Params
 
-// TODO: TO DOCU SINCE
+/**
+ * Method used to assemble a native [Pbkdf2Params] object
+ *
+ * @param hash The digest algorithm to use
+ * @param salt Random or pseudo-random value of at least 16 bytes, does not need to be kept secret
+ * @param iterations Representing the number of times the hash function will be executed during derivation
+ *
+ * @return the key gen params as [Pbkdf2Params]
+ *
+ * @since Revision Three
+ */
 @JsFun(
     """
     (hash, salt, iterations, length) => ({

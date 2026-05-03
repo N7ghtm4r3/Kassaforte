@@ -367,7 +367,9 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
         return result.toBoolean()
     }
 
-    // TODO: TO DOCU SINCE
+    /**
+     * Method used to derive a key from the
+     */
     suspend fun deriveKey(
         algorithm: JsAny,
         baseKey: CryptoKey,
