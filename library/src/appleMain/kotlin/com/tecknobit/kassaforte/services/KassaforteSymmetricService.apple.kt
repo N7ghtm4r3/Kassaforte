@@ -10,6 +10,7 @@ import com.tecknobit.kassaforte.key.KassaforteDerivedKey
 import com.tecknobit.kassaforte.key.genspec.*
 import com.tecknobit.kassaforte.key.genspec.Algorithm.*
 import com.tecknobit.kassaforte.key.genspec.BlockMode.*
+import com.tecknobit.kassaforte.key.genspec.Digest.*
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.PKCS7
 import com.tecknobit.kassaforte.key.usages.KeyDetailsSheet
 import com.tecknobit.kassaforte.key.usages.KeyOperation
@@ -643,7 +644,52 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         keySize: KeySize,
         digest: Digest,
     ): KassaforteDerivedKey {
-        TODO()
+        val passwordStringed = password.concatToString()
+        val keyLength = keySize.bytes
+
+        return memScoped {
+            val derivedKey = allocArray<UByteVar>(keyLength)
+
+            salt.usePinned { pinnedSalt ->
+                val status = CCKeyDerivationPBKDF(
+                    algorithm = kCCPBKDF2,
+                    password = passwordStringed,
+                    passwordLen = passwordStringed.length.toULong(),
+                    salt = pinnedSalt.addressOf(0).reinterpret(),
+                    saltLen = salt.size.toULong(),
+                    rounds = iterationCount.toUInt(),
+                    prf = digest.resolvePseudoRandomAlgorithm(),
+                    derivedKey = derivedKey,
+                    derivedKeyLen = keyLength.toULong()
+                )
+
+                if (status != kCCSuccess)
+                    throw RuntimeException("Error during key derivation")
+            }
+
+            val derivedKeyResult = derivedKey.readBytes(keyLength)
+
+            KassaforteDerivedKey(
+                key = encode(derivedKeyResult),
+                salt = salt,
+                iterationCount = iterationCount,
+                keySize = keySize,
+                digest = digest
+            )
+        }
+    }
+
+    // TODO: TO DOCU SINCE
+    @Returner
+    private fun Digest.resolvePseudoRandomAlgorithm(): CCPseudoRandomAlgorithm {
+        return when (this) {
+            SHA1 -> kCCPRFHmacAlgSHA1
+            SHA224 -> kCCPRFHmacAlgSHA224
+            SHA256 -> kCCPRFHmacAlgSHA256
+            SHA384 -> kCCPRFHmacAlgSHA384
+            SHA512 -> kCCPRFHmacAlgSHA512
+            else -> throw IllegalArgumentException("Invalid digest for key derivation")
+        }
     }
 
     /**
