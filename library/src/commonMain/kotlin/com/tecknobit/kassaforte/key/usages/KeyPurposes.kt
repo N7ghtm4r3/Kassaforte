@@ -22,5 +22,7 @@ data class KeyPurposes(
     val canSign: Boolean = false,
     val canVerify: Boolean = false,
     val canWrapKey: Boolean = false,
-    val canAgree: Boolean = false
+    // TODO: TO DOCU SINCE
+    val canDerive: Boolean = false,
+    val canAgree: Boolean = false,
 )

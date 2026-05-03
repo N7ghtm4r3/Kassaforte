@@ -1,14 +1,7 @@
 package com.tecknobit.kassaforte.key.usages
 
 import com.tecknobit.equinoxcore.annotations.Validator
-import com.tecknobit.kassaforte.key.usages.KeyOperation.AGREE
-import com.tecknobit.kassaforte.key.usages.KeyOperation.DECRYPT
-import com.tecknobit.kassaforte.key.usages.KeyOperation.ENCRYPT
-import com.tecknobit.kassaforte.key.usages.KeyOperation.OBTAIN_KEY
-import com.tecknobit.kassaforte.key.usages.KeyOperation.SIGN
-import com.tecknobit.kassaforte.key.usages.KeyOperation.UNWRAP
-import com.tecknobit.kassaforte.key.usages.KeyOperation.VERIFY
-import com.tecknobit.kassaforte.key.usages.KeyOperation.WRAP
+import com.tecknobit.kassaforte.key.usages.KeyOperation.*
 
 /**
  * The `KeyDetailsSheet` interface allows to store with the generated key extra information related to it such as the
@@ -55,17 +48,21 @@ interface KeyDetailsSheet<T> {
         get() = keyPurposes.canVerify
 
     /**
+     * `canWrapKey` whether the key can be used to wrap other key
+     */
+    val canWrapKey: Boolean
+        get() = keyPurposes.canWrapKey
+
+    // TODO: TO DOCU SINCE
+    val canDerive: Boolean
+        get() = keyPurposes.canDerive
+
+    /**
      * `canAgree` whether the key can be used in a key agreement protocol
      * to derive a shared secret
      */
     val canAgree: Boolean
         get() = keyPurposes.canAgree
-
-    /**
-     * `canWrapKey` whether the key can be used to wrap other key
-     */
-    val canWrapKey: Boolean
-        get() = keyPurposes.canWrapKey
 
     /**
      * Validator method used to check whether the key can be used to perform the specified [keyOperation]
@@ -83,6 +80,7 @@ interface KeyDetailsSheet<T> {
             DECRYPT -> canDecrypt
             SIGN -> canSign
             VERIFY -> canVerify
+            DERIVE -> canDerive
             AGREE -> canAgree
             WRAP, UNWRAP -> canWrapKey
             OBTAIN_KEY -> true

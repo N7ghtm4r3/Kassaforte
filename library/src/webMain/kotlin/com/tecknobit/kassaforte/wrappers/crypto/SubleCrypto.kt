@@ -68,7 +68,7 @@ external interface SubtleCrypto : JsAny {
         algorithm: KeyGenSpec,
         extractable: Boolean,
         keyUsages: JsArray<JsString>,
-    ): Promise<JsAny>
+    ): Promise<CryptoKey>
 
     /**
      * Method used to encrypt data
@@ -135,6 +135,13 @@ external interface SubtleCrypto : JsAny {
         signature: Uint8Array,
         data: Uint8Array,
     ): Promise<JsBoolean>
+
+    // TODO: TO DOCU SINCE 
+    fun deriveBits(
+        algorithm: JsAny,
+        baseKey: CryptoKey,
+        length: Int,
+    ): Promise<ArrayBuffer>
 
 }
 

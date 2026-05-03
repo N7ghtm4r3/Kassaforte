@@ -14,6 +14,7 @@ import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.key.usages.KeyOperation
 import com.tecknobit.kassaforte.key.usages.KeyOperation.AGREE
 import com.tecknobit.kassaforte.key.usages.KeyOperation.DECRYPT
+import com.tecknobit.kassaforte.key.usages.KeyOperation.DERIVE
 import com.tecknobit.kassaforte.key.usages.KeyOperation.ENCRYPT
 import com.tecknobit.kassaforte.key.usages.KeyOperation.OBTAIN_KEY
 import com.tecknobit.kassaforte.key.usages.KeyOperation.SIGN
@@ -100,6 +101,7 @@ private fun checkResult(
         else
             false
 
+        DERIVE -> throw IllegalArgumentException("No purposes available for this operation")
         OBTAIN_KEY -> true
     }
 }

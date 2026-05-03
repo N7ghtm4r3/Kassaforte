@@ -27,6 +27,9 @@ enum class KeyOperation {
      */
     VERIFY,
 
+    // TODO: TO DOCU SINCE 
+    DERIVE,
+    
     /**
      * `AGREE` the operation where the key is used in a key agreement protocol
      * to derive a shared secret (e.g., Diffie–Hellman, ECDH)

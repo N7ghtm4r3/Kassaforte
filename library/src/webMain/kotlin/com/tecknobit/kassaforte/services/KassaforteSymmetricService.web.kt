@@ -21,13 +21,12 @@ import com.tecknobit.kassaforte.util.decode
 import com.tecknobit.kassaforte.util.encode
 import com.tecknobit.kassaforte.util.encodeForKeyOperation
 import com.tecknobit.kassaforte.utils.asPlainText
-import com.tecknobit.kassaforte.wrappers.crypto.aesCbcParams
-import com.tecknobit.kassaforte.wrappers.crypto.aesCtrParams
-import com.tecknobit.kassaforte.wrappers.crypto.aesGcmParams
-import com.tecknobit.kassaforte.wrappers.crypto.hmacParams
+import com.tecknobit.kassaforte.utils.await
+import com.tecknobit.kassaforte.wrappers.crypto.*
 import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.HmacKeyGenParams
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.KeyGenSpec
+import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.Pbkdf2Params
 import com.tecknobit.kassaforte.wrappers.crypto.key.raw.RawCryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.params.AesCbcParams
 import com.tecknobit.kassaforte.wrappers.crypto.params.AesCtrParams
@@ -430,7 +429,52 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         keySize: KeySize,
         digest: Digest,
     ): KassaforteDerivedKey {
-        TODO()
+        val derivationKey = importDerivationKey(
+            password = password
+        )
+
+        val derivedKey = serviceManager.deriveKey(
+            algorithm = resolvePbkdf2Params(
+                hash = digest.value,
+                salt = salt.toArrayBuffer(),
+                iterations = iterationCount
+            ),
+            baseKey = derivationKey,
+            keySize = keySize
+        )
+
+        return KassaforteDerivedKey(
+            key = encode(derivedKey.toByteArray()),
+            salt = salt,
+            iterationCount = iterationCount,
+            keySize = keySize,
+            digest = digest
+        )
+    }
+
+    @Returner
+    private suspend fun importDerivationKey(
+        password: CharArray,
+    ): CryptoKey {
+        val subtleCrypto = subtleCrypto()
+        val keyData = password.concatToString()
+            .encodeToByteArray()
+            .toArrayBuffer()
+        val keyUsages = serviceManager.resolveUsages(
+            purposes = KeyPurposes(
+                canDerive = true
+            )
+        )
+
+        val derivationKey = subtleCrypto.importKey(
+            format = RAW.value,
+            keyData = keyData,
+            algorithm = resolvePbkdf2Params(),
+            extractable = false,
+            keyUsages = keyUsages
+        ).await()
+
+        return derivationKey
     }
 
     /**
@@ -493,3 +537,32 @@ private external fun resolveAESKeyGenSpec(
 private external fun resolveHMACKeyGenSpec(
     hash: String,
 ): HmacKeyGenParams
+
+// TODO: TO DOCU SINCE
+@JsFun(
+    """
+    () => ({
+        name: `PBKDF2`
+    })
+    """
+)
+@Assembler
+private external fun resolvePbkdf2Params(): Pbkdf2Params
+
+// TODO: TO DOCU SINCE
+@JsFun(
+    """
+    (hash, salt, iterations, length) => ({
+        name: `PBKDF2`,
+        hash: hash,
+        salt: salt,
+        iterations: iterations
+    })
+    """
+)
+@Assembler
+private external fun resolvePbkdf2Params(
+    hash: String,
+    salt: ArrayBuffer,
+    iterations: Int,
+): Pbkdf2Params

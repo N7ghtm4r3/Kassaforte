@@ -9,6 +9,7 @@ import com.tecknobit.equinoxcore.annotations.Structure
 import com.tecknobit.kassaforte.enums.ExportFormat
 import com.tecknobit.kassaforte.helpers.IndexedDBManager
 import com.tecknobit.kassaforte.key.genspec.BlockMode
+import com.tecknobit.kassaforte.key.genspec.KeySize
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.util.decode
 import com.tecknobit.kassaforte.utils.await
@@ -107,7 +108,7 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
      * @throws IllegalStateException when the combination of the usages is not valid
      */
     @Assembler
-    private fun resolveUsages(
+    fun resolveUsages(
         purposes: KeyPurposes,
     ): JsArray<JsString> {
         val keyUsages = mutableListOf<String>()
@@ -126,8 +127,12 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
             keyUsages.add("encrypt")
             keyUsages.add("decrypt")
         }
-        if (purposes.canAgree)
+        if (purposes.canDerive)
+            keyUsages.add("deriveBits")
+        if (purposes.canAgree) {
             keyUsages.add("deriveKey")
+            keyUsages.add("deriveBits")
+        }
 
         if (keyUsages.isEmpty())
             throw IllegalStateException("Key usages not valid")
@@ -242,7 +247,7 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
             algorithm = rawKeyData.algorithm,
             extractable = rawKeyData.extractable,
             keyUsages = usages
-        ).await() as CryptoKey
+        ).await()
 
         return usage(key)
     }
@@ -360,6 +365,21 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
         ).await()
 
         return result.toBoolean()
+    }
+
+    // TODO: TO DOCU SINCE
+    suspend fun deriveKey(
+        algorithm: JsAny,
+        baseKey: CryptoKey,
+        keySize: KeySize,
+    ): ArrayBuffer {
+        val result: ArrayBuffer = subtleCrypto.deriveBits(
+            algorithm = algorithm,
+            baseKey = baseKey,
+            length = keySize.bitCount
+        ).await()
+
+        return result
     }
 
     /**
