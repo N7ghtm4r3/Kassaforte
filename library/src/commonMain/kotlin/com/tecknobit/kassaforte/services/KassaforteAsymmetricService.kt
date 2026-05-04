@@ -111,6 +111,64 @@ expect object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     ): Boolean
 
     /**
+     * Method to perform an `Envelope Encryption` for wrapping a `DEK` material
+     *
+     * @param kekAlias The alias which identify the `KEK` key to use
+     * @param padding The padding to apply to wrap the material
+     * @param digest The digest to apply to wrap material
+     * @param dekBytes Arbitrary bytes representing the `DEK` material to wrap
+     *
+     * @return the [dekBytes] wrapped using the specified KEK key as `Base64` [String]
+     *
+     * @since Revision Three
+     */
+    suspend fun wrap(
+        kekAlias: String,
+        padding: EncryptionPadding,
+        digest: Digest,
+        dekBytes: ByteArray,
+    ): String
+
+    /**
+     * Method to perform an `Envelope Decryption` for unwrapping a `DEK` material previously
+     * wrapped
+     *
+     * @param kekAlias The alias which identify the `KEK` key to use
+     * @param padding The padding to apply to unwrap the material
+     * @param digest The digest to apply to unwrap the material
+     * @param wrappedDek The wrapped material, `Base64` encoded, to unwrap
+     *
+     * @return the material unwrapped using the specified KEK key as [ByteArray]
+     *
+     * @since Revision Three
+     */
+    suspend fun unwrap(
+        kekAlias: String,
+        padding: EncryptionPadding,
+        digest: Digest,
+        wrappedDek: String,
+    ): ByteArray
+
+    /**
+     * Method to perform a key agreement and obtain a shared secret
+     *
+     * @param alias The alias of the private key used in the agreement
+     * @param peerPublicKey The remote peer public key used to compute the shared secret
+     * @param publicKeyLength The length of the public key
+     * @param secretLength The length the shared secret must have
+     *
+     * @return the shared secret generated with the agreement as `Base64` encoded [String]
+     *
+     * @since Revision Three
+     */
+    suspend fun agree(
+        alias: String,
+        peerPublicKey: ByteArray,
+        publicKeyLength: KeySize,
+        secretLength: KeySize = publicKeyLength,
+    ): String
+
+    /**
      * Method used to delete a generated key
      *
      * @param alias The alias of the key to delete

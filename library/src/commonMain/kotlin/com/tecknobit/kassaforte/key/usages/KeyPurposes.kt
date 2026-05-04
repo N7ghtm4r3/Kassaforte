@@ -11,6 +11,7 @@ import kotlinx.serialization.Serializable
  * @property canVerify Whether the key can be used to verify messages, note that this purpose could be ignored on symmetric contexts like `HMAC`
  * @property canWrapKey Whether the key can be used in a key agreement protocol
  * to derive a shared secret
+ * @property canDerive Whether the key can be used to derive another key
  * @property canAgree Whether the key can be used to wrap other key
  *
  * @author Tecknobit - N7ghtm4r3
@@ -22,5 +23,6 @@ data class KeyPurposes(
     val canSign: Boolean = false,
     val canVerify: Boolean = false,
     val canWrapKey: Boolean = false,
-    val canAgree: Boolean = false
+    val canDerive: Boolean = false,
+    val canAgree: Boolean = false,
 )

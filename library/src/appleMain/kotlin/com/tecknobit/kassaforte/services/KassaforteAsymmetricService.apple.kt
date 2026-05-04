@@ -7,22 +7,14 @@ import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.equinoxcore.annotations.Wrapper
 import com.tecknobit.kassaforte.enums.KeyType.Companion.toKeyType
 import com.tecknobit.kassaforte.enums.SecKeyAlgorithmType.Companion.toSecKeyAlgorithm
-import com.tecknobit.kassaforte.key.genspec.Algorithm
-import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
-import com.tecknobit.kassaforte.key.genspec.Digest
-import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
+import com.tecknobit.kassaforte.key.genspec.*
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.NONE
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.RSA_PKCS1
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.helpers.KassaforteAsymmetricServiceManager
 import com.tecknobit.kassaforte.util.*
-import kotlinx.cinterop.CValuesRef
-import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.ptr
-import platform.CoreFoundation.CFDictionaryAddValue
-import platform.CoreFoundation.CFDictionaryGetValue
-import platform.CoreFoundation.CFMutableDictionaryRef
-import platform.CoreFoundation.kCFBooleanTrue
+import kotlinx.cinterop.*
+import platform.CoreFoundation.*
 import platform.Foundation.CFBridgingRetain
 import platform.Security.*
 
@@ -72,15 +64,18 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     ) {
         if (aliasExists(alias))
             throw RuntimeException(ALIAS_ALREADY_TAKEN_ERROR)
+
         val usages = resolveUsages(
             alias = alias,
             purposes = purposes
         )
+
         val genSpec = resolveKeyGenSpec(
             algorithm = algorithm,
             keyGenSpec = keyGenSpec,
             usages = usages
         )
+
         errorScoped { errorVar ->
             SecKeyCreateRandomKey(
                 parameters = genSpec,
@@ -103,51 +98,72 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         purposes: KeyPurposes,
     ): Pair<CFMutableDictionaryRef, CFMutableDictionaryRef> {
         val privateKeyAttrs = keyAttrsDictionary(
-            tag = "$alias$PRIVATE_KEY_TAG",
+            tag = resolvePrivateKeyAlias(alias),
             usages = {
                 CFDictionaryAddValue(
                     theDict = this,
+                    key = kSecAttrKeyClass,
+                    value = kSecAttrKeyClassPrivate
+                )
+                CFDictionaryAddValue(
+                    theDict = this,
                     key = kSecAttrCanDecrypt,
-                    value = CFBridgingRetain(
-                        X = purposes.canDecrypt
-                    )
+                    value = if (purposes.canDecrypt)
+                        kCFBooleanTrue
+                    else
+                        kCFBooleanFalse
                 )
                 CFDictionaryAddValue(
                     theDict = this,
                     key = kSecAttrCanSign,
-                    value = CFBridgingRetain(
-                        X = purposes.canSign
-                    )
+                    value = if (purposes.canSign)
+                        kCFBooleanTrue
+                    else
+                        kCFBooleanFalse
                 )
-                keyAttrsCipheringDictionary(
-                    key = kSecAttrCanUnwrap,
-                    purposes = purposes
+                CFDictionaryAddValue(
+                    theDict = this,
+                    key = kSecAttrCanWrap,
+                    value = if (purposes.canWrapKey)
+                        kCFBooleanTrue
+                    else
+                        kCFBooleanFalse
+                )
+                CFDictionaryAddValue(
+                    theDict = this,
+                    key = kSecAttrAccessible,
+                    value = kSecAttrAccessibleWhenUnlocked
                 )
             }
         )
+
         val publicKeyAttrs = keyAttrsDictionary(
-            tag = "$alias$PUBLIC_KEY_TAG",
+            tag = resolvePublicKeyAlias(alias),
             usages = {
                 CFDictionaryAddValue(
                     theDict = this,
+                    key = kSecAttrKeyClass,
+                    value = kSecAttrKeyClassPublic
+                )
+                CFDictionaryAddValue(
+                    theDict = this,
                     key = kSecAttrCanEncrypt,
-                    value = CFBridgingRetain(
-                        X = purposes.canEncrypt
-                    )
+                    value = if (purposes.canEncrypt)
+                        kCFBooleanTrue
+                    else
+                        kCFBooleanFalse
                 )
                 CFDictionaryAddValue(
                     theDict = this,
                     key = kSecAttrCanVerify,
-                    value = CFBridgingRetain(
-                        X = purposes.canVerify
-                    )
-                )
-                keyAttrsCipheringDictionary(
-                    key = kSecAttrCanWrap,
-                    purposes = purposes
+                    value = if (purposes.canVerify)
+                        kCFBooleanTrue
+                    else
+                        kCFBooleanFalse
                 )
             }
         )
+
         return Pair(privateKeyAttrs, publicKeyAttrs)
     }
 
@@ -168,20 +184,19 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     ): CFMutableDictionaryRef {
         val privateKeyAttrs = usages.first
         val publicKeyAttrs = usages.second
-        val genSpec = kassaforteDictionary(
+
+        return kassaforteDictionary(
             capacity = 4,
             addEntries = {
-                val attrKeyType = algorithm.toKeyType()
                 CFDictionaryAddValue(
                     theDict = this,
                     key = kSecAttrKeyType,
-                    value = CFBridgingRetain(attrKeyType)
+                    value = algorithm.toKeyType().typeProvider()
                 )
-                val keySize = keyGenSpec.keySize.bitCount
                 CFDictionaryAddValue(
                     theDict = this,
                     key = kSecAttrKeySizeInBits,
-                    value = CFBridgingRetain(keySize)
+                    value = CFBridgingRetain(keyGenSpec.keySize.bitCount)
                 )
                 CFDictionaryAddValue(
                     theDict = this,
@@ -195,7 +210,6 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                 )
             }
         )
-        return genSpec
     }
 
     /**
@@ -222,38 +236,10 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                 CFDictionaryAddValue(
                     theDict = this,
                     key = kSecAttrApplicationTag,
-                    value = CFBridgingRetain(tag)
+                    value = tag.toCFData()
                 )
                 usages()
             }
-        )
-    }
-
-    /**
-     * Method used to create the dictionary with the ciphering information
-     * ([KeyPurposes.canWrapKey] and [KeyPurposes.canAgree]) related to a key
-     *
-     * @param key The key to assign the ciphering information
-     * @param purposes The usages the key can be used
-     */
-    @Assembler
-    private fun CFMutableDictionaryRef.keyAttrsCipheringDictionary(
-        key: CValuesRef<*>?,
-        purposes: KeyPurposes,
-    ) {
-        CFDictionaryAddValue(
-            theDict = this,
-            key = key,
-            value = CFBridgingRetain(
-                X = purposes.canWrapKey
-            )
-        )
-        CFDictionaryAddValue(
-            theDict = this,
-            key = kSecAttrCanDerive,
-            value = CFBridgingRetain(
-                X = purposes.canAgree
-            )
         )
     }
 
@@ -270,6 +256,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         val keychainAlias = resolvePrivateKeyAlias(
             alias = alias
         )
+
         return serviceManager.isAliasTaken(
             alias = keychainAlias
         )
@@ -307,9 +294,11 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                         error = errorVar.ptr
                     )
                 }
+
                 encryptedData.toByteArray()
             }
         )
+
         return encode(encryptedData)
     }
 
@@ -345,9 +334,11 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                         error = errorVar.ptr
                     )
                 }
+
                 decryptedData.toByteArray()
             }
         )
+
         return decryptedData.decodeToString()
     }
 
@@ -381,9 +372,11 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                         error = error.ptr
                     )
                 }
+
                 signature.toByteArray()
             }
         )
+
         return encode(signedMessage)
     }
 
@@ -422,7 +415,159 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                 }
             }
         )
+
         return result
+    }
+
+    /**
+     * Method to perform an `Envelope Encryption` for wrapping a `DEK` material
+     *
+     * @param kekAlias The alias which identify the `KEK` key to use
+     * @param padding The padding to apply to wrap the material
+     * @param digest The digest to apply to wrap material
+     * @param dekBytes Arbitrary bytes representing the `DEK` material to wrap
+     *
+     * @return the [dekBytes] wrapped using the specified KEK key as `Base64` [String]
+     *
+     * @since Revision Three
+     */
+    actual suspend fun wrap(
+        kekAlias: String,
+        padding: EncryptionPadding,
+        digest: Digest,
+        dekBytes: ByteArray,
+    ): String {
+        return encrypt(
+            alias = kekAlias,
+            padding = padding,
+            digest = digest,
+            data = encode(dekBytes)
+        )
+    }
+
+    /**
+     * Method to perform an `Envelope Decryption` for unwrapping a `DEK` material previously
+     * wrapped
+     *
+     * @param kekAlias The alias which identify the `KEK` key to use
+     * @param padding The padding to apply to unwrap the material
+     * @param digest The digest to apply to unwrap the material
+     * @param wrappedDek The wrapped material, `Base64` encoded, to unwrap
+     *
+     * @return the material unwrapped using the specified KEK key as [ByteArray]
+     *
+     * @since Revision Three
+     */
+    actual suspend fun unwrap(
+        kekAlias: String,
+        padding: EncryptionPadding,
+        digest: Digest,
+        wrappedDek: String,
+    ): ByteArray {
+        val unwrappedDek = decrypt(
+            alias = kekAlias,
+            padding = padding,
+            digest = digest,
+            data = wrappedDek
+        )
+
+        return decode(unwrappedDek)
+    }
+
+    /**
+     * Method to perform a key agreement and obtain a shared secret
+     *
+     * @param alias The alias of the private key used in the agreement
+     * @param peerPublicKey The remote peer public key used to compute the shared secret
+     * @param publicKeyLength The length of the public key
+     * @param secretLength The length the shared secret must have
+     *
+     * @return the shared secret generated with the agreement as `Base64` encoded [String]
+     *
+     * @since Revision Three
+     */
+    actual suspend fun agree(
+        alias: String,
+        peerPublicKey: ByteArray,
+        publicKeyLength: KeySize,
+        secretLength: KeySize,
+    ): String {
+        val publicKey = resolvePublicKey(
+            peerPublicKey = peerPublicKey,
+            keySize = publicKeyLength
+        )
+
+        val secret = useKey(
+            alias = resolvePrivateKeyAlias(
+                alias = alias
+            ),
+            padding = null,
+            digest = null,
+            usage = { privateKey, _ ->
+                errorScoped { errorVar ->
+                    SecKeyCopyKeyExchangeResult(
+                        privateKey = privateKey,
+                        algorithm = kSecKeyAlgorithmECDHKeyExchangeStandard,
+                        publicKey = publicKey,
+                        parameters = null,
+                        error = errorVar.ptr
+                    )
+                }
+            }
+        )
+
+        return encode(secret.toByteArray())
+    }
+
+    /**
+     * Method used to resolve a valid public key from a raw [ByteArray]
+     *
+     * @param peerPublicKey The bytes of the peer public key
+     * @param keySize The size of the public key
+     *
+     * @since Revision Three
+     */
+    @Returner
+    private fun resolvePublicKey(
+        peerPublicKey: ByteArray,
+        keySize: KeySize,
+    ): SecKeyRef {
+        val data = peerPublicKey.usePinned { pinnedPublicKey ->
+            CFDataCreate(
+                allocator = kCFAllocatorDefault,
+                bytes = pinnedPublicKey.addressOf(0).reinterpret(),
+                length = peerPublicKey.size.toLong()
+            )
+        }
+
+        val attributes = kassaforteDictionary(
+            capacity = 3,
+            addEntries = {
+                CFDictionaryAddValue(
+                    theDict = this,
+                    key = kSecAttrKeyType,
+                    value = kSecAttrKeyTypeECSECPrimeRandom
+                )
+                CFDictionaryAddValue(
+                    theDict = this,
+                    key = kSecAttrKeyClass,
+                    value = kSecAttrKeyClassPublic
+                )
+                CFDictionaryAddValue(
+                    theDict = this,
+                    key = kSecAttrKeySizeInBits,
+                    value = CFBridgingRetain(keySize.bitCount)
+                )
+            }
+        )
+
+        return errorScoped { errorVar ->
+            SecKeyCreateWithData(
+                keyData = data,
+                attributes = attributes,
+                error = errorVar.ptr
+            )
+        }
     }
 
     /**
@@ -460,6 +605,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         val algorithmType = encryptionPadding.toSecKeyAlgorithm(
             digest = digest
         ).algorithm!!
+
         return usage(key, algorithmType)
     }
 

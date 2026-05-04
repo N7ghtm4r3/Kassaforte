@@ -20,8 +20,10 @@ import com.tecknobit.kassaforte.key.usages.KeyOperation
 import com.tecknobit.kassaforte.key.usages.KeyOperation.Companion.checkIfRequiresPublicKey
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.ALIAS_ALREADY_TAKEN_ERROR
+import com.tecknobit.kassaforte.services.KassaforteKeysService.Companion.KEY_CANNOT_PERFORM_OPERATION_ERROR
 import com.tecknobit.kassaforte.services.helpers.KassaforteServiceImplManager
 import com.tecknobit.kassaforte.services.helpers.KassaforteServiceImplManager.Companion.ANDROID_KEYSTORE
+import com.tecknobit.kassaforte.services.helpers.canPerform
 import com.tecknobit.kassaforte.services.helpers.isStrongBoxAvailable
 import java.security.Key
 import java.security.KeyPairGenerator
@@ -59,6 +61,7 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
     ) {
         if (aliasExists(alias))
             throw IllegalAccessException(ALIAS_ALREADY_TAKEN_ERROR)
+
         val keyPairGenerator = KeyPairGenerator.getInstance(
             algorithm.value,
             ANDROID_KEYSTORE
@@ -75,6 +78,7 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
                 keyPurposes = purposes
             )
         }
+
         keyPairGenerator.initialize(genSpec)
         keyPairGenerator.genKeyPair()
     }
@@ -159,6 +163,8 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
      * @param keyOperation The operation for what the key is being getting
      *
      * @return the specified key as [Key]
+     *
+     * @throws RuntimeException When the operation requested cannot be formed with the specified key
      */
     actual override fun getKey(
         alias: String,
@@ -168,6 +174,9 @@ internal actual class KassaforteAsymmetricServiceImpl actual constructor() : Kas
         val storedKey = serviceImplManager.retrieveKey(
             alias = alias
         )
+        if (!storedKey.canPerform(keyOperation))
+            throw RuntimeException(KEY_CANNOT_PERFORM_OPERATION_ERROR.format(keyOperation))
+
         return if (requiresPublicKey) {
             retrievePublicKey(
                 alias = alias

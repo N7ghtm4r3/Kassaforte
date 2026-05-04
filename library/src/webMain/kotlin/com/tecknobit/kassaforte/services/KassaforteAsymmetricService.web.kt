@@ -9,13 +9,10 @@ import com.tecknobit.kassaforte.enums.ExportFormat.SPKI
 import com.tecknobit.kassaforte.enums.NamedCurve.Companion.toNamedCurve
 import com.tecknobit.kassaforte.enums.RsaAlgorithmName.Companion.toRsaAlgorithmName
 import com.tecknobit.kassaforte.enums.RsaAlgorithmName.RSASSA_PKCS1_v1_5
+import com.tecknobit.kassaforte.helpers.toArrayBuffer
 import com.tecknobit.kassaforte.helpers.toByteArray
-import com.tecknobit.kassaforte.key.genspec.Algorithm
-import com.tecknobit.kassaforte.key.genspec.Algorithm.EC
-import com.tecknobit.kassaforte.key.genspec.Algorithm.RSA
-import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
-import com.tecknobit.kassaforte.key.genspec.Digest
-import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
+import com.tecknobit.kassaforte.key.genspec.*
+import com.tecknobit.kassaforte.key.genspec.Algorithm.*
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.helpers.KassaforteAsymmetricServiceManager
 import com.tecknobit.kassaforte.util.decode
@@ -25,6 +22,7 @@ import com.tecknobit.kassaforte.utils.asPlainText
 import com.tecknobit.kassaforte.wrappers.crypto.ecdsaParams
 import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.EcKeyGenParams
+import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.EcdhKeyDeriveParams
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.KeyGenSpec
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.RsaHashedKeyGenParams
 import com.tecknobit.kassaforte.wrappers.crypto.key.raw.RawCryptoKeyPair
@@ -32,6 +30,7 @@ import com.tecknobit.kassaforte.wrappers.crypto.params.EncryptionParams
 import com.tecknobit.kassaforte.wrappers.crypto.rsaOaepParams
 import com.tecknobit.kassaforte.wrappers.crypto.rsaPKCS1Params
 import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.JsArray
 
 /**
  * The `KassaforteAsymmetricService` class allows to generate and to use asymmetric keys and managing their persistence.
@@ -47,12 +46,6 @@ import kotlin.js.ExperimentalWasmJsInterop
  */
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyGenSpec>() {
-
-    /**
-     * `DEFAULT_EC_NAME` constant value to represent the [Algorithm.EC]'s `ECDSA` type
-     */
-    // TODO: PROVIDE ALSO ECDH WHEN INTEGRATED THE AGREEMENT
-    private const val DEFAULT_EC_NAME = "ECDSA"
 
     /**
      * `serviceManager` instance of the manager which helps the service to perform the operations with the keys
@@ -78,7 +71,8 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             genSpec = {
                 resolveKeyGenSpec(
                     algorithm = algorithm,
-                    keyGenSpec = keyGenSpec
+                    keyGenSpec = keyGenSpec,
+                    purposes = purposes
                 )
             },
             purposes = purposes
@@ -90,6 +84,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
      *
      * @param algorithm The algorithm the key will use
      * @param keyGenSpec The generation spec to use to generate the key
+     * @param purposes The purposes the key can be used
      *
      * @return the gen spec as [KeyGenSpec]
      */
@@ -97,6 +92,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
     private fun resolveKeyGenSpec(
         algorithm: Algorithm,
         keyGenSpec: AsymmetricKeyGenSpec,
+        purposes: KeyPurposes,
     ): KeyGenSpec {
         return when (algorithm) {
             RSA -> {
@@ -110,9 +106,20 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                 )
             }
 
-            EC -> {
+            EC, ECDH, ECDSA -> {
+                val genAlgorithm = when (algorithm) {
+                    EC -> {
+                        if (purposes.canAgree)
+                            ECDH
+                        else
+                            ECDSA
+                    }
+
+                    else -> algorithm
+                }
+
                 resolveEcKeyGenParams(
-                    name = DEFAULT_EC_NAME,
+                    name = genAlgorithm.value,
                     namedCurve = keyGenSpec.keySize
                         .toNamedCurve()
                         .value
@@ -151,6 +158,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         val rawCryptoKeyPair: RawCryptoKeyPair = serviceManager.retrieveKeyData(
             alias = alias
         )
+
         val encryptedData = serviceManager.useKey(
             rawKey = rawCryptoKeyPair.publicKey,
             rawKeyData = rawCryptoKeyPair,
@@ -165,6 +173,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                 encode(encryptedData.toByteArray())
             }
         )
+
         return encryptedData
     }
 
@@ -187,6 +196,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         val rawCryptoKeyPair: RawCryptoKeyPair = serviceManager.retrieveKeyData(
             alias = alias
         )
+
         val decryptedData = serviceManager.useKey(
             rawKey = rawCryptoKeyPair.privateKey,
             rawKeyData = rawCryptoKeyPair,
@@ -201,6 +211,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                 decryptedData.asPlainText()
             }
         )
+
         return decryptedData
     }
 
@@ -223,6 +234,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         val rawCryptoKeyPair: RawCryptoKeyPair = serviceManager.retrieveKeyData(
             alias = alias
         )
+
         val signedMessage = serviceManager.useKey(
             rawKey = rawCryptoKeyPair.privateKey,
             rawKeyData = rawCryptoKeyPair,
@@ -238,6 +250,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                 encode(signature)
             }
         )
+
         return signedMessage
     }
 
@@ -262,6 +275,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         val rawCryptoKeyPair: RawCryptoKeyPair = serviceManager.retrieveKeyData(
             alias = alias
         )
+
         val result = serviceManager.useKey(
             rawKey = rawCryptoKeyPair.publicKey,
             rawKeyData = rawCryptoKeyPair,
@@ -278,6 +292,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                 )
             }
         )
+
         return result
     }
 
@@ -293,6 +308,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         digest: Digest,
     ): EncryptionParams {
         val algorithm = algorithm.name
+
         return if (algorithm.contains(RSASSA_PKCS1_v1_5.value))
             rsaPKCS1Params()
         else {
@@ -300,6 +316,114 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
                 hash = digest.value
             )
         }
+    }
+
+    /**
+     * Method to perform an `Envelope Encryption` for wrapping a `DEK` material
+     *
+     * @param kekAlias The alias which identify the `KEK` key to use
+     * @param padding The padding to apply to wrap the material
+     * @param digest The digest to apply to wrap material
+     * @param dekBytes Arbitrary bytes representing the `DEK` material to wrap
+     *
+     * @return the [dekBytes] wrapped using the specified KEK key as `Base64` [String]
+     *
+     * @since Revision Three
+     */
+    actual suspend fun wrap(
+        kekAlias: String,
+        padding: EncryptionPadding,
+        digest: Digest,
+        dekBytes: ByteArray,
+    ): String {
+        return encrypt(
+            alias = kekAlias,
+            padding = padding,
+            digest = digest,
+            data = encode(dekBytes)
+        )
+    }
+
+    /**
+     * Method to perform an `Envelope Decryption` for unwrapping a `DEK` material previously
+     * wrapped
+     *
+     * @param kekAlias The alias which identify the `KEK` key to use
+     * @param padding The padding to apply to unwrap the material
+     * @param digest The digest to apply to unwrap the material
+     * @param wrappedDek The wrapped material, `Base64` encoded, to unwrap
+     *
+     * @return the material unwrapped using the specified KEK key as [ByteArray]
+     *
+     * @since Revision Three
+     */
+    actual suspend fun unwrap(
+        kekAlias: String,
+        padding: EncryptionPadding,
+        digest: Digest,
+        wrappedDek: String,
+    ): ByteArray {
+        val unwrappedDek = decrypt(
+            alias = kekAlias,
+            padding = padding,
+            digest = digest,
+            data = wrappedDek
+        )
+
+        return decode(unwrappedDek)
+    }
+
+    /**
+     * Method to perform a key agreement and obtain a shared secret
+     *
+     * @param alias The alias of the private key used in the agreement
+     * @param peerPublicKey The remote peer public key used to compute the shared secret
+     * @param publicKeyLength The length of the public key
+     * @param secretLength The length the shared secret must have
+     *
+     * @return the shared secret generated with the agreement as `Base64` encoded [String]
+     *
+     * @since Revision Three
+     */
+    actual suspend fun agree(
+        alias: String,
+        peerPublicKey: ByteArray,
+        publicKeyLength: KeySize,
+        secretLength: KeySize,
+    ): String {
+        val rawCryptoKeyPair = serviceManager.retrieveKeyData(
+            alias = alias
+        )
+
+        val publicKey = serviceManager.importKey(
+            format = SPKI,
+            keyData = peerPublicKey.toArrayBuffer(),
+            algorithm = resolveEcKeyGenParams(
+                name = ECDH.value,
+                namedCurve = publicKeyLength
+                    .toNamedCurve()
+                    .value
+            ),
+            extractable = false,
+            keyUsages = JsArray()
+        )
+
+        val secret = serviceManager.useKey(
+            rawKey = rawCryptoKeyPair.privateKey,
+            rawKeyData = rawCryptoKeyPair,
+            format = PKCS8,
+            usage = { privateKey ->
+                serviceManager.deriveKey(
+                    algorithm = resolveEcdhKeyDeriveParams(
+                        public = publicKey
+                    ),
+                    baseKey = privateKey,
+                    keySize = secretLength
+                )
+            }
+        )
+
+        return encode(secret)
     }
 
     /**
@@ -364,3 +488,25 @@ private external fun resolveEcKeyGenParams(
     name: String,
     namedCurve: String,
 ): EcKeyGenParams
+
+/**
+ * Method used to assemble a native [EcdhKeyDeriveParams] object
+ *
+ * @param public The remote peer public key to use in the agreement
+ *
+ * @return the key gen params as [EcdhKeyDeriveParams]
+ *
+ * @since Revision Three
+ */
+@JsFun(
+    """
+    (publicKey) => ({
+        name: `ECDH`,
+        public: publicKey
+    })
+    """
+)
+@Assembler
+private external fun resolveEcdhKeyDeriveParams(
+    public: CryptoKey,
+): EcdhKeyDeriveParams

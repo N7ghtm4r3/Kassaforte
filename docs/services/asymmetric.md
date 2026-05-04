@@ -9,7 +9,7 @@ The supported asymmetric algorithms to generate and then use the keys are the fo
     - `PKCS#1` RSA signature scheme with `PKCS#1 v1.5 padding` (on the web just signing and verifying only)
     - `RSA_OAEP` RSA encryption using OAEP padding
 - `EC` asymmetric algorithm based on elliptic curve cryptography (ECC),
-  commonly used for digital signatures (ECDSA) and key exchange (ECDH, unsupported at the moment)
+  commonly used for digital signatures (ECDSA) and key exchange (ECDH)
 
 ## Architecture
 
@@ -80,7 +80,7 @@ Following the below compatibility table you can assign the purposes to the gener
 |:---------:|:------------------:|:--------------------------------------------------:|
 |   `RSA`   |     `RSA_OAEP`     |             `canEncrypt`, `canDecrypt`             |
 |   `RSA`   |    `RSA_PKCS1`     | `canEncrypt`, `canDecrypt`, `canSign`, `canVerify` |
-|   `EC`    |       `NONE`       |               `canSign`, `canVerify`               |
+|   `EC`    |       `NONE`       |  `canSign`, `canVerify`, `canWrapKey`, `canAgree`  |
 
 !!! Warning
 
@@ -208,6 +208,82 @@ scope.launch {
     println(result) // true or false
 }
 ```
+
+#### Wrap
+
+Encrypts the specified key material using the `Envelope Encryption` mechanism
+
+```kotlin
+val scope = MainScope()
+scope.launch {
+  // the key material to wrap
+  val materialKeyData = byteArrayOf(8, 21, 18, 22, 27, 16)
+
+  // wrap the specified key
+  val wrappedDek = KassaforteAsymmetricService.wrap(
+    kekAlias = "toIdentifyTheKey",
+    padding = EncryptionPadding.RSA_OAEP,
+    digest = Digest.SHA256,
+    dekBytes = materialKeyData
+  )
+
+  println(wrappedDek) // wrapped material
+}
+```
+
+!!! Info
+
+    The `wrappedDek` is encoded as `Base64` format
+
+#### Unwrap
+
+Decrypts the specified `Data Encryption Key (DEK)` performing a `Envelope Dencryption`
+
+```kotlin
+val scope = MainScope()
+scope.launch {
+  // the DEK material to unwrap
+  val wrappedDek = 5 Nql5JTwM7Btu2wMjivMVtKALy1TdOrwzcxCJtssz5hGtqYkvvaMI64 =
+
+  // unwrap the specified material
+  val unwrappedDek = KassaforteAsymmetricService.unwrap(
+    kekAlias = "toIdentifyTheKey",
+    padding = EncryptionPadding.RSA_OAEP,
+    digest = Digest.SHA256,
+    wrappedDek = wrappedDek
+  )
+
+  println(unwrappedDek.contentToString()) // [8, 21, 18, 22, 27, 16]
+}
+```
+
+#### Agree
+
+When using the `Algorithm.EC` algorithm, key generation is performed through a key agreement process between a
+key locally stored by the library and a remote peer’s public key provided as an argument
+
+```kotlin
+val scope = MainScope()
+scope.launch {
+  // the data of the remote peer's public key
+  val peerPublicKey = byteArrayOf(8, 21, 18, 22, 27, 16, ...)
+
+  val publicKeyLength = KeySize.256
+
+  val sharedSecret = KassaforteAsymmetricService.agree(
+    alias = "toIdentifyTheKey",
+    peerPublicKey = peerPublicKey,
+    publicKeyLength = keySize
+  )
+
+  println(sharedSecret) // wM7Btu2wMjivMVtKALy1TdOrwzcxCJtssz5hGtq==
+}
+```
+
+!!! Warning
+
+    The produced `sharedSecret` is encoded in Base64 format and represents the first step of the key agreement.
+    It is not sufficient to be used directly as a cryptographic key. You can use the [deriveKey](../../symmetric/derivation.md) method to derive a secure key suitable for further use.
 
 ### Delete a key
 

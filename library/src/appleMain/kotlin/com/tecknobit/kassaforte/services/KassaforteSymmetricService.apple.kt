@@ -2,19 +2,22 @@
 
 package com.tecknobit.kassaforte.services
 
+import com.tecknobit.equinoxcore.annotations.Implementation
 import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.equinoxcore.annotations.Validator
 import com.tecknobit.kassaforte.Kassaforte
-import com.tecknobit.kassaforte.key.genspec.Algorithm
+import com.tecknobit.kassaforte.key.KassaforteDerivedKey
+import com.tecknobit.kassaforte.key.genspec.*
 import com.tecknobit.kassaforte.key.genspec.Algorithm.*
-import com.tecknobit.kassaforte.key.genspec.BlockMode
 import com.tecknobit.kassaforte.key.genspec.BlockMode.*
-import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
-import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
+import com.tecknobit.kassaforte.key.genspec.Digest.*
+import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.PKCS7
 import com.tecknobit.kassaforte.key.usages.KeyDetailsSheet
 import com.tecknobit.kassaforte.key.usages.KeyOperation
 import com.tecknobit.kassaforte.key.usages.KeyOperation.*
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
+import com.tecknobit.kassaforte.services.KassaforteSymmetricService.sign
+import com.tecknobit.kassaforte.services.KassaforteSymmetricService.verify
 import com.tecknobit.kassaforte.services.helpers.KassaforteSymmetricServiceManager
 import com.tecknobit.kassaforte.util.decode
 import com.tecknobit.kassaforte.util.encode
@@ -64,8 +67,10 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     ) {
         if (aliasExists(alias))
             throw RuntimeException(ALIAS_ALREADY_TAKEN_ERROR)
+
         val keySize = keyGenSpec.keySize.bytes
         val keyBytes = ByteArray(keySize)
+
         val status = keyBytes.usePinned { pinned ->
             SecRandomCopyBytes(
                 rnd = kSecRandomDefault,
@@ -73,8 +78,9 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
                 bytes = pinned.addressOf(0)
             )
         }
-        if (status != 0)
+        if (status != kCCSuccess)
             throw RuntimeException("Error during the creation of the key")
+
         storeKeyData(
             alias = alias,
             keyInfo = KeyInfo(
@@ -114,6 +120,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             keyInfo = keyInfo
         )
         val kassaforte = Kassaforte(alias)
+
         kassaforte.safeguard(
             key = alias,
             data = encodedKeyData
@@ -128,10 +135,11 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
      * @return the data of the key formatted as [String]
      */
     @Returner
-    private inline fun formatKeyData(
+    private fun formatKeyData(
         keyInfo: KeyInfo,
     ): String {
         val encodedKeyInfo = Json.encodeToString(keyInfo)
+
         return encode(encodedKeyInfo)
     }
 
@@ -151,23 +159,13 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         padding: EncryptionPadding,
         data: Any,
     ): String {
-        val blockSize = blockMode.blockSize
-        val iv = ByteArray(blockSize)
-        iv.usePinned { pinned ->
-            SecRandomCopyBytes(
-                kSecRandomDefault,
-                blockSize.toULong(),
-                pinned.addressOf(0)
-            )
-        }
-        val encryptedData = useCryptor(
+        return encryptImpl(
             alias = alias,
             keyOperation = ENCRYPT,
             blockMode = blockMode,
-            iv = iv,
-            data = data.encodeForKeyOperation()
+            padding = padding,
+            data = data
         )
-        return encode(iv + encryptedData)
     }
 
     /**
@@ -186,155 +184,13 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         padding: EncryptionPadding,
         data: String,
     ): String {
-        val dataToDecrypt = decode(data)
-        val blockSize = blockMode.blockSize
-        val iv = dataToDecrypt.copyOfRange(0, blockSize)
-        val cipherText = dataToDecrypt.copyOfRange(blockSize, dataToDecrypt.size)
-        val plainText = useCryptor(
+        return decryptImpl(
             alias = alias,
             keyOperation = DECRYPT,
             blockMode = blockMode,
-            iv = iv,
-            data = cipherText
+            padding = padding,
+            data = data
         )
-        return plainText.decodeToString()
-    }
-
-    /**
-     * Method used to work and to use a key to perform encryption or decryption of the data
-     *
-     * @param alias The alias which identify the key to use
-     * @param keyOperation The operation the key have to perform
-     * @param blockMode The block mode to use to ciphering data
-     * @param iv The initialization vector to use to perform the ciphering
-     * @param data The data to handle using the [CCCryptorRef]
-     *
-     * @return the handled data as [ByteArray]
-     *
-     * @since Revision Two
-     */
-    private inline fun useCryptor(
-        alias: String,
-        keyOperation: KeyOperation,
-        blockMode: BlockMode,
-        iv: ByteArray,
-        data: ByteArray,
-    ): ByteArray {
-        // TODO: to remove when GCM integrated
-        if (blockMode == GCM)
-            throw RuntimeException("GCM on Apple is currently missing, use CBC or CTR instead")
-        // TODO: WHEN GCM AVAILABLE INTEGRATE IT
-        val keyInfo = getKeyInfo(
-            alias = alias,
-            keyOperation = keyOperation
-        )
-        val key = keyInfo.key
-        return memScoped {
-            val cryptor = createCryptor(
-                key = key,
-                keyOperation = keyOperation,
-                blockMode = blockMode,
-                iv = iv
-            )
-            val output = consumeCryptor(
-                cryptor = cryptor.value,
-                data = data
-            )
-            output
-        }
-    }
-
-    /**
-     * Method used to create a [CCCryptorRefVar] instance to perform the symmetric encryption or decryption
-     *
-     * @param key The key to use to create the cryptor instance
-     * @param keyOperation The operation the key have to perform
-     * @param blockMode The block mode to use to ciphering data
-     * @param iv The initialization vector to use to perform the ciphering
-     *
-     * @return the cryptor instance as [CCCryptorRefVar]
-     *
-     * @since Revision Two
-     */
-    private fun MemScope.createCryptor(
-        key: ByteArray,
-        keyOperation: KeyOperation,
-        blockMode: BlockMode,
-        iv: ByteArray,
-    ): CCCryptorRefVar {
-        val cryptor = alloc<CCCryptorRefVar>()
-        val status = CCCryptorCreateWithMode(
-            op = if (keyOperation == ENCRYPT)
-                kCCEncrypt
-            else
-                kCCDecrypt,
-            mode = when (blockMode) {
-                CBC -> kCCModeCBC
-                CTR -> kCCModeCTR
-                else -> throw RuntimeException("Invalid block mode")
-            },
-            alg = kCCAlgorithmAES,
-            padding = if (blockMode == CBC)
-                ccPKCS7Padding
-            else
-                ccNoPadding,
-            iv = iv.refTo(0),
-            key = key.refTo(0),
-            keyLength = key.size.toULong(),
-            cryptorRef = cryptor.ptr,
-            tweak = null,
-            tweakLength = 0uL,
-            numRounds = 0,
-            options = 0u
-        )
-        if (status != kCCSuccess)
-            throw RuntimeException("Cannot perform operation with the key")
-        return cryptor
-    }
-
-    /**
-     * Method used to consume a [CCCryptorRef] instance and obtain the result of its consuming such cipher text or plain
-     * text bytes
-     *
-     * @param cryptor The cryptor instance to consume
-     * @param data The data to handle using the cryptor
-     *
-     * @return the result produced by cryptor consuming as [ByteArray]
-     *
-     * @since Revision Two
-     */
-    private fun MemScope.consumeCryptor(
-        cryptor: CCCryptorRef?,
-        data: ByteArray,
-    ): ByteArray {
-        val output = ByteArray((data.size.toUInt() + kCCBlockSizeAES128).toInt())
-        val outputSize = output.size
-        val outputMoved = alloc<size_tVar>()
-        val outMovedFinal = alloc<size_tVar>()
-        val totalProduced: Int
-        try {
-            CCCryptorUpdate(
-                cryptorRef = cryptor,
-                dataIn = data.refTo(0),
-                dataInLength = data.size.toULong(),
-                dataOut = output.refTo(0),
-                dataOutAvailable = outputSize.toULong(),
-                dataOutMoved = outputMoved.ptr
-            )
-            totalProduced = outputMoved.value.toInt()
-            CCCryptorFinal(
-                cryptorRef = cryptor,
-                dataOut = output.refTo(totalProduced),
-                dataOutAvailable = (outputSize - totalProduced).toULong(),
-                dataOutMoved = outMovedFinal.ptr
-            )
-        } finally {
-            CCCryptorRelease(
-                cryptorRef = cryptor
-            )
-        }
-        val totalBytes = totalProduced + outMovedFinal.value.toInt()
-        return output.copyOf(totalBytes)
     }
 
     /**
@@ -358,8 +214,10 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         val key = keyInfo.key
         val algorithm = keyInfo.algorithm
         val signedMessage = algorithm.resolveHMACOutRef()
+
         signedMessage.usePinned { messageRef ->
             val messageData = message.encodeForKeyOperation()
+
             key.usePinned { pinnedKey ->
                 messageData.usePinned { pinnedMessage ->
                     CCHmac(
@@ -374,6 +232,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
                 }
             }
         }
+
         return encode(signedMessage)
     }
 
@@ -435,6 +294,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
             alias = alias,
             message = message
         )
+
         return verification.isEqual(
             signature = signature
         )
@@ -461,15 +321,288 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         val lenA = digesta.size
         val digestb = decode(signature)
         val lenB = digestb.size
+
         if (lenB == 0)
             return lenA == 0
+
         var result = 0
         result = result or (lenA - lenB)
         for (j in digesta.indices) {
             val indexB = ((j - lenB) ushr 31) * j
             result = result or (digesta[j] xor digestb[indexB]).toInt()
         }
+
         return result == 0
+    }
+
+    /**
+     * Method to perform an `Envelope Encryption` for wrapping a `DEK` material
+     *
+     * @param kekAlias The alias which identify the `KEK` key to use
+     * @param dekBytes Arbitrary bytes representing the `DEK` material to wrap
+     *
+     * @return the [dekBytes] wrapped using the specified KEK key as `Base64` [String]
+     *
+     * @since Revision Three
+     */
+    actual suspend fun wrap(
+        kekAlias: String,
+        dekBytes: ByteArray,
+    ): String {
+        return encryptImpl(
+            alias = kekAlias,
+            keyOperation = WRAP,
+            blockMode = CBC,
+            padding = PKCS7,
+            data = encode(dekBytes)
+        )
+    }
+
+    /**
+     * Method to perform an `Envelope Decryption` for unwrapping a `DEK` material previously
+     * wrapped
+     *
+     * @param kekAlias The alias which identify the `KEK` key to use
+     * @param wrappedDek The wrapped material, `Base64` encoded, to unwrap
+     *
+     * @return the material unwrapped using the specified KEK key as [ByteArray]
+     *
+     * @since Revision Three
+     */
+    actual suspend fun unwrap(
+        kekAlias: String,
+        wrappedDek: String,
+    ): ByteArray {
+        val unwrappedDek = decryptImpl(
+            alias = kekAlias,
+            keyOperation = UNWRAP,
+            blockMode = CBC,
+            padding = PKCS7,
+            data = wrappedDek
+        )
+
+        return decode(unwrappedDek)
+    }
+
+    /**
+     * Implementation method used to encrypt data with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param keyOperation [KeyOperation.ENCRYPT] or [KeyOperation.WRAP]
+     * @param blockMode The block mode to use to encrypt data
+     * @param padding The padding to apply to encrypt data
+     * @param data The data to encrypt
+     *
+     * @return the encrypted data as [String]
+     *
+     * @since Revision Three
+     */
+    @Implementation
+    private fun encryptImpl(
+        alias: String,
+        keyOperation: KeyOperation,
+        blockMode: BlockMode,
+        padding: EncryptionPadding,
+        data: Any,
+    ): String {
+        val blockSize = blockMode.blockSize
+        val iv = ByteArray(blockSize)
+
+        iv.usePinned { pinned ->
+            SecRandomCopyBytes(
+                kSecRandomDefault,
+                blockSize.toULong(),
+                pinned.addressOf(0)
+            )
+        }
+
+        val encryptedData = useCryptor(
+            alias = alias,
+            keyOperation = keyOperation,
+            blockMode = blockMode,
+            iv = iv,
+            data = data.encodeForKeyOperation()
+        )
+
+        return encode(iv + encryptedData)
+    }
+
+    /**
+     * Implementation method used to decrypt encrypted data with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param keyOperation [KeyOperation.DECRYPT] or [KeyOperation.UNWRAP]
+     * @param blockMode The block mode to use to decrypt data
+     * @param padding The padding to apply to decrypt data
+     * @param data The data to decrypt
+     *
+     * @return the decrypted data as [String]
+     */
+    @Implementation
+    private fun decryptImpl(
+        alias: String,
+        keyOperation: KeyOperation,
+        blockMode: BlockMode,
+        padding: EncryptionPadding,
+        data: String,
+    ): String {
+        val dataToDecrypt = decode(data)
+        val blockSize = blockMode.blockSize
+        val iv = dataToDecrypt.copyOfRange(0, blockSize)
+        val cipherText = dataToDecrypt.copyOfRange(blockSize, dataToDecrypt.size)
+
+        val plainText = useCryptor(
+            alias = alias,
+            keyOperation = keyOperation,
+            blockMode = blockMode,
+            iv = iv,
+            data = cipherText
+        )
+
+        return plainText.decodeToString()
+    }
+
+    /**
+     * Method used to work and to use a key to perform encryption or decryption of the data
+     *
+     * @param alias The alias which identify the key to use
+     * @param keyOperation The operation the key have to perform
+     * @param blockMode The block mode to use to ciphering data
+     * @param iv The initialization vector to use to perform the ciphering
+     * @param data The data to handle using the [CCCryptorRef]
+     *
+     * @return the handled data as [ByteArray]
+     *
+     * @since Revision Two
+     */
+    private fun useCryptor(
+        alias: String,
+        keyOperation: KeyOperation,
+        blockMode: BlockMode,
+        iv: ByteArray,
+        data: ByteArray,
+    ): ByteArray {
+        // TODO: to remove when GCM integrated
+        if (blockMode == GCM)
+            throw RuntimeException("GCM on Apple is currently missing, use CBC or CTR instead")
+        // TODO: WHEN GCM AVAILABLE INTEGRATE IT
+        val keyInfo = getKeyInfo(
+            alias = alias,
+            keyOperation = keyOperation
+        )
+        val key = keyInfo.key
+
+        return memScoped {
+            val cryptor = createCryptor(
+                key = key,
+                keyOperation = keyOperation,
+                blockMode = blockMode,
+                iv = iv
+            )
+            val output = consumeCryptor(
+                cryptor = cryptor.value,
+                data = data
+            )
+            output
+        }
+    }
+
+    /**
+     * Method used to create a [CCCryptorRefVar] instance to perform the symmetric encryption or decryption
+     *
+     * @param key The key to use to create the cryptor instance
+     * @param keyOperation The operation the key have to perform
+     * @param blockMode The block mode to use to ciphering data
+     * @param iv The initialization vector to use to perform the ciphering
+     *
+     * @return the cryptor instance as [CCCryptorRefVar]
+     *
+     * @since Revision Two
+     */
+    private fun MemScope.createCryptor(
+        key: ByteArray,
+        keyOperation: KeyOperation,
+        blockMode: BlockMode,
+        iv: ByteArray,
+    ): CCCryptorRefVar {
+        val cryptor = alloc<CCCryptorRefVar>()
+
+        val status = CCCryptorCreateWithMode(
+            op = if (keyOperation == ENCRYPT || keyOperation == WRAP)
+                kCCEncrypt
+            else
+                kCCDecrypt,
+            mode = when (blockMode) {
+                CBC -> kCCModeCBC
+                CTR -> kCCModeCTR
+                else -> throw RuntimeException("Invalid block mode")
+            },
+            alg = kCCAlgorithmAES,
+            padding = if (blockMode == CBC)
+                ccPKCS7Padding
+            else
+                ccNoPadding,
+            iv = iv.refTo(0),
+            key = key.refTo(0),
+            keyLength = key.size.toULong(),
+            cryptorRef = cryptor.ptr,
+            tweak = null,
+            tweakLength = 0uL,
+            numRounds = 0,
+            options = 0u
+        )
+
+        if (status != kCCSuccess)
+            throw RuntimeException("Cannot perform operation with the key")
+
+        return cryptor
+    }
+
+    /**
+     * Method used to consume a [CCCryptorRef] instance and obtain the result of its consuming such cipher text or plain
+     * text bytes
+     *
+     * @param cryptor The cryptor instance to consume
+     * @param data The data to handle using the cryptor
+     *
+     * @return the result produced by cryptor consuming as [ByteArray]
+     *
+     * @since Revision Two
+     */
+    private fun MemScope.consumeCryptor(
+        cryptor: CCCryptorRef?,
+        data: ByteArray,
+    ): ByteArray {
+        val output = ByteArray((data.size.toUInt() + kCCBlockSizeAES128).toInt())
+        val outputSize = output.size
+        val outputMoved = alloc<size_tVar>()
+        val outMovedFinal = alloc<size_tVar>()
+        val totalProduced: Int
+
+        try {
+            CCCryptorUpdate(
+                cryptorRef = cryptor,
+                dataIn = data.refTo(0),
+                dataInLength = data.size.toULong(),
+                dataOut = output.refTo(0),
+                dataOutAvailable = outputSize.toULong(),
+                dataOutMoved = outputMoved.ptr
+            )
+            totalProduced = outputMoved.value.toInt()
+            CCCryptorFinal(
+                cryptorRef = cryptor,
+                dataOut = output.refTo(totalProduced),
+                dataOutAvailable = (outputSize - totalProduced).toULong(),
+                dataOutMoved = outMovedFinal.ptr
+            )
+        } finally {
+            CCCryptorRelease(
+                cryptorRef = cryptor
+            )
+        }
+
+        val totalBytes = totalProduced + outMovedFinal.value.toInt()
+        return output.copyOf(totalBytes)
     }
 
     /**
@@ -481,6 +614,8 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
      * @return the key and related information as [KeyInfo]
      *
      * @since Revision Two
+     *
+     * @throws RuntimeException when the key is not available or cannot perform the specified [keyOperation]
      */
     private fun getKeyInfo(
         alias: String,
@@ -492,11 +627,87 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         )
         if (encodedKeyData == null)
             throw RuntimeException(IMPOSSIBLE_TO_RETRIEVE_KEY_ERROR)
+
         val decodedKeyData = decode(encodedKeyData).decodeToString()
         val keyInfo: KeyInfo = Json.decodeFromString(decodedKeyData)
         if (!keyInfo.canPerform(keyOperation))
             throw RuntimeException(KEY_CANNOT_PERFORM_OPERATION_ERROR.replace("%s", keyOperation.name))
+
         return keyInfo
+    }
+
+    /**
+     * Method used to derive a key from the specified [password]
+     *
+     * @param password The password used as material to derive a result key
+     * @param salt The salt used during the key derivation
+     * @param iterationCount The number of iteration used to derive the key
+     * @param keySize The size of the derived key
+     * @param digest The digest used to derive the key
+     *
+     * @return the derived key as [KassaforteDerivedKey]
+     *
+     * @since Revision Three
+     */
+    actual suspend fun deriveKey(
+        password: CharArray,
+        salt: ByteArray,
+        iterationCount: Int,
+        keySize: KeySize,
+        digest: Digest,
+    ): KassaforteDerivedKey {
+        val keyLength = keySize.bytes
+
+        val derivedKeyResult = memScoped {
+            val passwordStringed = password.concatToString()
+            val derivedKey = allocArray<UByteVar>(keyLength)
+
+            salt.usePinned { pinnedSalt ->
+                val status = CCKeyDerivationPBKDF(
+                    algorithm = kCCPBKDF2,
+                    password = passwordStringed,
+                    passwordLen = passwordStringed.length.toULong(),
+                    salt = pinnedSalt.addressOf(0).reinterpret(),
+                    saltLen = salt.size.toULong(),
+                    rounds = iterationCount.toUInt(),
+                    prf = digest.resolvePseudoRandomAlgorithm(),
+                    derivedKey = derivedKey,
+                    derivedKeyLen = keyLength.toULong()
+                )
+
+                if (status != kCCSuccess)
+                    throw RuntimeException("Error during key derivation")
+            }
+
+            derivedKey.readBytes(keyLength)
+        }
+
+        return KassaforteDerivedKey(
+            key = encode(derivedKeyResult),
+            salt = salt,
+            iterationCount = iterationCount,
+            keySize = keySize,
+            digest = digest
+        )
+    }
+
+    /**
+     * Method used to resolve from a [Digest] the related [CCPseudoRandomAlgorithm]
+     *
+     * @return the pseudo random algorithm as [CCPseudoRandomAlgorithm]
+     *
+     * @since Revision Three
+     */
+    @Returner
+    private fun Digest.resolvePseudoRandomAlgorithm(): CCPseudoRandomAlgorithm {
+        return when (this) {
+            SHA1 -> kCCPRFHmacAlgSHA1
+            SHA224 -> kCCPRFHmacAlgSHA224
+            SHA256 -> kCCPRFHmacAlgSHA256
+            SHA384 -> kCCPRFHmacAlgSHA384
+            SHA512 -> kCCPRFHmacAlgSHA512
+            else -> throw IllegalArgumentException("Invalid digest for key derivation")
+        }
     }
 
     /**

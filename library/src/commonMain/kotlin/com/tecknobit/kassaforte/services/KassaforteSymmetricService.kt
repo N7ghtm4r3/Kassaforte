@@ -1,10 +1,9 @@
 package com.tecknobit.kassaforte.services
 
-import com.tecknobit.kassaforte.key.genspec.Algorithm
-import com.tecknobit.kassaforte.key.genspec.BlockMode
-import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
+import com.tecknobit.kassaforte.key.KassaforteDerivedKey
+import com.tecknobit.kassaforte.key.KassaforteDerivedKey.Companion.DEFAULT_ITERATION_COUNT
+import com.tecknobit.kassaforte.key.genspec.*
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.NONE
-import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 
 /**
@@ -110,6 +109,58 @@ expect object KassaforteSymmetricService: KassaforteKeysService<SymmetricKeyGenS
         message: Any,
         signature: String,
     ): Boolean
+
+    /**
+     * Method to perform an `Envelope Encryption` for wrapping a `DEK` material
+     *
+     * @param kekAlias The alias which identify the `KEK` key to use
+     * @param dekBytes Arbitrary bytes representing the `DEK` material to wrap
+     *
+     * @return the [dekBytes] wrapped using the specified KEK key as `Base64` [String]
+     *
+     * @since Revision Three
+     */
+    suspend fun wrap(
+        kekAlias: String,
+        dekBytes: ByteArray,
+    ): String
+
+    /**
+     * Method to perform an `Envelope Decryption` for unwrapping a `DEK` material previously
+     * wrapped
+     *
+     * @param kekAlias The alias which identify the `KEK` key to use
+     * @param wrappedDek The wrapped material, `Base64` encoded, to unwrap
+     *
+     * @return the material unwrapped using the specified KEK key as [ByteArray]
+     *
+     * @since Revision Three
+     */
+    suspend fun unwrap(
+        kekAlias: String,
+        wrappedDek: String,
+    ): ByteArray
+
+    /**
+     * Method used to derive a key from the specified [password]
+     *
+     * @param password The password used as material to derive a result key
+     * @param salt The salt used during the key derivation
+     * @param iterationCount The number of iteration used to derive the key
+     * @param keySize The size of the derived key
+     * @param digest The digest used to derive the key
+     *
+     * @return the derived key as [KassaforteDerivedKey]
+     *
+     * @since Revision Three
+     */
+    suspend fun deriveKey(
+        password: CharArray,
+        salt: ByteArray,
+        iterationCount: Int = DEFAULT_ITERATION_COUNT,
+        keySize: KeySize,
+        digest: Digest = Digest.SHA256,
+    ): KassaforteDerivedKey
 
     /**
      * Method used to delete a generated key

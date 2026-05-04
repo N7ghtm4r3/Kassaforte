@@ -7,16 +7,15 @@ import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.enums.ExportFormat.RAW
 import com.tecknobit.kassaforte.helpers.toArrayBuffer
 import com.tecknobit.kassaforte.helpers.toByteArray
-import com.tecknobit.kassaforte.key.genspec.Algorithm
+import com.tecknobit.kassaforte.key.KassaforteDerivedKey
+import com.tecknobit.kassaforte.key.genspec.*
 import com.tecknobit.kassaforte.key.genspec.Algorithm.*
-import com.tecknobit.kassaforte.key.genspec.BlockMode
-import com.tecknobit.kassaforte.key.genspec.BlockMode.CBC
-import com.tecknobit.kassaforte.key.genspec.BlockMode.CTR
+import com.tecknobit.kassaforte.key.genspec.BlockMode.*
 import com.tecknobit.kassaforte.key.genspec.Digest.Companion.resolveHash
-import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
-import com.tecknobit.kassaforte.key.genspec.SymmetricKeyGenSpec
+import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.NONE
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.services.KassaforteSymmetricService.generateKey
+import com.tecknobit.kassaforte.services.helpers.KassaforteServiceImplManager.Companion.WRAP_KEY_USAGE
 import com.tecknobit.kassaforte.services.helpers.KassaforteSymmetricServiceManager
 import com.tecknobit.kassaforte.util.decode
 import com.tecknobit.kassaforte.util.encode
@@ -29,6 +28,7 @@ import com.tecknobit.kassaforte.wrappers.crypto.hmacParams
 import com.tecknobit.kassaforte.wrappers.crypto.key.CryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.HmacKeyGenParams
 import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.KeyGenSpec
+import com.tecknobit.kassaforte.wrappers.crypto.key.genspec.Pbkdf2Params
 import com.tecknobit.kassaforte.wrappers.crypto.key.raw.RawCryptoKey
 import com.tecknobit.kassaforte.wrappers.crypto.params.AesCbcParams
 import com.tecknobit.kassaforte.wrappers.crypto.params.AesCtrParams
@@ -36,6 +36,8 @@ import com.tecknobit.kassaforte.wrappers.crypto.params.AesGcmParams
 import com.tecknobit.kassaforte.wrappers.crypto.params.EncryptionParams
 import org.khronos.webgl.ArrayBuffer
 import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.toJsString
+import kotlin.js.toList
 import kotlin.js.unsafeCast
 
 /**
@@ -72,12 +74,19 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         keyGenSpec: SymmetricKeyGenSpec,
         purposes: KeyPurposes,
     ) {
+        val genSpec = if (purposes.canWrapKey) {
+            keyGenSpec.copy(
+                blockMode = GCM
+            )
+        } else
+            keyGenSpec
+
         serviceManager.generateKey(
             alias = alias,
             genSpec = {
                 resolveGenSpec(
                     algorithm = algorithm,
-                    keyGenSpec = keyGenSpec
+                    keyGenSpec = genSpec
                 )
             },
             purposes = purposes
@@ -146,6 +155,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         val rawKey: RawCryptoKey = serviceManager.retrieveKeyData(
             alias = alias
         )
+
         val encryptedData = serviceManager.useKey(
             rawKey = rawKey.key,
             rawKeyData = rawKey,
@@ -160,9 +170,11 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
                 )
                 val iv = aesParams.second.toByteArray()
                 val encryptedDataBytes = encryptedData.toByteArray()
+
                 encode(iv + encryptedDataBytes)
             }
         )
+
         return encryptedData
     }
 
@@ -185,6 +197,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         val rawKey: RawCryptoKey = serviceManager.retrieveKeyData(
             alias = alias
         )
+
         val decryptedData = serviceManager.useKey(
             rawKey = rawKey.key,
             rawKeyData = rawKey,
@@ -205,9 +218,11 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
                 val plainText = decryptedData.asPlainText(
                     blockMode = blockMode
                 )
+
                 plainText
             }
         )
+
         return decryptedData
     }
 
@@ -224,19 +239,20 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         iv: ArrayBuffer = ArrayBuffer(0),
     ): Pair<EncryptionParams, ArrayBuffer> {
         val algorithm = algorithm.name
+
         return when {
             algorithm.endsWith(CBC.value) -> {
-                val aesCbcParams: AesCbcParams = aesCbcParams(algorithm, iv)
+                val aesCbcParams: AesCbcParams = aesCbcParams(iv)
                 Pair(aesCbcParams, aesCbcParams.iv)
             }
 
             algorithm.endsWith(CTR.value) -> {
-                val aesCtrParams: AesCtrParams = aesCtrParams(algorithm, iv)
+                val aesCtrParams: AesCtrParams = aesCtrParams(iv)
                 Pair(aesCtrParams, aesCtrParams.counter)
             }
 
             else -> {
-                val aesGcmParams: AesGcmParams = aesGcmParams(algorithm, iv)
+                val aesGcmParams: AesGcmParams = aesGcmParams(iv)
                 Pair(aesGcmParams, aesGcmParams.iv)
             }
         }
@@ -259,6 +275,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         val rawKey: RawCryptoKey = serviceManager.retrieveKeyData(
             alias = alias
         )
+
         val signedMessage = serviceManager.useKey(
             rawKey = rawKey.key,
             rawKeyData = rawKey,
@@ -271,9 +288,11 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
                     key = key,
                     message = message
                 ).toByteArray()
+
                 encode(signature)
             }
         )
+
         return signedMessage
     }
 
@@ -296,6 +315,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
         val rawKey: RawCryptoKey = serviceManager.retrieveKeyData(
             alias = alias
         )
+
         val result = serviceManager.useKey(
             rawKey = rawKey.key,
             rawKeyData = rawKey,
@@ -311,6 +331,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
                 )
             }
         )
+
         return result
     }
 
@@ -323,6 +344,134 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     @Returner
     private fun CryptoKey.extractHash(): String {
         return algorithm.unsafeCast<HmacKeyGenParams>().hash
+    }
+
+    /**
+     * Method to perform an `Envelope Encryption` for wrapping a `DEK` material
+     *
+     * @param kekAlias The alias which identify the `KEK` key to use
+     * @param dekBytes Arbitrary bytes representing the `DEK` material to wrap
+     *
+     * @return the [dekBytes] wrapped using the specified KEK key as `Base64` [String]
+     *
+     * @since Revision Three
+     */
+    actual suspend fun wrap(
+        kekAlias: String,
+        dekBytes: ByteArray,
+    ): String {
+        if (!canPerformWrapping(kekAlias))
+            throw IllegalStateException("Cannot perform wrap operation with this key")
+
+        val wrappedDek = encrypt(
+            alias = kekAlias,
+            blockMode = GCM,
+            padding = NONE,
+            data = encode(dekBytes)
+        )
+
+        return wrappedDek
+    }
+
+    /**
+     * Method to perform an `Envelope Decryption` for unwrapping a `DEK` material previously
+     * wrapped
+     *
+     * @param kekAlias The alias which identify the `KEK` key to use
+     * @param wrappedDek The wrapped material, `Base64` encoded, to unwrap
+     *
+     * @return the material unwrapped using the specified KEK key as [ByteArray]
+     *
+     * @since Revision Three
+     */
+    actual suspend fun unwrap(
+        kekAlias: String,
+        wrappedDek: String,
+    ): ByteArray {
+        if (!canPerformWrapping(kekAlias))
+            throw IllegalStateException("Cannot perform unwrap operation with this key")
+
+        val unwrappedDek = decrypt(
+            alias = kekAlias,
+            blockMode = GCM,
+            padding = NONE,
+            data = wrappedDek
+        )
+
+        return decode(unwrappedDek)
+    }
+
+    /**
+     * Method used to check whether the specified [kekAlias] indicates a key that can perform the `wrapping` and `unwrapping`
+     * operations
+     *
+     * @param kekAlias The alias for the kek
+     *
+     * @return whether the specified key can perform the wrapping operation as [Boolean]
+     *
+     * @since Revision Three
+     */
+    @Returner
+    private suspend fun canPerformWrapping(
+        kekAlias: String,
+    ): Boolean {
+        val kek = serviceManager.retrieveKeyData(
+            alias = kekAlias
+        )
+        val usages = kek.usages.toList()
+
+        return usages.contains(WRAP_KEY_USAGE.toJsString())
+    }
+
+    /**
+     * Method used to derive a key from the specified [password]
+     *
+     * @param password The password used as material to derive a result key
+     * @param salt The salt used during the key derivation
+     * @param iterationCount The number of iteration used to derive the key
+     * @param keySize The size of the derived key
+     * @param digest The digest used to derive the key
+     *
+     * @return the derived key as [KassaforteDerivedKey]
+     *
+     * @since Revision Three
+     */
+    actual suspend fun deriveKey(
+        password: CharArray,
+        salt: ByteArray,
+        iterationCount: Int,
+        keySize: KeySize,
+        digest: Digest,
+    ): KassaforteDerivedKey {
+        val derivationKey = serviceManager.importKey(
+            format = RAW,
+            keyData = password.concatToString()
+                .encodeToByteArray()
+                .toArrayBuffer(),
+            algorithm = resolvePbkdf2Params(),
+            extractable = false,
+            purposes = KeyPurposes(
+                canDerive = true
+            )
+        )
+
+        val derivedKey = serviceManager.deriveKey(
+            algorithm = resolvePbkdf2Params(
+                hash = digest.value,
+                salt = salt.toArrayBuffer(),
+                iterations = iterationCount
+            ),
+            baseKey = derivationKey,
+            keySize = keySize
+        )
+
+        return KassaforteDerivedKey(
+            key = encode(derivedKey.toByteArray()),
+            salt = salt,
+            iterationCount = iterationCount,
+            keySize = keySize,
+            digest = digest
+        )
     }
 
     /**
@@ -385,3 +534,48 @@ private external fun resolveAESKeyGenSpec(
 private external fun resolveHMACKeyGenSpec(
     hash: String,
 ): HmacKeyGenParams
+
+/**
+ * Method used to assemble a native [Pbkdf2Params] object
+ *
+ * @return the key gen params as [Pbkdf2Params]
+ *
+ * @since Revision Three
+ */
+@JsFun(
+    """
+    () => ({
+        name: `PBKDF2`
+    })
+    """
+)
+@Assembler
+private external fun resolvePbkdf2Params(): Pbkdf2Params
+
+/**
+ * Method used to assemble a native [Pbkdf2Params] object
+ *
+ * @param hash The digest algorithm to use
+ * @param salt Random or pseudo-random value of at least 16 bytes, does not need to be kept secret
+ * @param iterations Representing the number of times the hash function will be executed during derivation
+ *
+ * @return the key gen params as [Pbkdf2Params]
+ *
+ * @since Revision Three
+ */
+@JsFun(
+    """
+    (hash, salt, iterations, length) => ({
+        name: `PBKDF2`,
+        hash: hash,
+        salt: salt,
+        iterations: iterations
+    })
+    """
+)
+@Assembler
+private external fun resolvePbkdf2Params(
+    hash: String,
+    salt: ArrayBuffer,
+    iterations: Int,
+): Pbkdf2Params

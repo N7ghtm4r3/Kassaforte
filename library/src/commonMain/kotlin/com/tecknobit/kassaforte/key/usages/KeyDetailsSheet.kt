@@ -48,17 +48,25 @@ interface KeyDetailsSheet<T> {
         get() = keyPurposes.canVerify
 
     /**
+     * `canWrapKey` whether the key can be used to wrap other key
+     */
+    val canWrapKey: Boolean
+        get() = keyPurposes.canWrapKey
+
+    /**
+     * `canDerive` whether the key can be used to derive another key
+     *
+     * @since Revision Three
+     */
+    val canDerive: Boolean
+        get() = keyPurposes.canDerive
+
+    /**
      * `canAgree` whether the key can be used in a key agreement protocol
      * to derive a shared secret
      */
     val canAgree: Boolean
         get() = keyPurposes.canAgree
-
-    /**
-     * `canWrapKey` whether the key can be used to wrap other key
-     */
-    val canWrapKey: Boolean
-        get() = keyPurposes.canWrapKey
 
     /**
      * Validator method used to check whether the key can be used to perform the specified [keyOperation]
@@ -76,8 +84,9 @@ interface KeyDetailsSheet<T> {
             DECRYPT -> canDecrypt
             SIGN -> canSign
             VERIFY -> canVerify
+            DERIVE -> canDerive
             AGREE -> canAgree
-            WRAP -> canWrapKey
+            WRAP, UNWRAP -> canWrapKey
             OBTAIN_KEY -> true
         }
     }

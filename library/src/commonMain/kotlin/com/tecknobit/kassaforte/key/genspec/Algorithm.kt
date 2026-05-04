@@ -55,6 +55,29 @@ enum class Algorithm(
      *
      * @since Revision Two
      */
-    HMAC_SHA512("HmacSHA512")
+    HMAC_SHA512("HmacSHA512"),
 
+    /**
+     * `PBKDF2` (Password-Based Key Derivation Function 2) algorithm used to derive a cryptographic key from a password
+     *
+     * @since Revision Three
+     */
+    PBKDF2("PBKDF2WithHmac"),
+
+    /**
+     * ECDSA (Elliptic Curve Digital Signature Algorithm)
+     * Used for digital signatures and verification with elliptic curve keys.
+     *
+     * @since Revision Three
+     */
+    ECDSA("ECDSA"),
+
+    /**
+     * ECDH (Elliptic Curve Diffie-Hellman)
+     * Used for key agreement to derive a shared secret between two parties.
+     *
+     * @since Revision Three
+     */
+    ECDH("ECDH")
+    
 }

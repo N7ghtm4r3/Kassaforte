@@ -66,6 +66,7 @@ nav:
           - Overview: services/symmetric/symmetric.md
           - AES: services/symmetric/aes.md
           - HMAC: services/symmetric/hmac.md
+          - Key Derivation: services/symmetric/derivation.md
       - Asymmetric: services/asymmetric.md
 
 extra:
@@ -76,4 +77,4 @@ extra:
       link: https://github.com/N7ghtm4r3/Kassaforte/issues/new
 
 copyright: |
-  &copy; 2025 <a href="https://github.com/N7ghtm4r3" target="new">N7ghtm4r3 - Tecknobit</a>
+  &copy; 2026 <a href="https://github.com/N7ghtm4r3" target="new">N7ghtm4r3 - Tecknobit</a>

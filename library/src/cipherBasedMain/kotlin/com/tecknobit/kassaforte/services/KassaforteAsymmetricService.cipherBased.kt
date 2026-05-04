@@ -1,11 +1,12 @@
 package com.tecknobit.kassaforte.services
 
 import com.tecknobit.equinoxcore.annotations.Assembler
+import com.tecknobit.equinoxcore.annotations.Implementation
+import com.tecknobit.equinoxcore.annotations.Returner
 import com.tecknobit.kassaforte.ECDSA
-import com.tecknobit.kassaforte.key.genspec.Algorithm
-import com.tecknobit.kassaforte.key.genspec.AsymmetricKeyGenSpec
-import com.tecknobit.kassaforte.key.genspec.Digest
-import com.tecknobit.kassaforte.key.genspec.EncryptionPadding
+import com.tecknobit.kassaforte.key.genspec.*
+import com.tecknobit.kassaforte.key.genspec.Algorithm.EC
+import com.tecknobit.kassaforte.key.genspec.Algorithm.ECDH
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.RSA_OAEP
 import com.tecknobit.kassaforte.key.genspec.EncryptionPadding.RSA_PKCS1
 import com.tecknobit.kassaforte.key.usages.KeyOperation
@@ -20,7 +21,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.security.*
+import java.security.spec.X509EncodedKeySpec
 import javax.crypto.Cipher
+import javax.crypto.KeyAgreement
 
 /**
  * The `KassaforteAsymmetricService` object allows to generate and to use asymmetric keys and managing their persistence.
@@ -103,18 +106,13 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         digest: Digest?,
         data: Any,
     ): String {
-        val cipherText = useCipher(
+        return encryptImpl(
             alias = alias,
             keyOperation = ENCRYPT,
             padding = padding,
             digest = digest,
-            usage = { cipher, key ->
-                cipher.init(Cipher.ENCRYPT_MODE, key)
-                val plainText = data.encodeForKeyOperation()
-                cipher.doFinal(plainText)
-            }
+            data = data
         )
-        return encode(cipherText)
     }
 
     /**
@@ -133,83 +131,13 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         digest: Digest?,
         data: String,
     ): String {
-        val plainText = useCipher(
+        return decryptImpl(
             alias = alias,
             keyOperation = DECRYPT,
             padding = padding,
             digest = digest,
-            usage = { cipher, key ->
-                cipher.init(Cipher.DECRYPT_MODE, key)
-                val cipherText = decode(data)
-                cipher.doFinal(cipherText)
-            }
+            data = data
         )
-        return plainText.decodeToString()
-    }
-
-    /**
-     * Method used to work and to use a [Cipher] instance to perform encryption or decryption of the data
-     *
-     * @param alias The alias which identify the key to use
-     * @param keyOperation The operation the key have to perform
-     * @param padding The padding to apply to ciphering data
-     * @param digest The digest to apply to ciphering data
-     * @param usage The routine the cipher have to perform
-     *
-     * @return the ciphered data as [ByteArray]
-     */
-    private inline fun useCipher(
-        alias: String,
-        keyOperation: KeyOperation,
-        padding: EncryptionPadding?,
-        digest: Digest?,
-        usage: (Cipher, Key) -> ByteArray,
-    ): ByteArray {
-        val key = serviceImpl.getKey(
-            alias = alias,
-            keyOperation = keyOperation
-        )
-        val algorithm = key.algorithm
-        checkIfIsSupportedCipherAlgorithm(
-            algorithm = algorithm
-        )
-        val cipher = Cipher.getInstance(
-            resolveTransformation(
-                algorithm = algorithm,
-                padding = padding,
-                digest = digest
-            )
-        )
-        return usage(cipher, key)
-    }
-
-    /**
-     * Method used to resolve the transformation value to obtain a [Cipher] instance
-     *
-     * @param algorithm The algorithm to use
-     * @param padding The padding to apply to ciphering data
-     * @param digest The digest to apply to ciphering data
-     *
-     * @return the transformation value as [String]
-     */
-    @Assembler
-    private fun resolveTransformation(
-        algorithm: String,
-        padding: EncryptionPadding?,
-        digest: Digest?,
-    ): String {
-        var transformation = "$algorithm/ECB"
-        transformation += "/" + when (padding) {
-            RSA_OAEP -> {
-                if (digest == null)
-                    throw IllegalStateException("The OAEPPadding padding mode requires to specify the digest to use")
-                digest.oaepWithValue().value
-            }
-
-            RSA_PKCS1 -> padding.value
-            else -> throw IllegalArgumentException("Invalid padding value")
-        }
-        return transformation
     }
 
     /**
@@ -234,10 +162,12 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             digest = digest,
             usage = { key ->
                 initSign(key as PrivateKey)
+
                 update(message.encodeForKeyOperation())
                 encode(sign())
             }
         )
+
         return signedMessage
     }
 
@@ -265,10 +195,12 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             digest = digest,
             usage = { key ->
                 initVerify(key as PublicKey)
+
                 update(message.encodeForKeyOperation())
                 verify(decode(signature))
             }
         )
+
         return result
     }
 
@@ -301,6 +233,7 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
             keyAlgorithm = key.algorithm
         )
         val signature = Signature.getInstance(signatureAlgorithm)
+
         return usage(signature, key)
     }
 
@@ -317,11 +250,256 @@ actual object KassaforteAsymmetricService : KassaforteKeysService<AsymmetricKeyG
         digest: Digest,
         keyAlgorithm: String,
     ): String {
-        val algorithm = if (keyAlgorithm == Algorithm.EC.value)
+        val algorithm = if (keyAlgorithm == EC.value)
             ECDSA
         else
             keyAlgorithm
+
         return "${digest.name}with$algorithm"
+    }
+
+    /**
+     * Method to perform an `Envelope Encryption` for wrapping a `DEK` material
+     *
+     * @param kekAlias The alias which identify the `KEK` key to use
+     * @param padding The padding to apply to wrap the material
+     * @param digest The digest to apply to wrap material
+     * @param dekBytes Arbitrary bytes representing the `DEK` material to wrap
+     *
+     * @return the [dekBytes] wrapped using the specified KEK key as `Base64` [String]
+     *
+     * @since Revision Three
+     */
+    actual suspend fun wrap(
+        kekAlias: String,
+        padding: EncryptionPadding,
+        digest: Digest,
+        dekBytes: ByteArray,
+    ): String {
+        return encryptImpl(
+            alias = kekAlias,
+            keyOperation = WRAP,
+            padding = padding,
+            digest = digest,
+            data = encode(dekBytes)
+        )
+    }
+
+    /**
+     * Method to perform an `Envelope Decryption` for unwrapping a `DEK` material previously
+     * wrapped
+     *
+     * @param kekAlias The alias which identify the `KEK` key to use
+     * @param padding The padding to apply to unwrap the material
+     * @param digest The digest to apply to unwrap the material
+     * @param wrappedDek The wrapped material, `Base64` encoded, to unwrap
+     *
+     * @return the material unwrapped using the specified KEK key as [ByteArray]
+     *
+     * @since Revision Three
+     */
+    actual suspend fun unwrap(
+        kekAlias: String,
+        padding: EncryptionPadding,
+        digest: Digest,
+        wrappedDek: String,
+    ): ByteArray {
+        val unwrappedDek = decryptImpl(
+            alias = kekAlias,
+            keyOperation = UNWRAP,
+            padding = padding,
+            digest = digest,
+            data = wrappedDek
+        )
+
+        return decode(unwrappedDek)
+    }
+
+    /**
+     * Implementation method used to encrypt data with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param keyOperation [KeyOperation.ENCRYPT] or [KeyOperation.WRAP]
+     * @param padding The padding to apply to encrypt data
+     * @param digest The digest to apply to encrypt data
+     * @param data The data to encrypt
+     *
+     * @return the encrypted data as [String]
+     *
+     * @since Revision Three
+     */
+    @Implementation
+    private fun encryptImpl(
+        alias: String,
+        keyOperation: KeyOperation,
+        padding: EncryptionPadding?,
+        digest: Digest?,
+        data: Any,
+    ): String {
+        val cipherText = useCipher(
+            alias = alias,
+            keyOperation = keyOperation,
+            padding = padding,
+            digest = digest,
+            usage = { cipher, key ->
+                cipher.init(Cipher.ENCRYPT_MODE, key)
+
+                val plainText = data.encodeForKeyOperation()
+                cipher.doFinal(plainText)
+            }
+        )
+
+        return encode(cipherText)
+    }
+
+    /**
+     * Implementation method used to decrypt the encrypted data with the key specified by the [alias] value
+     *
+     * @param alias The alias which identify the key to use
+     * @param keyOperation [KeyOperation.DECRYPT] or [KeyOperation.UNWRAP]
+     * @param padding The padding to apply to decrypt data
+     * @param digest The digest to apply to decrypt data
+     * @param data The data to decrypt
+     *
+     * @return the decrypted data as [String
+     *
+     * @since Revision Three
+     */
+    @Implementation
+    private fun decryptImpl(
+        alias: String,
+        keyOperation: KeyOperation,
+        padding: EncryptionPadding?,
+        digest: Digest?,
+        data: String,
+    ): String {
+        val plainText = useCipher(
+            alias = alias,
+            keyOperation = keyOperation,
+            padding = padding,
+            digest = digest,
+            usage = { cipher, key ->
+                cipher.init(Cipher.DECRYPT_MODE, key)
+
+                val cipherText = decode(data)
+                cipher.doFinal(cipherText)
+            }
+        )
+
+        return plainText.decodeToString()
+    }
+
+    /**
+     * Method used to work and to use a [Cipher] instance to perform encryption or decryption of the data
+     *
+     * @param alias The alias which identify the key to use
+     * @param keyOperation The operation the key have to perform
+     * @param padding The padding to apply to ciphering data
+     * @param digest The digest to apply to ciphering data
+     * @param usage The routine the cipher have to perform
+     *
+     * @return the ciphered data as [ByteArray]
+     */
+    private inline fun useCipher(
+        alias: String,
+        keyOperation: KeyOperation,
+        padding: EncryptionPadding?,
+        digest: Digest?,
+        usage: (Cipher, Key) -> ByteArray,
+    ): ByteArray {
+        val key = serviceImpl.getKey(
+            alias = alias,
+            keyOperation = keyOperation
+        )
+        val algorithm = key.algorithm
+        checkIfIsSupportedCipherAlgorithm(
+            algorithm = algorithm
+        )
+
+        val cipher = Cipher.getInstance(
+            resolveTransformation(
+                algorithm = algorithm,
+                padding = padding,
+                digest = digest
+            )
+        )
+
+        return usage(cipher, key)
+    }
+
+    /**
+     * Method used to resolve the transformation value to obtain a [Cipher] instance
+     *
+     * @param algorithm The algorithm to use
+     * @param padding The padding to apply to ciphering data
+     * @param digest The digest to apply to ciphering data
+     *
+     * @return the transformation value as [String]
+     */
+    @Assembler
+    private fun resolveTransformation(
+        algorithm: String,
+        padding: EncryptionPadding?,
+        digest: Digest?,
+    ): String {
+        var transformation = "$algorithm/ECB"
+        transformation += "/" + when (padding) {
+            RSA_OAEP -> {
+                if (digest == null)
+                    throw IllegalStateException("The OAEPPadding padding mode requires to specify the digest to use")
+                digest.oaepWithValue().value
+            }
+
+            RSA_PKCS1 -> padding.value
+            else -> throw IllegalArgumentException("Invalid padding value")
+        }
+
+        return transformation
+    }
+
+    /**
+     * Method to perform a key agreement and obtain a shared secret
+     *
+     * @param alias The alias of the private key used in the agreement
+     * @param peerPublicKey The remote peer public key used to compute the shared secret
+     * @param publicKeyLength The length of the public key
+     * @param secretLength The length the shared secret must have
+     *
+     * @return the shared secret generated with the agreement as `Base64` encoded [String]
+     *
+     * @since Revision Three
+     */
+    actual suspend fun agree(
+        alias: String,
+        peerPublicKey: ByteArray,
+        publicKeyLength: KeySize,
+        secretLength: KeySize,
+    ): String {
+        val key = serviceImpl.getKey(
+            alias = alias,
+            keyOperation = AGREE
+        )
+        val keyAgreement = KeyAgreement.getInstance(ECDH.value)
+        keyAgreement.init(key)
+
+        keyAgreement.doPhase(peerPublicKey.toPublicKey(), true)
+
+        return encode(keyAgreement.generateSecret())
+    }
+
+    /**
+     * Method used to convert a raw [ByteArray] into a valid [PublicKey]
+     *
+     * @return the public key converted as [PublicKey]
+     *
+     * @since Revision Three
+     */
+    @Returner
+    private fun ByteArray.toPublicKey(): PublicKey {
+        val keyFactory = KeyFactory.getInstance(EC.value)
+        val publicKeySpec = X509EncodedKeySpec(this)
+
+        return keyFactory.generatePublic(publicKeySpec)
     }
 
     /**

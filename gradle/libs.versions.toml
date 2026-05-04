@@ -1,12 +1,12 @@
 [versions]
-agp = "9.0.0"
-kotlin = "2.3.0"
+agp = "9.1.0"
+kotlin = "2.3.21"
 android-compileSdk = "36"
 android-minSdk = "24"
 mavenPublish = "0.36.0"
-dokka = "2.1.0"
+dokka = "2.2.0"
 startup = "1.2.0"
-equinox = "1.1.9beta-01"
+equinox = "1.1.9"
 kotlin-browser = "0.5.0"
 keyring = "1.0.4"
 json = "1.10.0"
@@ -24,8 +24,6 @@ kotlinx-coroutines-swing = { group = "org.jetbrains.kotlinx", name = "kotlinx-co
 windpapi4j = { module = "com.github.peter-gergely-horvath:windpapi4j", version.ref = "windpapi4j" }
 
 [plugins]
-androidApplication = { id = "com.android.application", version.ref = "agp" }
-androidLibrary = { id = "com.android.library", version.ref = "agp" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 androidKotlinMultiplatformLibrary = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

@@ -28,6 +28,13 @@ enum class KeyOperation {
     VERIFY,
 
     /**
+     * `DERIVE` the operation where the key is used to derive other key
+     *
+     * @since Revision Three
+     */
+    DERIVE,
+    
+    /**
      * `AGREE` the operation where the key is used in a key agreement protocol
      * to derive a shared secret (e.g., Diffie–Hellman, ECDH)
      */
@@ -37,6 +44,13 @@ enum class KeyOperation {
      * `WRAP` the operation where the key is used to wrap other key
      */
     WRAP,
+
+    /**
+     * `UNWRAP` the operation where the key is used to unwrap wrapped dek key
+     *
+     * @since Revision Three
+     */
+    UNWRAP,
 
     /**
      * `OBTAIN_KEY` the operation where is requested the key
@@ -54,7 +68,7 @@ enum class KeyOperation {
         @Returner
         fun KeyOperation.checkIfRequiresPublicKey(): Boolean {
             return when (this) {
-                ENCRYPT, VERIFY -> true
+                ENCRYPT, VERIFY, WRAP -> true
                 else -> false
             }
         }

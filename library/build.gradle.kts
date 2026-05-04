@@ -12,28 +12,25 @@ plugins {
 }
 
 group = "com.tecknobit.kassaforte"
-version = "1.0.0beta-03"
+version = "1.0.0beta-04"
 
 kotlin {
-    androidLibrary {
+    android {
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
         namespace = "com.tecknobit.kassaforte"
-        experimentalProperties["android.experimental.kmp.enableAndroidResources"] = true
 
         compilations {
             compilerOptions {
                 jvmTarget.set(JvmTarget.JVM_18)
             }
         }
-
     }
 
     listOf(
         iosX64(),
         iosArm64(),
         iosSimulatorArm64(),
-        macosX64(),
         macosArm64()
     ).forEach { appleTarget ->
         appleTarget.binaries.framework {
@@ -135,12 +132,12 @@ mavenPublishing {
     coordinates(
         groupId = "io.github.n7ghtm4r3",
         artifactId = "kassaforte",
-        version = "1.0.0beta-03"
+        version = "1.0.0beta-04"
     )
     pom {
         name.set("Kassaforte")
         description.set("Kassaforte enables secure storage of sensitive data in Compose Multiplatform applications and on the backend by leveraging each platform’s native security APIs. It further supports the generation and usage of symmetric and asymmetric keys to ensure data protection")
-        inceptionYear.set("2025")
+        inceptionYear.set("2026")
         url.set("https://github.com/N7ghtm4r3/Kassaforte")
 
         licenses {

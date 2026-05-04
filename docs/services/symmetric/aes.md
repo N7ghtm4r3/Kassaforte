@@ -26,7 +26,9 @@ be thrown an exception
 ```kotlin
 val purposes = KeyPurposes(
     canEncrypt = true,
-    canDecrypt = true
+    canDecrypt = true,
+    canWrapKey = true,
+    canDerive = true
 )
 ```
 
@@ -96,6 +98,50 @@ scope.launch {
 
     The `blockMode` and the `padding` values must match the values used to generate the using key, otherwise the decryption
     will fail
+
+### Wrap
+
+Encrypts the specified key material using the `Envelope Encryption` mechanism
+
+```kotlin
+val scope = MainScope()
+scope.launch {
+    // the key material to wrap
+    val materialKeyData = byteArrayOf(8, 21, 18, 22, 27, 16)
+
+    // wrap the specified key
+    val wrappedDek = KassaforteSymmetricService.wrap(
+        kekAlias = "toIdentifyTheKey",
+        dekBytes = materialKeyData
+    )
+
+    println(wrappedDek) // wrapped material
+}
+```
+
+!!! Info
+
+    The `wrappedDek` is encoded as `Base64` format
+
+### Unwrap
+
+Decrypts the specified `Data Encryption Key (DEK)` performing a `Envelope Dencryption`
+
+```kotlin
+val scope = MainScope()
+scope.launch {
+    // the DEK material to unwrap
+    val wrappedDek = Ynl0ZUFaycmF5T2YoOCwgMjEsIDE4LCAyMiwgMjcsIDE2KQ ==
+
+    // unwrap the specified material
+    val unwrappedDek = KassaforteSymmetricService.unwrap(
+        kekAlias = "toIdentifyTheKey",
+        wrappedDek = wrappedDek
+    )
+
+    println(unwrappedDek.contentToString()) // [8, 21, 18, 22, 27, 16]
+}
+```
 
 ## Delete a key
 

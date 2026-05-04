@@ -9,6 +9,7 @@ import com.tecknobit.equinoxcore.annotations.Structure
 import com.tecknobit.kassaforte.enums.ExportFormat
 import com.tecknobit.kassaforte.helpers.IndexedDBManager
 import com.tecknobit.kassaforte.key.genspec.BlockMode
+import com.tecknobit.kassaforte.key.genspec.KeySize
 import com.tecknobit.kassaforte.key.usages.KeyPurposes
 import com.tecknobit.kassaforte.util.decode
 import com.tecknobit.kassaforte.utils.await
@@ -44,6 +45,17 @@ import kotlin.js.*
  */
 @Structure
 internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> : KassaforteServiceManager<K> {
+
+    companion object {
+
+        /**
+         * `subtleCrypto` the instance which handles the keys generation and usages
+         *
+         * @since Revision Three
+         */
+        const val WRAP_KEY_USAGE = "wrapKey"
+
+    }
 
     /**
      * `subtleCrypto` the instance which handles the keys generation and usages
@@ -91,7 +103,7 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
      *
      * @param purposes The purposes the key can be used
      *
-     * @return the usages for the keys as [kotlin.js.JsArray] of [kotlin.js.JsString]
+     * @return the usages for the keys as [JsArray] of [JsString]
      *
      * @throws IllegalStateException when the combination of the usages is not valid
      */
@@ -100,6 +112,7 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
         purposes: KeyPurposes,
     ): JsArray<JsString> {
         val keyUsages = mutableListOf<String>()
+
         if (purposes.canEncrypt)
             keyUsages.add("encrypt")
         if (purposes.canDecrypt)
@@ -108,12 +121,22 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
             keyUsages.add("sign")
         if (purposes.canVerify)
             keyUsages.add("verify")
-        if (purposes.canWrapKey)
+        if (purposes.canWrapKey) {
             keyUsages.add("wrapKey")
-        if (purposes.canAgree)
+            keyUsages.add("unwrapKey")
+            keyUsages.add("encrypt")
+            keyUsages.add("decrypt")
+        }
+        if (purposes.canDerive)
+            keyUsages.add("deriveBits")
+        if (purposes.canAgree) {
             keyUsages.add("deriveKey")
+            keyUsages.add("deriveBits")
+        }
+
         if (keyUsages.isEmpty())
             throw IllegalStateException("Key usages not valid")
+
         return keyUsages.map { it.toJsString() }.toJsArray()
     }
 
@@ -134,6 +157,7 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
             extractable = true,
             keyUsages = usages
         ).await() as K
+
         store(
             alias = alias,
             algorithm = genSpec,
@@ -195,7 +219,7 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
     }
 
     /**
-     * Method used to work and to use a key to perform encryption or decryption of the data
+     * Method used to work and to use a key to perform operations with a [CryptoKey]
      *
      * @param rawKey The raw key to use to encrypt or decrypt data
      * (when is an asymmetric algorithm must be specified which key to use)
@@ -217,14 +241,77 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
         usage: (CryptoKey) -> T,
     ): T {
         val keyData = rawKey.toDecodedKeyData()
-        val key: CryptoKey = subtleCrypto.importKey(
-            format = format.value,
+        val key = importKey(
+            format = format,
             keyData = keyData,
             algorithm = rawKeyData.algorithm,
             extractable = rawKeyData.extractable,
             keyUsages = usages
-        ).await() as CryptoKey
+        )
+
         return usage(key)
+    }
+
+    /**
+     * Method used to import a key: that is, it takes as input a key in an external, portable format and gives you a
+     * [CryptoKey]
+     *
+     * @param format Describes the data format of the key to import
+     * @param keyData Contains the key in the given format
+     * @param algorithm Defines the type of key to import and providing extra algorithm-specific parameters
+     * @param extractable Whether it will be possible to export the key using
+     * @param purposes Indicates what can be done with the key
+     *
+     * @return the imported key as [CryptoKey]
+     *
+     * @since Revision Three
+     */
+    suspend fun importKey(
+        format: ExportFormat,
+        keyData: ArrayBuffer,
+        algorithm: KeyGenSpec,
+        extractable: Boolean,
+        purposes: KeyPurposes,
+    ): CryptoKey {
+        return importKey(
+            format = format,
+            keyData = keyData,
+            algorithm = algorithm,
+            extractable = extractable,
+            keyUsages = resolveUsages(
+                purposes = purposes
+            )
+        )
+    }
+
+    /**
+     * Method used to import a key: that is, it takes as input a key in an external, portable format and gives you a
+     * [CryptoKey]
+     *
+     * @param format Describes the data format of the key to import
+     * @param keyData Contains the key in the given format
+     * @param algorithm Defines the type of key to import and providing extra algorithm-specific parameters
+     * @param extractable Whether it will be possible to export the key using
+     * @param keyUsages Indicates what can be done with the key
+     *
+     * @return the imported key as [CryptoKey]
+     *
+     * @since Revision Three
+     */
+    suspend fun importKey(
+        format: ExportFormat,
+        keyData: ArrayBuffer,
+        algorithm: KeyGenSpec,
+        extractable: Boolean,
+        keyUsages: JsArray<JsString>,
+    ): CryptoKey {
+        return subtleCrypto.importKey(
+            format = format.value,
+            keyData = keyData,
+            algorithm = algorithm,
+            extractable = extractable,
+            keyUsages = keyUsages
+        ).await()
     }
 
     /**
@@ -338,7 +425,25 @@ internal abstract class KassaforteServiceImplManager<K : JsAny, RK : CryptoKey> 
             signature = signature.toUint8Array(),
             data = data.toUint8Array()
         ).await()
+
         return result.toBoolean()
+    }
+
+    /**
+     * Method used to derive a key from the
+     */
+    suspend fun deriveKey(
+        algorithm: JsAny,
+        baseKey: CryptoKey,
+        keySize: KeySize,
+    ): ArrayBuffer {
+        val result: ArrayBuffer = subtleCrypto.deriveBits(
+            algorithm = algorithm,
+            baseKey = baseKey,
+            length = keySize.bitCount
+        ).await()
+
+        return result
     }
 
     /**

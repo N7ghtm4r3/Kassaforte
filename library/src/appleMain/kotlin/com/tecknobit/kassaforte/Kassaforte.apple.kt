@@ -9,10 +9,13 @@ import com.tecknobit.kassaforte.util.deleteFromKeychain
 import com.tecknobit.kassaforte.util.kassaforteDictionary
 import com.tecknobit.kassaforte.util.retrieveFromKeychain
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.usePinned
 import platform.CoreFoundation.CFDictionaryAddValue
 import platform.CoreFoundation.CFMutableDictionaryRef
 import platform.CoreFoundation.kCFBooleanTrue
 import platform.Foundation.CFBridgingRetain
+import platform.Foundation.NSData
 import platform.Foundation.NSString
 import platform.Foundation.create
 import platform.Security.*
@@ -46,6 +49,7 @@ actual class Kassaforte actual constructor(
             key = key,
             data = data
         )
+
         SecItemAdd(
             attributes = attributes,
             result = null
@@ -97,6 +101,7 @@ actual class Kassaforte actual constructor(
             key = key,
             data = data
         )
+
         SecItemUpdate(
             query = query,
             attributesToUpdate = refreshingAttributes
@@ -185,6 +190,7 @@ actual class Kassaforte actual constructor(
         val query = searchingDictionary(
             key = key
         )
+
         return retrieveFromKeychain(
             query = query
         )
@@ -234,6 +240,7 @@ actual class Kassaforte actual constructor(
         val query = deletingDictionary(
             key = key
         )
+
         deleteFromKeychain(
             query = query
         )
@@ -312,10 +319,12 @@ actual class Kassaforte actual constructor(
     private fun CFMutableDictionaryRef.secValueData(
         data: Any
     ) {
+        val nsData = data.convert()
+
         CFDictionaryAddValue(
             theDict = this,
             key = kSecValueData,
-            value = CFBridgingRetain(data.convert())
+            value = CFBridgingRetain(nsData)
         )
     }
 
@@ -325,24 +334,31 @@ actual class Kassaforte actual constructor(
      * @return the converted data as [NSObject]
      */
     @Returner
-    private fun Any.convert() : NSObject {
-        return when(this) {
-            is Number, Boolean, String -> this.toNSString()
+    private fun Any.convert() : NSData {
+        return when (this) {
+            is Number -> this.toNSData()
+            is Boolean -> this.toNSData()
+            is String -> this.toNSData()
             else -> throw IllegalArgumentException(UNSUPPORTED_TYPE)
         }
     }
 
     /**
-     * Method used to convert an [Any] value into a compatible [NSString]
+     * Method used to convert an [Any] value into a compatible [NSData]
      *
-     * @return the converted data as [NSString]
+     * @return the converted data as [NSData]
      */
     @Returner
-    private fun Any.toNSString(): NSString {
-        val string = this.toString()
-        return NSString.create(
-            string = string
-        )
+    private fun Any.toNSData(): NSData {
+        val bytes = this.toString()
+            .encodeToByteArray()
+
+        return bytes.usePinned {
+            NSData.create(
+                bytes = it.addressOf(0),
+                length = bytes.size.toULong()
+            )
+        }
     }
 
 }

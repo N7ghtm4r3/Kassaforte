@@ -157,6 +157,63 @@ object KassaforteAsymmetricServiceJvm {
     }
 
     /**
+     * Method to perform an `Envelope Encryption` for wrapping a `DEK` material
+     *
+     * @param kekAlias The alias which identify the `KEK` key to use
+     * @param padding The padding to apply to wrap the material
+     * @param digest The digest to apply to wrap material
+     * @param dekBytes Arbitrary bytes representing the `DEK` material to wrap
+     *
+     * @return the [dekBytes] wrapped using the specified KEK key as `Base64` [String]
+     *
+     * @since Revision Three
+     */
+    @Wrapper
+    @JvmStatic
+    fun wrap(
+        kekAlias: String,
+        padding: EncryptionPadding,
+        digest: Digest,
+        dekBytes: ByteArray,
+    ) = runBlocking {
+        KassaforteAsymmetricService.wrap(
+            kekAlias = kekAlias,
+            padding = padding,
+            digest = digest,
+            dekBytes = dekBytes
+        )
+    }
+
+    /**
+     * Method to perform an `Envelope Decryption` for unwrapping a `DEK` material previously
+     * wrapped
+     *
+     * @param kekAlias The alias which identify the `KEK` key to use
+     * @param padding The padding to apply to unwrap the material
+     * @param digest The digest to apply to unwrap the material
+     * @param wrappedDek The wrapped material, `Base64` encoded, to unwrap
+     *
+     * @return the material unwrapped using the specified KEK key as [ByteArray]
+     *
+     * @since Revision Three
+     */
+    @Wrapper
+    @JvmStatic
+    fun unwrap(
+        kekAlias: String,
+        padding: EncryptionPadding,
+        digest: Digest,
+        wrappedDek: String,
+    ) = runBlocking {
+        KassaforteAsymmetricService.unwrap(
+            kekAlias = kekAlias,
+            padding = padding,
+            digest = digest,
+            wrappedDek = wrappedDek
+        )
+    }
+
+    /**
      * Method used to delete a generated key
      *
      * @param alias The alias of the key to delete
