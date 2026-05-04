@@ -168,6 +168,7 @@ This release will provide:
 
 - `wrap` and `unwrap` of the keys
 - `GCM` block mode support also on `apple` ❌
+- Key agreement
 
 Should be the latest `beta` version before the `stable` one
 
