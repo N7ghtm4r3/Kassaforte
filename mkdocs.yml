@@ -66,6 +66,7 @@ nav:
           - Overview: services/symmetric/symmetric.md
           - AES: services/symmetric/aes.md
           - HMAC: services/symmetric/hmac.md
+          - Key Derivation: services/symmetric/derivation.md
       - Asymmetric: services/asymmetric.md
 
 extra:

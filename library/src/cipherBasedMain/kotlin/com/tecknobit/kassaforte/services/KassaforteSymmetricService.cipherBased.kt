@@ -202,7 +202,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     }
 
     /**
-     * Method to perform an `Envelopment Encryption` for wrapping a `DEK` material
+     * Method to perform an `Envelope Encryption` for wrapping a `DEK` material
      *
      * @param kekAlias The alias which identify the `KEK` key to use
      * @param dekBytes Arbitrary bytes representing the `DEK` material to wrap
@@ -225,7 +225,7 @@ actual object KassaforteSymmetricService : KassaforteKeysService<SymmetricKeyGen
     }
 
     /**
-     * Method to perform an `Envelopment Decryption` for unwrapping a `DEK` material previously
+     * Method to perform an `Envelope Decryption` for unwrapping a `DEK` material previously
      * wrapped
      *
      * @param kekAlias The alias which identify the `KEK` key to use

@@ -36,13 +36,12 @@ This release will provide:
 
 - Adjustment under the hood and `JS` target integration and Kotlin `2.3.0`
 
-### beta-04
+### beta-04 ✅
 
 This release will provide:
 
 - `wrap` and `unwrap` of the keys
-- `GCM` block mode support also on `apple` (if the `CommonCrypto` will fully supports it and will be the ported on
-  `Kotlin/Native`, otherwise will be integrated when will be available)
+- `GCM` block mode support also on `apple` ❌
 
 Should be the latest `beta` version before the `stable` one
 
