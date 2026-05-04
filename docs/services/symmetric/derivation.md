@@ -22,6 +22,9 @@ scope.launch {
         keySize = KeySize.S512,
         digest = Digest.SHA512,
     )
+
+    // e.g. Ynl0ZUFaycmF5T2YoOCwgMjEsIDE4LCAyMiwgMjcsIDE2KQ==
+    println(derivedKey.key)
 }
 ```
 
